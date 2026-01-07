@@ -81,7 +81,7 @@ export const DayEntrySchema = z.object({
 export const ExpenseTransactionSchema = z.object({
   id: z.number().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  vendorId: z.number().nullable().optional(),
+  vendorId: z.string().nullable().optional(),
   vendorName: z.string().min(1),
   category: ExpenseCategorySchema,
   amount: z.number().min(0),

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +56,7 @@ const EXPENSE_CATEGORIES = [
   { key: 'CAPEX', label: 'CAPEX (Equipment)', icon: Wrench, color: 'bg-orange-600' },
 ];
 
-export default function DiaryPage() {
+function DiaryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentDate, setCurrentDate] = useState(() => {
@@ -518,5 +520,14 @@ export default function DiaryPage() {
         )}
       </div>
     </div>
+  );
+}
+
+
+export default function DiaryPage() {
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center bg-black text-white">Loading...</div>}>
+      <DiaryPageContent />
+    </Suspense>
   );
 }
