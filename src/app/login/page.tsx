@@ -19,8 +19,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8">
         {/* Logo / Brand */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-cyan-400 tracking-wider mb-2">
-            TRUEGAUGE
+          <h1 className="text-4xl uppercase tracking-[0.25em] text-zinc-400 mb-2">
+            <span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span>
+            <span className="font-light">GAUGE</span>
           </h1>
           <p className="text-zinc-500 text-sm uppercase tracking-widest">
             Business Health Dashboard
