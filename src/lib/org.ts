@@ -1,5 +1,6 @@
 import prisma from '@/lib/db';
 import { DEFAULT_SETTINGS } from '@/lib/types';
+import { createClient } from '@/lib/supabase/server';
 
 const DEFAULT_ORG_ID = 'default-org';
 
@@ -57,10 +58,31 @@ export async function getOrCreateSettings(organizationId: string) {
 }
 
 /**
- * Get the current organization ID.
- * For now, returns the default org. Later will use auth.
+ * Get the current organization ID from authenticated user.
+ * Falls back to default-org for unauthenticated requests.
  */
 export async function getCurrentOrgId(): Promise<string> {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      // Find user's organization
+      const orgUser = await prisma.organizationUser.findFirst({
+        where: { userId: user.id },
+        select: { organizationId: true },
+      });
+      
+      if (orgUser) {
+        return orgUser.organizationId;
+      }
+    }
+  } catch (error) {
+    // Supabase client may fail in some contexts, fall back to default
+    console.log('Auth check failed, using default org');
+  }
+  
+  // Fallback to default org (for API routes without auth)
   const org = await getOrCreateDefaultOrg();
   return org.id;
 }

@@ -2,6 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Owner email that gets linked to the legacy default-org
+const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+const LEGACY_ORG_ID = 'default-org';
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -12,42 +16,97 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // Ensure user exists in our database
-      const existingUser = await prisma.user.findUnique({
+      const userEmail = data.user.email!;
+      
+      // Check if user already exists
+      let existingUser = await prisma.user.findUnique({
         where: { id: data.user.id },
         include: { organizations: true },
       })
 
       if (!existingUser) {
-        // Create new user and their default organization
-        const user = await prisma.user.create({
-          data: {
-            id: data.user.id,
-            email: data.user.email!,
-            name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0],
-            avatarUrl: data.user.user_metadata?.avatar_url,
-          },
-        })
+        // Check if this is the owner email - link to legacy org
+        if (userEmail === OWNER_EMAIL) {
+          // Create user and link to existing default-org
+          const user = await prisma.user.create({
+            data: {
+              id: data.user.id,
+              email: userEmail,
+              name: data.user.user_metadata?.full_name || userEmail.split('@')[0],
+              avatarUrl: data.user.user_metadata?.avatar_url,
+            },
+          })
 
-        // Create default organization for new user
-        const org = await prisma.organization.create({
-          data: {
-            name: `${user.name}'s Business`,
-            users: {
-              create: {
+          // Check if legacy org exists
+          const legacyOrg = await prisma.organization.findUnique({
+            where: { id: LEGACY_ORG_ID },
+          })
+
+          if (legacyOrg) {
+            // Link user to existing org as owner
+            await prisma.organizationUser.create({
+              data: {
+                organizationId: LEGACY_ORG_ID,
                 userId: user.id,
                 role: 'owner',
               },
+            })
+            console.log(`Linked owner ${userEmail} to legacy org ${LEGACY_ORG_ID}`)
+          } else {
+            // Create org if it doesn't exist (shouldn't happen)
+            await prisma.organization.create({
+              data: {
+                id: LEGACY_ORG_ID,
+                name: 'HB Beverage Co',
+                users: {
+                  create: {
+                    userId: user.id,
+                    role: 'owner',
+                  },
+                },
+                settings: {
+                  create: {
+                    businessName: 'HB Beverage Co',
+                  },
+                },
+              },
+            })
+            console.log(`Created legacy org for owner ${userEmail}`)
+          }
+        } else {
+          // New user - create user with Showcase Template org
+          const user = await prisma.user.create({
+            data: {
+              id: data.user.id,
+              email: userEmail,
+              name: data.user.user_metadata?.full_name || userEmail.split('@')[0],
+              avatarUrl: data.user.user_metadata?.avatar_url,
             },
-            settings: {
-              create: {
-                businessName: `${user.name}'s Business`,
+          })
+
+          // Create new organization with Showcase Template data
+          const org = await prisma.organization.create({
+            data: {
+              name: 'Demo Coffee Co',
+              users: {
+                create: {
+                  userId: user.id,
+                  role: 'owner',
+                },
+              },
+              settings: {
+                create: {
+                  businessName: 'Demo Coffee Co',
+                  monthlyFixedNut: 15500,
+                  targetCogsPct: 35,
+                  targetFeesPct: 3,
+                },
               },
             },
-          },
-        })
+          })
 
-        console.log(`Created new user ${user.email} with org ${org.id}`)
+          console.log(`Created new user ${userEmail} with Showcase Template org ${org.id}`)
+        }
       }
 
       return NextResponse.redirect(`${origin}${next}`)
