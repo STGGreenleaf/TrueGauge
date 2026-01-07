@@ -1,17 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import * as calc from '@/lib/calc';
-import { DEFAULT_SETTINGS } from '@/lib/types';
+import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 interface DayEntryRecord {
-  id: number;
+  id: string;
   date: string;
   netSalesExTax: number | null;
   notes: string | null;
 }
 
 interface ExpenseRecord {
-  id: number;
+  id: string;
   date: string;
   vendorName: string;
   category: string;
@@ -22,25 +22,9 @@ interface ExpenseRecord {
 
 export async function GET() {
   try {
-    // Get settings first to use configured timezone
-    let settings = await prisma.settings.findFirst();
-    if (!settings) {
-      settings = await prisma.settings.create({
-        data: {
-          businessName: DEFAULT_SETTINGS.businessName,
-          timezone: DEFAULT_SETTINGS.timezone,
-          salesInputMode: DEFAULT_SETTINGS.salesInputMode,
-          targetCogsPct: DEFAULT_SETTINGS.targetCogsPct,
-          targetFeesPct: DEFAULT_SETTINGS.targetFeesPct,
-          monthlyFixedNut: DEFAULT_SETTINGS.monthlyFixedNut,
-          monthlyRoofFund: DEFAULT_SETTINGS.monthlyRoofFund,
-          monthlyOwnerDrawGoal: DEFAULT_SETTINGS.monthlyOwnerDrawGoal,
-          openHoursTemplate: JSON.stringify(DEFAULT_SETTINGS.openHoursTemplate),
-          enableTrueHealth: DEFAULT_SETTINGS.enableTrueHealth,
-          enableSpreading: DEFAULT_SETTINGS.enableSpreading,
-        },
-      });
-    }
+    // Get current org and settings
+    const orgId = await getCurrentOrgId();
+    const settings = await getOrCreateSettings(orgId);
     
     // Get current date in user's configured timezone
     const now = new Date();
@@ -57,7 +41,7 @@ export async function GET() {
     
     // Get MTD day entries
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
-      where: { date: { startsWith: monthStr } },
+      where: { organizationId: orgId, date: { startsWith: monthStr } },
     });
     
     // Determine asOfDate: max date with sales entered, or today if none
@@ -77,19 +61,20 @@ export async function GET() {
     
     // Get MTD expenses (up to asOfDate for consistency)
     const expenses: ExpenseRecord[] = await prisma.expenseTransaction.findMany({
-      where: { date: { startsWith: monthStr } },
+      where: { organizationId: orgId, date: { startsWith: monthStr } },
     });
     
     // Get historical spread expenses (from previous months that might still be active)
     const allSpreadExpenses: ExpenseRecord[] = await prisma.expenseTransaction.findMany({
       where: {
+        organizationId: orgId,
         spreadMonths: { gte: 2 },
       },
     });
     
     // Get last year reference for this month
-    const lastYearRef = await prisma.referenceMonth.findUnique({
-      where: { year_month: { year: year - 1, month } },
+    const lastYearRef = await prisma.referenceMonth.findFirst({
+      where: { organizationId: orgId, year: year - 1, month },
     });
     
     // Calculate MTD totals (only entries up to asOfDate)
@@ -251,10 +236,10 @@ export async function GET() {
     if (hasSnapshot && settings.cashSnapshotAsOf) {
       // Get ALL day entries and expenses for changeSince calculation (not just MTD)
       const dayEntriesRaw = await prisma.dayEntry.findMany({
-        where: { date: { gt: settings.cashSnapshotAsOf, lte: asOfDate } },
+        where: { organizationId: orgId, date: { gt: settings.cashSnapshotAsOf, lte: asOfDate } },
       });
       const expensesRaw = await prisma.expenseTransaction.findMany({
-        where: { date: { gt: settings.cashSnapshotAsOf, lte: asOfDate } },
+        where: { organizationId: orgId, date: { gt: settings.cashSnapshotAsOf, lte: asOfDate } },
       });
       
       allDayEntries = dayEntriesRaw.map(e => ({ date: e.date, netSalesExTax: e.netSalesExTax }));
@@ -272,11 +257,13 @@ export async function GET() {
     
     // Build Liquidity Receiver data using pure calc helpers
     const referenceMonths = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId },
       orderBy: [{ year: 'asc' }, { month: 'asc' }],
     });
     
     // Fetch cash injections for capital tracking
     const cashInjections = await prisma.cashInjection.findMany({
+      where: { organizationId: orgId },
       orderBy: { date: 'asc' },
     });
     

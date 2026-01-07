@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getCurrentOrgId } from '@/lib/org';
 
 interface VendorRecord {
-  id: number;
+  id: string;
   name: string;
   defaultCategory: string;
   typicalAmount: number | null;
@@ -14,7 +15,9 @@ interface VendorRecord {
 
 export async function GET() {
   try {
+    const orgId = await getCurrentOrgId();
     const vendors: VendorRecord[] = await prisma.vendorTemplate.findMany({
+      where: { organizationId: orgId },
       orderBy: { name: 'asc' },
     });
     
@@ -30,10 +33,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     
     const vendor = await prisma.vendorTemplate.create({
       data: {
+        organizationId: orgId,
         name: body.name,
         defaultCategory: body.defaultCategory || 'COGS',
         typicalAmount: body.typicalAmount || null,
@@ -101,7 +106,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     await prisma.vendorTemplate.delete({
-      where: { id: parseInt(id) },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

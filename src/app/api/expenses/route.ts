@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { ExpenseTransactionSchema } from '@/lib/types';
+import { getCurrentOrgId } from '@/lib/org';
 
 export async function GET(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month'); // Format: YYYY-MM
     const category = searchParams.get('category');
     
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { organizationId: orgId };
     
     if (month) {
       where.date = { startsWith: month };
@@ -36,11 +38,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const validated = ExpenseTransactionSchema.parse(body);
     
     const expense = await prisma.expenseTransaction.create({
       data: {
+        organizationId: orgId,
         date: validated.date,
         vendorId: validated.vendorId,
         vendorName: validated.vendorName,
@@ -74,7 +78,7 @@ export async function DELETE(request: Request) {
     }
     
     await prisma.expenseTransaction.delete({
-      where: { id: parseInt(id) },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

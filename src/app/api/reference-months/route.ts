@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getCurrentOrgId } from '@/lib/org';
 
 // GET - fetch all reference months or by year
 export async function GET(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
     const year = searchParams.get('year');
     
     if (year) {
       const months = await prisma.referenceMonth.findMany({
-        where: { year: parseInt(year) },
+        where: { organizationId: orgId, year: parseInt(year) },
         orderBy: { month: 'asc' },
       });
       return NextResponse.json(months);
@@ -17,6 +19,7 @@ export async function GET(request: Request) {
     
     // Return all reference months grouped by year
     const allMonths = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId },
       orderBy: [{ year: 'desc' }, { month: 'asc' }],
     });
     return NextResponse.json(allMonths);
@@ -29,6 +32,7 @@ export async function GET(request: Request) {
 // POST - create or update a reference month (upsert)
 export async function POST(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const { year, month, referenceNetSalesExTax, note } = body;
     
@@ -37,9 +41,9 @@ export async function POST(request: Request) {
     }
     
     const refMonth = await prisma.referenceMonth.upsert({
-      where: { year_month: { year, month } },
+      where: { organizationId_year_month: { organizationId: orgId, year, month } },
       update: { referenceNetSalesExTax, note },
-      create: { year, month, referenceNetSalesExTax, note },
+      create: { organizationId: orgId, year, month, referenceNetSalesExTax, note },
     });
     
     return NextResponse.json(refMonth);
@@ -52,6 +56,7 @@ export async function POST(request: Request) {
 // PUT - bulk update a year's worth of reference months
 export async function PUT(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const { year, months } = body; // months: { 1: 25000, 2: 28000, ... }
     
@@ -67,14 +72,14 @@ export async function PUT(request: Request) {
         
         if (amount > 0) {
           return prisma.referenceMonth.upsert({
-            where: { year_month: { year, month } },
+            where: { organizationId_year_month: { organizationId: orgId, year, month } },
             update: { referenceNetSalesExTax: amount },
-            create: { year, month, referenceNetSalesExTax: amount },
+            create: { organizationId: orgId, year, month, referenceNetSalesExTax: amount },
           });
         } else {
           // Delete if value is 0 or empty
           await prisma.referenceMonth.deleteMany({
-            where: { year, month },
+            where: { organizationId: orgId, year, month },
           });
           return null;
         }

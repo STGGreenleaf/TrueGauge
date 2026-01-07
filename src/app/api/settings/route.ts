@@ -1,29 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { SettingsSchema, DEFAULT_SETTINGS } from '@/lib/types';
+import { SettingsSchema } from '@/lib/types';
+import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 export async function GET() {
   try {
-    let settings = await prisma.settings.findFirst();
-    
-    if (!settings) {
-      // Create default settings if none exist
-      settings = await prisma.settings.create({
-        data: {
-          businessName: DEFAULT_SETTINGS.businessName,
-          timezone: DEFAULT_SETTINGS.timezone,
-          salesInputMode: DEFAULT_SETTINGS.salesInputMode,
-          targetCogsPct: DEFAULT_SETTINGS.targetCogsPct,
-          targetFeesPct: DEFAULT_SETTINGS.targetFeesPct,
-          monthlyFixedNut: DEFAULT_SETTINGS.monthlyFixedNut,
-          monthlyRoofFund: DEFAULT_SETTINGS.monthlyRoofFund,
-          monthlyOwnerDrawGoal: DEFAULT_SETTINGS.monthlyOwnerDrawGoal,
-          openHoursTemplate: JSON.stringify(DEFAULT_SETTINGS.openHoursTemplate),
-          enableTrueHealth: DEFAULT_SETTINGS.enableTrueHealth,
-          enableSpreading: DEFAULT_SETTINGS.enableSpreading,
-        },
-      });
-    }
+    const orgId = await getCurrentOrgId();
+    const settings = await getOrCreateSettings(orgId);
     
     // Parse openHoursTemplate from JSON string
     const parsedSettings = {
@@ -43,11 +26,12 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const validated = SettingsSchema.parse(body);
     
     const settings = await prisma.settings.upsert({
-      where: { id: 1 },
+      where: { organizationId: orgId },
       update: {
         businessName: validated.businessName,
         timezone: validated.timezone,
@@ -83,6 +67,7 @@ export async function PUT(request: Request) {
         targetReserveCash: validated.targetReserveCash ?? 100000,
       },
       create: {
+        organizationId: orgId,
         businessName: validated.businessName,
         timezone: validated.timezone,
         salesInputMode: validated.salesInputMode,

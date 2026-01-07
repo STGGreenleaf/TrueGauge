@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { getCurrentOrgId } from '@/lib/org';
 
 // GET - fetch all cash injections
 export async function GET() {
   try {
+    const orgId = await getCurrentOrgId();
     const injections = await prisma.cashInjection.findMany({
+      where: { organizationId: orgId },
       orderBy: { date: 'asc' },
     });
     return NextResponse.json(injections);
@@ -17,6 +20,7 @@ export async function GET() {
 // POST - add new injection or withdrawal
 export async function POST(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const { date, amount, note, type = 'injection' } = body;
     
@@ -26,6 +30,7 @@ export async function POST(request: Request) {
     
     const injection = await prisma.cashInjection.create({
       data: {
+        organizationId: orgId,
         date,
         amount: Math.abs(amount), // Store as positive
         type, // "injection" or "withdrawal"
@@ -51,7 +56,7 @@ export async function DELETE(request: Request) {
     }
     
     await prisma.cashInjection.delete({
-      where: { id: parseInt(id) },
+      where: { id },
     });
     
     return NextResponse.json({ success: true });

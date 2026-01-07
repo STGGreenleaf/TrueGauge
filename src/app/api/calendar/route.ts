@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import * as calc from '@/lib/calc';
-import { DEFAULT_SETTINGS } from '@/lib/types';
+import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 interface DayEntryRecord {
-  id: number;
+  id: string;
   date: string;
   netSalesExTax: number | null;
 }
@@ -30,34 +30,18 @@ export async function GET(request: NextRequest) {
     const year = parseInt(yearStr);
     const month = parseInt(monthNumStr);
     
-    // Get settings
-    let settings = await prisma.settings.findFirst();
-    if (!settings) {
-      settings = await prisma.settings.create({
-        data: {
-          businessName: DEFAULT_SETTINGS.businessName,
-          timezone: DEFAULT_SETTINGS.timezone,
-          salesInputMode: DEFAULT_SETTINGS.salesInputMode,
-          targetCogsPct: DEFAULT_SETTINGS.targetCogsPct,
-          targetFeesPct: DEFAULT_SETTINGS.targetFeesPct,
-          monthlyFixedNut: DEFAULT_SETTINGS.monthlyFixedNut,
-          monthlyRoofFund: DEFAULT_SETTINGS.monthlyRoofFund,
-          monthlyOwnerDrawGoal: DEFAULT_SETTINGS.monthlyOwnerDrawGoal,
-          openHoursTemplate: JSON.stringify(DEFAULT_SETTINGS.openHoursTemplate),
-          enableTrueHealth: DEFAULT_SETTINGS.enableTrueHealth,
-          enableSpreading: DEFAULT_SETTINGS.enableSpreading,
-        },
-      });
-    }
+    // Get current org and settings
+    const orgId = await getCurrentOrgId();
+    const settings = await getOrCreateSettings(orgId);
     
     // Get day entries for the month
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
-      where: { date: { startsWith: monthStr } },
+      where: { organizationId: orgId, date: { startsWith: monthStr } },
     });
     
     // Get expenses for the month
     const expenses: ExpenseRecord[] = await prisma.expenseTransaction.findMany({
-      where: { date: { startsWith: monthStr } },
+      where: { organizationId: orgId, date: { startsWith: monthStr } },
       select: { date: true, amount: true },
     });
     

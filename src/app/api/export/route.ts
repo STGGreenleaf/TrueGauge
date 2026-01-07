@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import archiver from 'archiver';
-import { Readable } from 'stream';
+import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 // Approved export tables - drift test will verify this list
 export const APPROVED_EXPORT_TABLES = ['settings', 'dayEntries', 'expenseTransactions', 'referenceMonths'] as const;
@@ -40,6 +40,7 @@ function buildCsv(headers: string[], rows: Record<string, unknown>[]): string {
 
 export async function GET(request: NextRequest) {
   try {
+    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
     const format = searchParams.get('format') || 'json';
     
@@ -47,11 +48,11 @@ export async function GET(request: NextRequest) {
     const timestamp = now.toISOString().split('T')[0];
     const exportedAtIsoUtc = now.toISOString();
 
-    // Fetch all data - raw values only, no computed fields
-    const settings = await prisma.settings.findFirst();
-    const dayEntries = await prisma.dayEntry.findMany({ orderBy: { date: 'asc' } });
-    const expenseTransactions = await prisma.expenseTransaction.findMany({ orderBy: { date: 'asc' } });
-    const referenceMonths = await prisma.referenceMonth.findMany({ orderBy: [{ year: 'asc' }, { month: 'asc' }] });
+    // Fetch all data for org - raw values only, no computed fields
+    const settings = await getOrCreateSettings(orgId);
+    const dayEntries = await prisma.dayEntry.findMany({ where: { organizationId: orgId }, orderBy: { date: 'asc' } });
+    const expenseTransactions = await prisma.expenseTransaction.findMany({ where: { organizationId: orgId }, orderBy: { date: 'asc' } });
+    const referenceMonths = await prisma.referenceMonth.findMany({ where: { organizationId: orgId }, orderBy: [{ year: 'asc' }, { month: 'asc' }] });
 
     if (format === 'json') {
       // JSON export
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
           schemaVersion: SCHEMA_VERSION,
           exportedAtIsoUtc,
         },
-        settings: settings || null,
+        settings,
         dayEntries,
         expenseTransactions,
         referenceMonths,
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="hb-health-backup-${timestamp}.json"`,
+          'Content-Disposition': `attachment; filename="truegauge-backup-${timestamp}.json"`,
         },
       });
     } else if (format === 'csv') {
@@ -122,7 +123,7 @@ export async function GET(request: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': 'application/zip',
-          'Content-Disposition': `attachment; filename="hb-health-backup-${timestamp}.zip"`,
+          'Content-Disposition': `attachment; filename="truegauge-backup-${timestamp}.zip"`,
         },
       });
     } else {

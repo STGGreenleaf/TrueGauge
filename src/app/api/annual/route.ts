@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import * as calc from '@/lib/calc';
-import { DEFAULT_SETTINGS } from '@/lib/types';
+import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 interface DayEntryRecord {
   date: string;
@@ -33,25 +33,9 @@ export async function GET(request: NextRequest) {
     const yearStr = searchParams.get('year');
     const year = yearStr ? parseInt(yearStr) : new Date().getFullYear();
     
-    // Get settings
-    let settings = await prisma.settings.findFirst();
-    if (!settings) {
-      settings = await prisma.settings.create({
-        data: {
-          businessName: DEFAULT_SETTINGS.businessName,
-          timezone: DEFAULT_SETTINGS.timezone,
-          salesInputMode: DEFAULT_SETTINGS.salesInputMode,
-          targetCogsPct: DEFAULT_SETTINGS.targetCogsPct,
-          targetFeesPct: DEFAULT_SETTINGS.targetFeesPct,
-          monthlyFixedNut: DEFAULT_SETTINGS.monthlyFixedNut,
-          monthlyRoofFund: DEFAULT_SETTINGS.monthlyRoofFund,
-          monthlyOwnerDrawGoal: DEFAULT_SETTINGS.monthlyOwnerDrawGoal,
-          openHoursTemplate: JSON.stringify(DEFAULT_SETTINGS.openHoursTemplate),
-          enableTrueHealth: DEFAULT_SETTINGS.enableTrueHealth,
-          enableSpreading: DEFAULT_SETTINGS.enableSpreading,
-        },
-      });
-    }
+    // Get current org and settings
+    const orgId = await getCurrentOrgId();
+    const settings = await getOrCreateSettings(orgId);
     
     // Calculate survival goal
     const survivalGoal = calc.survivalGoalNetExTax(
@@ -62,12 +46,12 @@ export async function GET(request: NextRequest) {
     
     // Get all entries for the year
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
-      where: { date: { startsWith: `${year}-` } },
+      where: { organizationId: orgId, date: { startsWith: `${year}-` } },
     });
     
     // Get all expenses for the year
     const expenses: ExpenseRecord[] = await prisma.expenseTransaction.findMany({
-      where: { date: { startsWith: `${year}-` } },
+      where: { organizationId: orgId, date: { startsWith: `${year}-` } },
     });
     
     const monthNames = [

@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { DayEntrySchema } from '@/lib/types';
+import { getCurrentOrgId } from '@/lib/org';
 
 export async function GET(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date');
     const month = searchParams.get('month'); // Format: YYYY-MM
     
     if (date) {
-      const entry = await prisma.dayEntry.findUnique({
-        where: { date },
+      const entry = await prisma.dayEntry.findFirst({
+        where: { organizationId: orgId, date },
       });
       return NextResponse.json(entry);
     }
@@ -18,9 +20,8 @@ export async function GET(request: Request) {
     if (month) {
       const entries = await prisma.dayEntry.findMany({
         where: {
-          date: {
-            startsWith: month,
-          },
+          organizationId: orgId,
+          date: { startsWith: month },
         },
         orderBy: { date: 'asc' },
       });
@@ -29,6 +30,7 @@ export async function GET(request: Request) {
     
     // Return all entries
     const entries = await prisma.dayEntry.findMany({
+      where: { organizationId: orgId },
       orderBy: { date: 'desc' },
     });
     return NextResponse.json(entries);
@@ -43,16 +45,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const orgId = await getCurrentOrgId();
     const body = await request.json();
     const validated = DayEntrySchema.parse(body);
     
     const entry = await prisma.dayEntry.upsert({
-      where: { date: validated.date },
+      where: { organizationId_date: { organizationId: orgId, date: validated.date } },
       update: {
         netSalesExTax: validated.netSalesExTax,
         notes: validated.notes,
       },
       create: {
+        organizationId: orgId,
         date: validated.date,
         netSalesExTax: validated.netSalesExTax,
         notes: validated.notes,
