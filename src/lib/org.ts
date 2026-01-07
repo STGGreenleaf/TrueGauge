@@ -58,9 +58,12 @@ export async function getOrCreateSettings(organizationId: string) {
   return settings;
 }
 
+// Owner email that gets linked to the legacy default-org
+const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+
 /**
  * Get the current organization ID from authenticated user.
- * Throws error if not authenticated - data is protected.
+ * Auto-links owner email to default-org if not already linked.
  */
 export async function getCurrentOrgId(): Promise<string> {
   const cookieStore = await cookies();
@@ -81,7 +84,7 @@ export async function getCurrentOrgId(): Promise<string> {
   
   if (user) {
     // Find user's organization
-    const orgUser = await prisma.organizationUser.findFirst({
+    let orgUser = await prisma.organizationUser.findFirst({
       where: { userId: user.id },
       select: { organizationId: true },
     });
@@ -89,9 +92,34 @@ export async function getCurrentOrgId(): Promise<string> {
     if (orgUser) {
       return orgUser.organizationId;
     }
+    
+    // User authenticated but not linked - auto-link owner to default-org
+    if (user.email === OWNER_EMAIL) {
+      // Ensure user record exists
+      await prisma.user.upsert({
+        where: { id: user.id },
+        update: {},
+        create: {
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email.split('@')[0],
+          avatarUrl: user.user_metadata?.avatar_url,
+        },
+      });
+      
+      // Link to default-org
+      await prisma.organizationUser.create({
+        data: {
+          organizationId: DEFAULT_ORG_ID,
+          userId: user.id,
+          role: 'owner',
+        },
+      });
+      
+      return DEFAULT_ORG_ID;
+    }
   }
   
-  // Not authenticated - return default-org for now
-  // This allows the site to work but data should be empty for unauthenticated users
+  // Not authenticated or not owner - return default-org
   return DEFAULT_ORG_ID;
 }
