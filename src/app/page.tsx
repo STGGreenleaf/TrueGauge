@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Settings, RefreshCw, Plus, CalendarDays, Play } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
+import { OwnerMenu } from '@/components/OwnerMenu';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false); // Only show via easter egg
   const [activeTip, setActiveTip] = useState<string | null>(null);
+  const [userViewEnabled, setUserViewEnabled] = useState(false);
 
   const fetchDashboard = async () => {
     try {
@@ -47,9 +49,14 @@ export default function Dashboard() {
     const handleFocus = () => fetchDashboard();
     window.addEventListener('focus', handleFocus);
     
+    // Listen for splash page trigger from owner menu
+    const handleShowSplash = () => setShowAnimation(true);
+    window.addEventListener('show-splash', handleShowSplash);
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('show-splash', handleShowSplash);
     };
   }, []);
 
@@ -121,6 +128,10 @@ export default function Dashboard() {
             <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400"><span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span><span className="font-light">GAUGE</span></h1>
           </div>
           <div className="flex items-center gap-1">
+            <OwnerMenu 
+              onToggleUserView={setUserViewEnabled} 
+              userViewEnabled={userViewEnabled} 
+            />
             <Button
               variant="ghost"
               size="icon"
