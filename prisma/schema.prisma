@@ -1,6 +1,3 @@
-// TrueGauge - Prisma Schema
-// Multi-tenant PostgreSQL on Supabase
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,30 +8,27 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Multi-tenancy: Organizations and Users
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  users       OrganizationUser[]
-  settings    Settings?
-  dayEntries  DayEntry[]
-  expenses    ExpenseTransaction[]
-  vendors     VendorTemplate[]
-  references  ReferenceMonth[]
-  injections  CashInjection[]
+  id         String               @id @default(cuid())
+  name       String
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+  injections CashInjection[]
+  dayEntries DayEntry[]
+  expenses   ExpenseTransaction[]
+  users      OrganizationUser[]
+  references ReferenceMonth[]
+  settings   Settings?
+  vendors    VendorTemplate[]
 }
 
 model User {
-  id        String   @id // Supabase auth user ID
-  email     String   @unique
-  name      String?
-  avatarUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id            String             @id
+  email         String             @unique
+  name          String?
+  avatarUrl     String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
   organizations OrganizationUser[]
 }
 
@@ -42,134 +36,127 @@ model OrganizationUser {
   id             String       @id @default(cuid())
   organizationId String
   userId         String
-  role           String       @default("member") // "owner", "admin", "member"
+  role           String       @default("member")
   createdAt      DateTime     @default(now())
-
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
 }
 
-// SalesInputMode: NET_SALES_EX_TAX, TOTAL_INCLUDES_TAX, DEPOSIT_NET_OF_FEES
-// ExpenseCategory: COGS, OPEX, TAX, CAPEX, OWNER_DRAW, OTHER
-// RecurrenceRule: NONE, WEEKLY, MONTHLY
-
 model Settings {
-  id                   String   @id @default(cuid())
-  organizationId       String   @unique
-  businessName         String   @default("My Business")
-  timezone             String   @default("America/Denver")
-  salesInputMode       String   @default("NET_SALES_EX_TAX")
-  targetCogsPct        Float    @default(0.35)
-  targetFeesPct        Float    @default(0.03)
-  monthlyFixedNut      Float    @default(15500)
-  // Individual NUT breakdown (sum = monthlyFixedNut)
-  nutRent              Float    @default(0)
-  nutUtilities         Float    @default(0)
-  nutPhone             Float    @default(0)
-  nutInternet          Float    @default(0)
-  nutInsurance         Float    @default(0)
-  nutLoanPayment       Float    @default(0)
-  nutPayroll           Float    @default(0)
-  nutOther1            Float    @default(0)
-  nutOther1Label       String   @default("Other 1")
-  nutOther2            Float    @default(0)
-  nutOther2Label       String   @default("Other 2")
-  nutOther3            Float    @default(0)
-  nutOther3Label       String   @default("Other 3")
-  // Optional goals
-  monthlyRoofFund      Float    @default(0)
-  monthlyOwnerDrawGoal Float    @default(0)
-  openHoursTemplate    String   @default("{\"mon\":0,\"tue\":8,\"wed\":8,\"thu\":8,\"fri\":8,\"sat\":8,\"sun\":5}")
-  storeCloseHour       Int      @default(16) // 24-hour format, default 4 PM
-  enableTrueHealth     Boolean  @default(true)
-  enableSpreading      Boolean  @default(true)
-  // Cash snapshot for liquidity tracking
-  cashSnapshotAmount   Float?   // nullable - dollars on hand at snapshot date
-  cashSnapshotAsOf     String?  // nullable - ISO YYYY-MM-DD
-  // Reserve thresholds for Liquidity Receiver
-  operatingFloorCash   Float    @default(0)      // minimum operating balance
-  targetReserveCash    Float    @default(100000) // target reserve goal
-  // Year Start anchor for Continuity Mode estimation
-  yearStartCashAmount  Float?   // nullable - cash on hand at year start (for estimates)
-  yearStartCashDate    String   @default("2025-01-01") // ISO YYYY-MM-DD
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(cuid())
+  organizationId       String       @unique
+  businessName         String       @default("My Business")
+  timezone             String       @default("America/Denver")
+  salesInputMode       String       @default("NET_SALES_EX_TAX")
+  targetCogsPct        Float        @default(0.35)
+  targetFeesPct        Float        @default(0.03)
+  monthlyFixedNut      Float        @default(15500)
+  nutRent              Float        @default(0)
+  nutUtilities         Float        @default(0)
+  nutPhone             Float        @default(0)
+  nutInternet          Float        @default(0)
+  nutInsurance         Float        @default(0)
+  nutLoanPayment       Float        @default(0)
+  nutPayroll           Float        @default(0)
+  nutOther1            Float        @default(0)
+  nutOther1Label       String       @default("Other 1")
+  nutOther2            Float        @default(0)
+  nutOther2Label       String       @default("Other 2")
+  nutOther3            Float        @default(0)
+  nutOther3Label       String       @default("Other 3")
+  monthlyRoofFund      Float        @default(0)
+  monthlyOwnerDrawGoal Float        @default(0)
+  openHoursTemplate    String       @default("{\"mon\":0,\"tue\":8,\"wed\":8,\"thu\":8,\"fri\":8,\"sat\":8,\"sun\":5}")
+  storeCloseHour       Int          @default(16)
+  enableTrueHealth     Boolean      @default(true)
+  enableSpreading      Boolean      @default(true)
+  cashSnapshotAmount   Float?
+  cashSnapshotAsOf     String?
+  operatingFloorCash   Float        @default(0)
+  targetReserveCash    Float        @default(100000)
+  yearStartCashAmount  Float?
+  yearStartCashDate    String       @default("2025-01-01")
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model DayEntry {
-  id             String    @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
-  date           String    // ISO date YYYY-MM-DD
+  date           String
   netSalesExTax  Float?
   notes          String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([organizationId, date])
+  @@index([organizationId])
 }
 
 model ExpenseTransaction {
-  id             String   @id @default(cuid())
+  id             String          @id @default(cuid())
   organizationId String
-  date           String   // ISO date YYYY-MM-DD
+  date           String
   vendorId       String?
   vendorName     String
-  category       String   // COGS, OPEX, TAX, CAPEX, OWNER_DRAW, OTHER
+  category       String
   amount         Float
   memo           String?
-  spreadMonths   Int?     // null or 1 = no spread, >= 2 = amortize
-  createdAt      DateTime @default(now())
+  spreadMonths   Int?
+  createdAt      DateTime        @default(now())
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vendor         VendorTemplate? @relation(fields: [vendorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  vendor         VendorTemplate? @relation(fields: [vendorId], references: [id])
+  @@index([organizationId])
 }
 
 model VendorTemplate {
-  id                    String   @id @default(cuid())
+  id                    String               @id @default(cuid())
   organizationId        String
   name                  String
-  defaultCategory       String   // COGS, OPEX, TAX, CAPEX, OWNER_DRAW, OTHER
+  defaultCategory       String
   typicalAmount         Float?
-  isRecurring           Boolean  @default(false)
-  recurrenceRule        String   @default("NONE") // NONE, WEEKLY, MONTHLY
+  isRecurring           Boolean              @default(false)
+  recurrenceRule        String               @default("NONE")
   dueDayOfMonth         Int?
-  autopopulateChecklist Boolean  @default(true)
-  createdAt             DateTime @default(now())
-
-  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  autopopulateChecklist Boolean              @default(true)
+  createdAt             DateTime             @default(now())
   expenses              ExpenseTransaction[]
+  organization          Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([organizationId, name])
+  @@index([organizationId])
 }
 
 model ReferenceMonth {
-  id                     String   @id @default(cuid())
+  id                     String       @id @default(cuid())
   organizationId         String
   year                   Int
-  month                  Int      // 1-12
+  month                  Int
   referenceNetSalesExTax Float
   note                   String?
-  createdAt              DateTime @default(now())
-
-  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt              DateTime     @default(now())
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([organizationId, year, month])
+  @@index([organizationId])
 }
 
 model CashInjection {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
-  date           String   // ISO date YYYY-MM-DD
-  amount         Float    // Amount (positive value)
-  type           String   @default("injection") // "injection" = capital in, "withdrawal" = capital out (draws, paybacks)
-  note           String?  // Optional description
-  createdAt      DateTime @default(now())
+  date           String
+  amount         Float
+  type           String       @default("injection")
+  note           String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId])
 }

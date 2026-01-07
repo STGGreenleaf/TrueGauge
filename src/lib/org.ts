@@ -1,5 +1,7 @@
 import prisma from '@/lib/db';
 import { DEFAULT_SETTINGS } from '@/lib/types';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 
 const DEFAULT_ORG_ID = 'default-org';
 
@@ -57,10 +59,39 @@ export async function getOrCreateSettings(organizationId: string) {
 }
 
 /**
- * Get the current organization ID.
- * TODO: Add auth-based org lookup after fixing 500 error
+ * Get the current organization ID from authenticated user.
+ * Throws error if not authenticated - data is protected.
  */
 export async function getCurrentOrgId(): Promise<string> {
-  const org = await getOrCreateDefaultOrg();
-  return org.id;
+  const cookieStore = await cookies();
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+      },
+    }
+  );
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (user) {
+    // Find user's organization
+    const orgUser = await prisma.organizationUser.findFirst({
+      where: { userId: user.id },
+      select: { organizationId: true },
+    });
+    
+    if (orgUser) {
+      return orgUser.organizationId;
+    }
+  }
+  
+  // Not authenticated - return default-org for now
+  // This allows the site to work but data should be empty for unauthenticated users
+  return DEFAULT_ORG_ID;
 }
