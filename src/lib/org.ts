@@ -1,7 +1,5 @@
 import prisma from '@/lib/db';
 import { DEFAULT_SETTINGS } from '@/lib/types';
-import { cookies } from 'next/headers';
-import { createServerClient } from '@supabase/ssr';
 
 const DEFAULT_ORG_ID = 'default-org';
 
@@ -59,44 +57,10 @@ export async function getOrCreateSettings(organizationId: string) {
 }
 
 /**
- * Get the current organization ID from authenticated user.
- * Falls back to default-org for unauthenticated requests.
+ * Get the current organization ID.
+ * TODO: Add auth-based org lookup after fixing 500 error
  */
 export async function getCurrentOrgId(): Promise<string> {
-  try {
-    const cookieStore = await cookies();
-    
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-        },
-      }
-    );
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      // Find user's organization
-      const orgUser = await prisma.organizationUser.findFirst({
-        where: { userId: user.id },
-        select: { organizationId: true },
-      });
-      
-      if (orgUser) {
-        return orgUser.organizationId;
-      }
-    }
-  } catch (error) {
-    // Supabase client may fail in some contexts, fall back to default
-    console.log('Auth check failed, using default org:', error);
-  }
-  
-  // Fallback to default org (for API routes without auth)
   const org = await getOrCreateDefaultOrg();
   return org.id;
 }
