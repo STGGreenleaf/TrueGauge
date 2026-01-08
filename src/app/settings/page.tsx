@@ -74,7 +74,9 @@ export default function SettingsPage() {
   
   // Users state
   const [usersExpanded, setUsersExpanded] = useState(false);
-  const [orgUsers, setOrgUsers] = useState<Array<{ id: string; email: string; name: string | null; role: string; joinedAt: string }>>([]);
+  const [orgUsers, setOrgUsers] = useState<Array<{ id: string; visibleId: string; email: string; name: string | null; role: string; joinedAt: string; avatarUrl: string }>>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
@@ -132,9 +134,38 @@ export default function SettingsPage() {
       if (res.ok) {
         const data = await res.json();
         setOrgUsers(data.users || []);
+        setCurrentUserId(data.currentUserId || null);
+        setIsAdmin(data.isAdmin || false);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+    }
+  };
+  
+  const updateUserRole = async (visibleId: string, newRole: string) => {
+    try {
+      const res = await fetch('/api/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ visibleId, role: newRole }),
+      });
+      if (res.ok) {
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
+    }
+  };
+  
+  const removeUser = async (visibleId: string) => {
+    if (!confirm('Are you sure you want to remove this user from the organization?')) return;
+    try {
+      const res = await fetch(`/api/users?id=${visibleId}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error removing user:', error);
     }
   };
   
@@ -586,25 +617,56 @@ export default function SettingsPage() {
                       {orgUsers.map((user) => (
                         <div
                           key={user.id}
-                          className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/30"
+                          className={`flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border ${
+                            user.id === currentUserId ? 'border-cyan-700/50' : 'border-zinc-700/30'
+                          }`}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-300">
-                              {user.email.charAt(0).toUpperCase()}
-                            </div>
+                            <img
+                              src={user.avatarUrl}
+                              alt={user.email}
+                              className="w-9 h-9 rounded-full bg-zinc-700"
+                            />
                             <div>
-                              <div className="text-sm text-zinc-200">{user.email}</div>
+                              <div className="text-sm text-zinc-200 flex items-center gap-2">
+                                {user.email}
+                                {user.id === currentUserId && (
+                                  <span className="text-[9px] text-cyan-400">(you)</span>
+                                )}
+                              </div>
                               {user.name && <div className="text-xs text-zinc-500">{user.name}</div>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
-                              user.role === 'owner' 
-                                ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-700/30' 
-                                : 'bg-zinc-700/50 text-zinc-400'
-                            }`}>
-                              {user.role}
-                            </span>
+                            {isAdmin && user.id !== currentUserId ? (
+                              <>
+                                <select
+                                  value={user.role}
+                                  onChange={(e) => updateUserRole(user.visibleId, e.target.value)}
+                                  className="text-[10px] uppercase tracking-wider px-2 py-1 rounded bg-zinc-700/50 text-zinc-300 border border-zinc-600/50 cursor-pointer"
+                                >
+                                  <option value="admin">Admin</option>
+                                  <option value="member">Member</option>
+                                </select>
+                                <button
+                                  onClick={() => removeUser(user.visibleId)}
+                                  className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-900/20 transition-colors"
+                                  title="Remove user"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </>
+                            ) : (
+                              <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
+                                user.role === 'admin' 
+                                  ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-700/30' 
+                                  : 'bg-zinc-700/50 text-zinc-400'
+                              }`}>
+                                {user.role}
+                              </span>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -612,7 +674,9 @@ export default function SettingsPage() {
                   )}
                   
                   <p className="mt-3 text-xs text-zinc-600">
-                    Users are added when they sign in with access to this organization.
+                    {isAdmin 
+                      ? 'Admins can change roles and remove users. Members have view/edit access.'
+                      : 'Users are added when they sign in with access to this organization.'}
                   </p>
                 </div>
               )}
