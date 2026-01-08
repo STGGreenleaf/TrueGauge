@@ -35,8 +35,8 @@ export default function StartupAnimation({
       timeouts.push(setTimeout(() => setBrightness(0.3), duration * 0.2));
       timeouts.push(setTimeout(() => setBrightness(1), duration * 0.4));
       
-      // Text reveals at 40% of duration
-      timeouts.push(setTimeout(() => setShowText(true), duration * 0.4));
+      // Text reveals at 40% of duration + 500ms delay
+      timeouts.push(setTimeout(() => setShowText(true), duration * 0.4 + 500));
       
       // Start fade out at end of duration
       timeouts.push(setTimeout(() => {
