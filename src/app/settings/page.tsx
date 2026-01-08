@@ -1450,20 +1450,10 @@ export default function SettingsPage() {
             onClick={() => setInjectionsExpanded(!injectionsExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <div className="flex items-center gap-3">
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
               <ChartColumnStacked className="h-4 w-4 text-cyan-500" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Capital Flow</h2>
-              {injections.length > 0 && (() => {
-                const totalIn = injections.filter(i => i.type === 'injection').reduce((sum, i) => sum + i.amount, 0);
-                const totalOut = injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').reduce((sum, i) => sum + i.amount, 0);
-                const net = totalIn - totalOut;
-                return (
-                  <span className={`text-xs ${net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    ${Math.abs(net).toLocaleString()} {net >= 0 ? 'in' : 'out'}
-                  </span>
-                );
-              })()}
-            </div>
+              Capital Flow
+            </h2>
             {injectionsExpanded ? (
               <ChevronUp className="h-4 w-4 text-zinc-500" />
             ) : (
