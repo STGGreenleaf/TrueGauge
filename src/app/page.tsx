@@ -165,9 +165,11 @@ export default function Dashboard() {
       {/* Header - minimal luxury */}
       <header className="relative z-10 border-b border-zinc-800/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          {/* Left side: Logo */}
           <a href="/" className="cursor-pointer">
             <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400"><span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span><span className="font-light">GAUGE</span></h1>
           </a>
+          {/* Right side: Owner hamburger + Refresh + Settings */}
           <div className="flex items-center gap-1">
             <OwnerMenu 
               onToggleUserView={setUserViewEnabled} 
