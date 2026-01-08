@@ -312,20 +312,7 @@ export default function SettingsPage() {
                 className="mt-1 border-zinc-700 bg-zinc-800 text-white"
               />
             </div>
-            <div>
-              <Label htmlFor="businessStartDate" className="text-zinc-300">
-                Business Start Date
-              </Label>
-              <Input
-                id="businessStartDate"
-                type="date"
-                value={settings.businessStartDate || ''}
-                onChange={(e) => updateSetting('businessStartDate', e.target.value || null)}
-                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-              />
-              <p className="mt-1 text-xs text-zinc-500">Used to calculate "Days in Business" on dashboard</p>
-            </div>
-            {/* Store Hours - Collapsible */}
+            {/* Store Info - Collapsible */}
             <div className="rounded-lg border border-zinc-700/30 bg-gradient-to-b from-zinc-800/40 to-zinc-900/60">
               <button
                 type="button"
@@ -333,7 +320,7 @@ export default function SettingsPage() {
                 className="flex w-full items-center justify-between p-4"
               >
                 <div className="text-left">
-                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Store Hours</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Store Info</div>
                   <div className="mt-1 text-sm text-zinc-400">
                     {Object.values(settings.openHoursTemplate || {}).reduce((a: number, b: number) => a + b, 0)}h/week • Closes {(settings.storeCloseHour ?? 16) === 0 ? '12 AM' : (settings.storeCloseHour ?? 16) < 12 ? `${settings.storeCloseHour} AM` : (settings.storeCloseHour ?? 16) === 12 ? '12 PM' : `${(settings.storeCloseHour ?? 16) - 12} PM`}
                   </div>
@@ -373,6 +360,21 @@ export default function SettingsPage() {
                       ))}
                     </div>
                     <p className="mt-2 text-xs text-zinc-600">0 = closed. Used for weighted pacing targets.</p>
+                  </div>
+                  
+                  {/* Business Start Date */}
+                  <div>
+                    <Label htmlFor="businessStartDate" className="text-zinc-400 text-xs">
+                      Business Start Date
+                    </Label>
+                    <Input
+                      id="businessStartDate"
+                      type="date"
+                      value={settings.businessStartDate || ''}
+                      onChange={(e) => updateSetting('businessStartDate', e.target.value || null)}
+                      className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                    />
+                    <p className="mt-1 text-xs text-zinc-600">Used for "Days in Business" counter</p>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
