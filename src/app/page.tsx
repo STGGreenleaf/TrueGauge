@@ -326,7 +326,7 @@ export default function Dashboard() {
                     {/* Footer */}
                     <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800">
                       <div className="flex justify-between text-xs">
-                        <span className="text-zinc-500">Sales goal (outer arc 100%)</span>
+                        <span className="text-zinc-500">Sales goal (outer arc @ 100%)</span>
                         <span className="text-zinc-300">{formatCurrency(data.survivalGoal)}</span>
                       </div>
                       <div className="flex justify-between text-xs mt-1">
