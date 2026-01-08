@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -482,16 +482,11 @@ export default function SettingsPage() {
                 onClick={() => setHoursExpanded(!hoursExpanded)}
                 className="flex w-full items-center justify-between p-4"
               >
-                <div className="text-left">
+                <div className="flex items-center gap-3">
+                  <Store className="h-4 w-4 text-zinc-500" />
                   <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Store Info</div>
-                  <div className="mt-1 text-sm text-zinc-400">
-                    {Object.values(settings.openHoursTemplate || {}).reduce((a: number, b: number) => a + b, 0)}h/week • Closes {(settings.storeCloseHour ?? 16) === 0 ? '12 AM' : (settings.storeCloseHour ?? 16) < 12 ? `${settings.storeCloseHour} AM` : (settings.storeCloseHour ?? 16) === 12 ? '12 PM' : `${(settings.storeCloseHour ?? 16) - 12} PM`}
-                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-500">
-                  <span className="text-xs">{hoursExpanded ? 'Hide' : 'Show'}</span>
-                  {hoursExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
+                {hoursExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
               
               {hoursExpanded && (
@@ -596,22 +591,16 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center gap-3">
                   <Users className="h-4 w-4 text-zinc-500" />
-                  <div className="text-left">
-                    <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Users</div>
-                    <div className="mt-1 text-sm text-zinc-400">
-                      {orgUsers.length > 0 ? `${orgUsers.length} user${orgUsers.length > 1 ? 's' : ''} with access` : 'Who can access this store'}
-                    </div>
-                  </div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Users</div>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-500">
-                  <span className="text-xs">{usersExpanded ? 'Hide' : 'Show'}</span>
-                  {usersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
+                {usersExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
               
               {usersExpanded && (
                 <div className="border-t border-zinc-700/30 p-4">
-                  <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-3">Users with Access</div>
+                  <div className="text-sm text-zinc-300 font-medium mb-3">
+                    {orgUsers.length > 0 ? `${orgUsers.length} user${orgUsers.length > 1 ? 's' : ''} with access` : 'Who can access this store'}
+                  </div>
                   
                   {orgUsers.length === 0 ? (
                     <div className="text-sm text-zinc-500 py-4 text-center">
