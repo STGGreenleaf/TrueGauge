@@ -337,7 +337,7 @@ export default function CalendarPage() {
               Jump to <ChevronDown className="h-3 w-3" />
             </button>
             {showJumpTo && (
-              <div className="absolute bottom-full right-full mr-8 mb-2 z-50 rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl min-w-[200px]">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl min-w-[200px]">
                 <div className="flex gap-2 mb-2">
                   <select
                     value={month}
