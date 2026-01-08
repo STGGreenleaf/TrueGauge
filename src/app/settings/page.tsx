@@ -930,9 +930,12 @@ export default function SettingsPage() {
           {cashSnapshotExpanded && (
             <div className="border-t border-zinc-800/50 p-5 space-y-4">
               <div>
-                <Label htmlFor="cashSnapshotAmount" className="text-zinc-300">
-                  Cash on Hand ($)
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="cashSnapshotAmount" className="text-zinc-300">
+                    Cash on Hand ($)
+                  </Label>
+                  <span className="text-xs text-amber-400">Auto-saves</span>
+                </div>
                 <Input
                   id="cashSnapshotAmount"
                   type="number"
@@ -985,7 +988,7 @@ export default function SettingsPage() {
               )}
               
               <p className="text-xs text-zinc-600">
-                Steer the ship by feel, not forensic accounting. A quick cash check-in — no bank login needed — just a snapshot that moves the needle over time. <span className="text-zinc-500">Auto-saves on change.</span>
+                Steer the ship by feel, not forensic accounting. A quick cash check-in — no bank login needed — just a snapshot that moves the needle over time.
               </p>
               
               {/* Snapshot History */}
