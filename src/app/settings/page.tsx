@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, Download, Check, AlertCircle, Wallet } from 'lucide-react';
+import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, Download, Check, AlertCircle, Wallet, Pencil } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { OwnerMenu } from '@/components/OwnerMenu';
 
@@ -569,12 +569,15 @@ export default function SettingsPage() {
                     </div>
                     {/* Other 1 - editable label */}
                     <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={settings.nutOther1Label || 'Other 1'}
-                        onChange={(e) => updateSetting('nutOther1Label', e.target.value)}
-                        className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
-                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={settings.nutOther1Label || 'Other 1'}
+                          onChange={(e) => updateSetting('nutOther1Label', e.target.value)}
+                          className="h-5 flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
+                        />
+                        <Pencil className="h-3 w-3 text-cyan-400/50" />
+                      </div>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="number"
@@ -598,12 +601,15 @@ export default function SettingsPage() {
                     </div>
                     {/* Other 2 - editable label */}
                     <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={settings.nutOther2Label || 'Other 2'}
-                        onChange={(e) => updateSetting('nutOther2Label', e.target.value)}
-                        className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
-                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={settings.nutOther2Label || 'Other 2'}
+                          onChange={(e) => updateSetting('nutOther2Label', e.target.value)}
+                          className="h-5 flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
+                        />
+                        <Pencil className="h-3 w-3 text-cyan-400/50" />
+                      </div>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="number"
@@ -627,12 +633,15 @@ export default function SettingsPage() {
                     </div>
                     {/* Other 3 - editable label */}
                     <div className="col-span-2">
-                      <input
-                        type="text"
-                        value={settings.nutOther3Label || 'Other 3'}
-                        onChange={(e) => updateSetting('nutOther3Label', e.target.value)}
-                        className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
-                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={settings.nutOther3Label || 'Other 3'}
+                          onChange={(e) => updateSetting('nutOther3Label', e.target.value)}
+                          className="h-5 flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
+                        />
+                        <Pencil className="h-3 w-3 text-cyan-400/50" />
+                      </div>
                       <div className="flex gap-2 mt-1">
                         <Input
                           type="number"
