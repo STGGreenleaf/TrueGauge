@@ -67,6 +67,10 @@ const OWNER_EMAIL = 'collingreenleaf@gmail.com';
  * In development, returns default-org without auth check.
  */
 export async function getCurrentOrgId(): Promise<string> {
+  // TEMP: Bypass auth in development
+  if (process.env.NODE_ENV === 'development') {
+    return DEFAULT_ORG_ID;
+  }
   const cookieStore = await cookies();
   
   const supabase = createServerClient(

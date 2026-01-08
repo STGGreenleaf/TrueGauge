@@ -81,7 +81,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchSettings(userViewEnabled);
-    fetchReferenceMonths(refYear);
+    fetchReferenceMonths(refYear, userViewEnabled);
     fetchInjections();
   }, [userViewEnabled]);
   
@@ -138,9 +138,12 @@ export default function SettingsPage() {
     }
   };
 
-  const fetchReferenceMonths = async (year: number) => {
+  const fetchReferenceMonths = async (year: number, useShowcase = false) => {
     try {
-      const res = await fetch(`/api/reference-months?year=${year}`);
+      const url = useShowcase 
+        ? `/api/reference-months?year=${year}&showcase=true` 
+        : `/api/reference-months?year=${year}`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         const monthMap: Record<number, number> = {};

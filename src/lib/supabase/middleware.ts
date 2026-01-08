@@ -32,12 +32,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // TEMP: Bypass auth for local testing
+  const bypassAuth = process.env.NODE_ENV === 'development';
+  
   // Protected routes - redirect to login if not authenticated
   const isAuthPage = request.nextUrl.pathname.startsWith('/login')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
 
-  if (!user && !isAuthPage && !isApiRoute && !isAuthCallback) {
+  if (!bypassAuth && !user && !isAuthPage && !isApiRoute && !isAuthCallback) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)

@@ -14,7 +14,7 @@ const OWNER_EMAIL = 'collingreenleaf@gmail.com';
 
 export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  const [isOwner, setIsOwner] = useState(true); // TEMP: bypass for local dev
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

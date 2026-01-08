@@ -2,11 +2,14 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getCurrentOrgId } from '@/lib/org';
 
+const SHOWCASE_ORG_ID = 'showcase-template';
+
 // GET - fetch all reference months or by year
 export async function GET(request: Request) {
   try {
-    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const year = searchParams.get('year');
     
     if (year) {
