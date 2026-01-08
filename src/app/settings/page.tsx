@@ -456,7 +456,7 @@ export default function SettingsPage() {
                   <div className="mb-3 text-[10px] uppercase tracking-widest text-zinc-600">Expense Breakdown</div>
                   <div className="grid grid-cols-2 gap-3 items-end">
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Rent</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Rent</Label></div>
                       <Input
                         type="number"
                         value={settings.nutRent || ''}
@@ -470,7 +470,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Utilities</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Utilities</Label></div>
                       <Input
                         type="number"
                         value={settings.nutUtilities || ''}
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Phone</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Phone</Label></div>
                       <Input
                         type="number"
                         value={settings.nutPhone || ''}
@@ -498,7 +498,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Internet</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Internet</Label></div>
                       <Input
                         type="number"
                         value={settings.nutInternet || ''}
@@ -512,7 +512,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Insurance</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Insurance</Label></div>
                       <Input
                         type="number"
                         value={settings.nutInsurance || ''}
@@ -526,7 +526,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Loan Payment</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Loan Payment</Label></div>
                       <Input
                         type="number"
                         value={settings.nutLoanPayment || ''}
@@ -540,7 +540,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <div className="h-5 flex items-center"><Label className="text-xs text-cyan-400">Payroll</Label></div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Payroll</Label></div>
                       <Input
                         type="number"
                         value={settings.nutPayroll || ''}
@@ -628,7 +628,7 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="targetCogsPct" className="text-cyan-400">
+                <Label htmlFor="targetCogsPct" className="text-zinc-300">
                   Target COGS %
                 </Label>
                 <div className="relative mt-1">
@@ -648,7 +648,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <Label htmlFor="targetFeesPct" className="text-cyan-400">
+                <Label htmlFor="targetFeesPct" className="text-zinc-300">
                   Target Fees %
                 </Label>
                 <div className="relative mt-1">
