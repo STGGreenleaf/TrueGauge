@@ -90,8 +90,8 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
                 <div className="flex items-center gap-3">
                   <Eye className="h-4 w-4" />
                   <div className="text-left">
-                    <div className="text-sm font-medium">User View</div>
-                    <div className="text-xs text-zinc-500">See as template user</div>
+                    <div className="text-sm font-medium">Demo Mode</div>
+                    <div className="text-xs text-zinc-500">View Brightline Supply</div>
                   </div>
                 </div>
                 <div className={`h-5 w-9 rounded-full transition-colors ${userViewEnabled ? 'bg-cyan-500' : 'bg-zinc-700'}`}>
