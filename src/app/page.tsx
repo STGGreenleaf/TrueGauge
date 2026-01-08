@@ -495,7 +495,7 @@ export default function Dashboard() {
               <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Cash Logged</div>
               <div className="flex gap-1 justify-end items-start">
                 {Array.from({ length: 8 }).map((_, i) => {
-                  const filled = i < Math.min(8, Math.round((Math.abs(data.cashHealthResult) / 8000) * 8));
+                  const filled = i < Math.min(8, Math.round((Math.abs(data.cashHealthResult) / data.settings.monthlyFixedNut) * 8));
                   const progress = i / 7;
                   let color: string;
                   if (progress < 0.5) {
