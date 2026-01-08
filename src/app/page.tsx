@@ -223,7 +223,7 @@ export default function Dashboard() {
           <div className="hidden md:flex items-center justify-center gap-16">
             {/* Pace Delta / Ahead - clickable */}
             <div className="relative">
-              <button onClick={() => setActiveTip(activeTip === 'pace' ? null : 'pace')}>
+              <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'pace' ? null : 'pace'); }}>
                 <SideGauge
                   value={Math.abs(data.paceDelta)}
                   label="Pace Delta"
@@ -233,7 +233,7 @@ export default function Dashboard() {
                 />
               </button>
               {activeTip === 'pace' && (
-                <div className="absolute bottom-full left-0 mb-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
+                <div className="absolute left-full top-0 ml-3 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
                   <div className="font-medium text-cyan-400 text-base mb-2">Pace Delta: {data.paceDelta >= 0 ? '+' : ''}{formatCurrency(data.paceDelta)}</div>
                   <p className="text-sm text-zinc-300 mb-2"><strong>{data.paceDelta >= 0 ? 'Ahead' : 'Behind'}</strong> of where you need to be this month.</p>
                   <p className="text-sm text-zinc-300 mb-2">Based on day {new Date().getDate()} of the month, you should have ~{formatCurrency(data.survivalGoal * (new Date().getDate() / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))} by now.</p>
@@ -244,7 +244,7 @@ export default function Dashboard() {
             
             {/* Survival gauge - clickable */}
             <div className="relative">
-              <button onClick={() => setActiveTip(activeTip === 'survival' ? null : 'survival')}>
+              <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'survival' ? null : 'survival'); }}>
                 <FuturisticGauge
                   value={Math.min(200, data.survivalPercent)}
                   label="Survival"
@@ -262,7 +262,7 @@ export default function Dashboard() {
                 const overage = grossProfit > data.settings.monthlyFixedNut ? grossProfit - data.settings.monthlyFixedNut : 0;
                 
                 return (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-80 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-80 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
                     <div className="font-medium text-cyan-400 text-base mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
                     <p className="text-sm text-zinc-300 mb-3">This is how much of your <strong>monthly survival goal</strong> you&apos;ve hit so far. 100% = you&apos;ve covered all fixed costs for the month.</p>
                     <div className="mb-2 p-2 rounded bg-zinc-800/50">
@@ -297,7 +297,7 @@ export default function Dashboard() {
             
             {/* Cash Logged - clickable */}
             <div className="relative">
-              <button onClick={() => setActiveTip(activeTip === 'logged' ? null : 'logged')}>
+              <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'logged' ? null : 'logged'); }}>
                 <SideGauge
                   value={Math.abs(data.cashHealthResult)}
                   label="Cash Logged"
@@ -307,7 +307,7 @@ export default function Dashboard() {
                 />
               </button>
               {activeTip === 'logged' && (
-                <div className="absolute bottom-full right-0 mb-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
+                <div className="absolute right-full top-0 mr-3 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
                   <div className="font-medium text-cyan-400 text-base mb-2">Cash Logged: {formatCurrency(data.cashHealthResult)}</div>
                   <p className="text-sm text-zinc-300 mb-2"><strong>Logged</strong> = net sales minus expenses recorded this month.</p>
                   <p className="text-sm text-zinc-300 mb-2">This shows how much cash activity you've tracked.</p>
@@ -321,7 +321,7 @@ export default function Dashboard() {
           <div className="relative md:hidden">
             {/* Main Gauge - centered, clickable for tooltip */}
             <div className="flex justify-center py-4 relative">
-              <button onClick={() => setActiveTip(activeTip === 'survival' ? null : 'survival')}>
+              <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'survival' ? null : 'survival'); }}>
                 <FuturisticGauge
                   value={Math.min(200, data.survivalPercent)}
                   label="Survival"
@@ -338,7 +338,7 @@ export default function Dashboard() {
                 const nutPct = Math.round((1 - nutRemaining / data.settings.monthlyFixedNut) * 100);
                 
                 return (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
                     <div className="font-medium text-cyan-400 text-base mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
                     <p className="text-sm text-zinc-300 mb-2">How much of your <strong>monthly survival goal</strong> you&apos;ve hit. 100% = fixed costs covered.</p>
                     <div className="mb-2 p-2 rounded bg-zinc-800/50">
@@ -363,7 +363,7 @@ export default function Dashboard() {
             {/* Top-left: Pace Delta - clickable */}
             <button 
               className="absolute top-0 left-1"
-              onClick={() => setActiveTip(activeTip === 'pace' ? null : 'pace')}
+              onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'pace' ? null : 'pace'); }}
             >
               <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Pace Delta</div>
               <div className="flex gap-1 items-start" style={{ flexDirection: 'row-reverse' }}>
@@ -393,7 +393,7 @@ export default function Dashboard() {
               </div>
             </button>
             {activeTip === 'pace' && (
-              <div className="absolute bottom-full left-1 mb-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
+              <div className="absolute left-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
                 <div className="font-medium text-cyan-400 text-base mb-2">Pace Delta: {data.paceDelta >= 0 ? '+' : ''}{formatCurrency(data.paceDelta)}</div>
                 <p className="text-sm text-zinc-300 mb-2"><strong>{data.paceDelta >= 0 ? 'Ahead' : 'Behind'}</strong> of where you need to be this month.</p>
                 <p className="text-sm text-zinc-300 mb-2">Based on today being day {new Date().getDate()} of the month, you should have {formatCurrency(data.survivalGoal * (new Date().getDate() / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))} by now.</p>
@@ -404,7 +404,7 @@ export default function Dashboard() {
             {/* Top-right: Cash Logged - clickable */}
             <button 
               className="absolute top-0 right-1 text-right"
-              onClick={() => setActiveTip(activeTip === 'logged' ? null : 'logged')}
+              onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'logged' ? null : 'logged'); }}
             >
               <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Cash Logged</div>
               <div className="flex gap-1 justify-end items-start">
@@ -434,7 +434,7 @@ export default function Dashboard() {
               </div>
             </button>
             {activeTip === 'logged' && (
-              <div className="absolute bottom-full right-1 mb-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
+              <div className="absolute right-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
                 <div className="font-medium text-cyan-400 text-base mb-2">Cash Logged: {formatCurrency(data.cashHealthResult)}</div>
                 <p className="text-sm text-zinc-300 mb-2"><strong>Logged</strong> means net sales minus expenses you've recorded this month.</p>
                 <p className="text-sm text-zinc-300 mb-2">This shows how much cash activity you've tracked.</p>
