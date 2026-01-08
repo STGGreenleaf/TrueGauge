@@ -64,6 +64,7 @@ const OWNER_EMAIL = 'collingreenleaf@gmail.com';
 /**
  * Get the current organization ID from authenticated user.
  * Auto-links owner email to default-org if not already linked.
+ * In development, returns default-org without auth check.
  */
 export async function getCurrentOrgId(): Promise<string> {
   const cookieStore = await cookies();

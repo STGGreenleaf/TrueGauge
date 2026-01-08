@@ -19,9 +19,10 @@ export default function Dashboard() {
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const [userViewEnabled, setUserViewEnabled] = useState(false);
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (useShowcase = false) => {
     try {
-      const res = await fetch('/api/dashboard');
+      const url = useShowcase ? '/api/dashboard?showcase=true' : '/api/dashboard';
+      const res = await fetch(url);
       if (res.ok) {
         const dashboardData = await res.json();
         setData(dashboardData);
@@ -35,18 +36,18 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    fetchDashboard(userViewEnabled);
     
     // Re-fetch when tab becomes visible (user returns from Settings)
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchDashboard();
+        fetchDashboard(userViewEnabled);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     
     // Also re-fetch on window focus
-    const handleFocus = () => fetchDashboard();
+    const handleFocus = () => fetchDashboard(userViewEnabled);
     window.addEventListener('focus', handleFocus);
     
     // Listen for splash page trigger from owner menu
@@ -58,11 +59,11 @@ export default function Dashboard() {
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('show-splash', handleShowSplash);
     };
-  }, []);
+  }, [userViewEnabled]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchDashboard();
+    fetchDashboard(userViewEnabled);
   };
 
   const formatCurrency = (value: number) => {

@@ -20,10 +20,16 @@ interface ExpenseRecord {
   spreadMonths: number | null;
 }
 
-export async function GET() {
+const SHOWCASE_ORG_ID = 'showcase-template';
+
+export async function GET(request: Request) {
   try {
-    // Get current org and settings
-    const orgId = await getCurrentOrgId();
+    // Check for showcase mode (User View toggle)
+    const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    
+    // Get org ID - use showcase template if in user view mode
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const settings = await getOrCreateSettings(orgId);
     
     // Get current date in user's configured timezone
