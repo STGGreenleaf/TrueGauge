@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const [refYearExpanded, setRefYearExpanded] = useState(false);
   const [financialsExpanded, setFinancialsExpanded] = useState(false);
   const [yearStartExpanded, setYearStartExpanded] = useState(false);
-  const [businessInfoExpanded, setBusinessInfoExpanded] = useState(true);
+  const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
     const [refYear, setRefYear] = useState(new Date().getFullYear() - 1);
   const [refMonths, setRefMonths] = useState<Record<number, number>>({});
   const [refSaving, setRefSaving] = useState(false);
@@ -684,7 +684,7 @@ export default function SettingsPage() {
             onClick={() => setFinancialsExpanded(!financialsExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><ChartCandlestick className="h-4 w-4" />Financial Targets</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><ChartCandlestick className="h-4 w-4 text-emerald-500" />Financial Targets</h2>
             {financialsExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {financialsExpanded && (
@@ -1041,7 +1041,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><CalendarRange className="h-4 w-4" />Reference Year (Last Year)</h2>
+              <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><CalendarRange className="h-4 w-4 text-amber-500" />Reference Year (Last Year)</h2>
               <span className="text-xs text-zinc-600">{refYear} • ${Object.values(refMonths).reduce((a, b) => a + b, 0).toLocaleString()}</span>
             </div>
             {refYearExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
@@ -1123,7 +1123,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <Aperture className="h-4 w-4 text-zinc-500" />
+              <Aperture className="h-4 w-4 text-cyan-300" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Cash Snapshot</h2>
             </div>
             {cashSnapshotExpanded ? (
