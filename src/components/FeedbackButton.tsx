@@ -1,19 +1,31 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquareShare, X, Send, Check, Lightbulb, Bug } from 'lucide-react';
+import { MessageSquareShare, X, Send, Check, Lightbulb, Bug, Mail, Plus } from 'lucide-react';
 
 interface FeedbackButtonProps {
   inline?: boolean;
 }
 
+interface FeedbackMessage {
+  id: string;
+  type: string;
+  message: string;
+  status: string;
+  ownerReply: string | null;
+  repliedAt: string | null;
+  createdAt: string;
+}
+
 export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'inbox' | 'send'>('inbox');
   const [type, setType] = useState<'feature' | 'bug'>('feature');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [hasUnreadReply, setHasUnreadReply] = useState(false);
+  const [myMessages, setMyMessages] = useState<FeedbackMessage[]>([]);
 
   useEffect(() => {
     checkForReplies();
@@ -26,12 +38,25 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
     try {
       const res = await fetch('/api/feedback');
       if (res.ok) {
-        const feedback = await res.json();
-        const hasNewReply = feedback.some((f: { ownerReply: string | null; status: string }) => 
-          f.ownerReply && f.status === 'replied'
-        );
+        const feedback: FeedbackMessage[] = await res.json();
+        setMyMessages(feedback);
+        const hasNewReply = feedback.some(f => f.ownerReply && f.status === 'replied');
         setHasUnreadReply(hasNewReply);
       }
+    } catch {
+      // Silently fail
+    }
+  };
+
+  const markAsRead = async (id: string) => {
+    // User acknowledges the reply - we'll mark it as 'read' status
+    try {
+      await fetch('/api/feedback/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      checkForReplies();
     } catch {
       // Silently fail
     }
@@ -93,7 +118,7 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
       {/* Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md mx-4 rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl">
+          <div className="w-full max-w-md mx-4 rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl max-h-[70vh] overflow-y-auto">
             {sent ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -102,16 +127,98 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
                 <h3 className="text-lg font-medium text-white mb-2">Thanks!</h3>
                 <p className="text-zinc-400 text-sm">Your feedback has been sent.</p>
               </div>
+            ) : viewMode === 'inbox' && myMessages.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-medium text-white flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-cyan-400" />
+                    My Messages
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewMode('send')}
+                      className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-cyan-400"
+                      title="New Message"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-1 rounded hover:bg-zinc-800 text-zinc-500"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Messages List */}
+                <div className="space-y-3">
+                  {myMessages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`rounded-lg border p-3 ${
+                        msg.ownerReply && msg.status === 'replied'
+                          ? 'border-cyan-500/50 bg-cyan-500/5'
+                          : 'border-zinc-700 bg-zinc-800/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                          msg.type === 'bug' ? 'bg-red-500/20 text-red-400' : 'bg-cyan-500/20 text-cyan-400'
+                        }`}>
+                          {msg.type === 'bug' ? 'BUG' : 'FEATURE'}
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
+                          {new Date(msg.createdAt).toLocaleDateString()}
+                        </span>
+                        {msg.ownerReply && msg.status === 'replied' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                            REPLY
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-zinc-300 mb-2">{msg.message}</p>
+                      
+                      {msg.ownerReply && (
+                        <div className="mt-2 p-2 rounded bg-emerald-500/10 border border-emerald-500/20">
+                          <p className="text-[10px] uppercase tracking-wider text-emerald-400 mb-1">Developer Reply</p>
+                          <p className="text-sm text-emerald-300">{msg.ownerReply}</p>
+                          {msg.status === 'replied' && (
+                            <button
+                              onClick={() => markAsRead(msg.id)}
+                              className="mt-2 text-[10px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                            >
+                              <Check className="w-3 h-3" />
+                              Mark as Read
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-medium text-white">Send Feedback</h2>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1 rounded hover:bg-zinc-800 text-zinc-500"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {myMessages.length > 0 && (
+                      <button
+                        onClick={() => setViewMode('inbox')}
+                        className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-cyan-400"
+                        title="My Messages"
+                      >
+                        <Mail className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="p-1 rounded hover:bg-zinc-800 text-zinc-500"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Type Toggle */}
