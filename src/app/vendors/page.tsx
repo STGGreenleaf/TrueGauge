@@ -34,6 +34,9 @@ interface Vendor {
   isRecurring: boolean;
   recurrenceRule: string;
   dueDayOfMonth: number | null;
+  avgSpend: number | null;
+  totalSpend: number;
+  txCount: number;
 }
 
 const CATEGORIES = [
@@ -334,26 +337,32 @@ export default function VendorsPage() {
                     <Icon className="h-4 w-4 text-zinc-500 flex-shrink-0" />
                     <span className="text-sm text-white truncate">{vendor.name}</span>
                     <span className="text-xs text-zinc-600">{vendor.defaultCategory}</span>
-                    {vendor.typicalAmount && (
-                      <span className="text-xs text-cyan-400/70">{formatCurrency(vendor.typicalAmount)}</span>
-                    )}
                     {vendor.isRecurring && (
                       <span className="text-[10px] text-violet-400 uppercase">{vendor.recurrenceRule}</span>
                     )}
                   </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => handleOpenEdit(vendor)}
-                      className="p-1.5 text-zinc-600 hover:text-white"
-                    >
-                      <Edit2 className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(vendor.id)}
-                      className="p-1.5 text-zinc-600 hover:text-red-400"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {vendor.avgSpend ? (
+                      <span className="text-xs text-emerald-400/80" title={`${vendor.txCount} transactions, $${vendor.totalSpend.toLocaleString()} total`}>
+                        avg {formatCurrency(vendor.avgSpend)}
+                      </span>
+                    ) : vendor.typicalAmount ? (
+                      <span className="text-xs text-zinc-500">{formatCurrency(vendor.typicalAmount)}</span>
+                    ) : null}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(vendor)}
+                        className="p-1.5 text-zinc-600 hover:text-white"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(vendor.id)}
+                        className="p-1.5 text-zinc-600 hover:text-red-400"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

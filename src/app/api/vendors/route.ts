@@ -24,7 +24,30 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' },
     });
     
-    return NextResponse.json(vendors);
+    // Get expense stats per vendor (by name)
+    const expenseStats = await prisma.expenseTransaction.groupBy({
+      by: ['vendorName'],
+      where: { organizationId: orgId },
+      _avg: { amount: true },
+      _sum: { amount: true },
+      _count: { amount: true },
+    });
+    
+    // Map stats to vendors
+    const statsMap = new Map(expenseStats.map(s => [s.vendorName, {
+      avgSpend: s._avg.amount ? Math.round(s._avg.amount) : null,
+      totalSpend: s._sum.amount || 0,
+      txCount: s._count.amount || 0,
+    }]));
+    
+    const vendorsWithStats = vendors.map(v => ({
+      ...v,
+      avgSpend: statsMap.get(v.name)?.avgSpend || null,
+      totalSpend: statsMap.get(v.name)?.totalSpend || 0,
+      txCount: statsMap.get(v.name)?.txCount || 0,
+    }));
+    
+    return NextResponse.json(vendorsWithStats);
   } catch (error) {
     console.error('Error fetching vendors:', error);
     return NextResponse.json(
