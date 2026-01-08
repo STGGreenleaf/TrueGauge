@@ -47,6 +47,8 @@ export default function SettingsPage() {
   
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
+  const [showAllMoneyIn, setShowAllMoneyIn] = useState(false);
+  const [showAllMoneyOut, setShowAllMoneyOut] = useState(false);
   const [injections, setInjections] = useState<Array<{ id: number; date: string; amount: number; type: string; note: string | null }>>([]);
   const [newInjectionDate, setNewInjectionDate] = useState('');
   const [newInjectionAmount, setNewInjectionAmount] = useState('');
@@ -994,22 +996,44 @@ export default function SettingsPage() {
                       ${injections.filter(i => i.type === 'injection').reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {injections.filter(i => i.type === 'injection').sort((a, b) => b.date.localeCompare(a.date)).map((inj) => (
-                      <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-emerald-950/30 border border-emerald-900/30">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-emerald-400 font-medium text-sm">+${inj.amount.toLocaleString()}</span>
-                            <span className="text-zinc-600 text-xs">{inj.date}</span>
-                          </div>
-                          {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
-                        </div>
-                        <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
-                      </div>
-                    ))}
-                    {injections.filter(i => i.type === 'injection').length === 0 && (
-                      <p className="text-zinc-600 text-xs py-2">No capital injections</p>
-                    )}
+                  <div className="space-y-2">
+                    {(() => {
+                      const moneyIn = injections.filter(i => i.type === 'injection').sort((a, b) => b.date.localeCompare(a.date));
+                      const displayItems = showAllMoneyIn ? moneyIn : moneyIn.slice(0, 5);
+                      const years = [...new Set(displayItems.map(i => i.date.substring(0, 4)))];
+                      
+                      return years.length > 0 ? (
+                        <>
+                          {years.map(year => (
+                            <div key={year}>
+                              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{year}</div>
+                              {displayItems.filter(i => i.date.startsWith(year)).map(inj => (
+                                <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-emerald-950/30 border border-emerald-900/30 mb-1">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-emerald-400 font-medium text-sm">+${inj.amount.toLocaleString()}</span>
+                                      <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                    </div>
+                                    {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                                  </div>
+                                  <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                          {moneyIn.length > 5 && (
+                            <button 
+                              onClick={() => setShowAllMoneyIn(!showAllMoneyIn)}
+                              className="text-xs text-emerald-400/70 hover:text-emerald-400"
+                            >
+                              {showAllMoneyIn ? 'Show less' : `Show all (${moneyIn.length})`}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-zinc-600 text-xs py-2">No capital injections</p>
+                      );
+                    })()}
                   </div>
                 </div>
                 
@@ -1021,22 +1045,44 @@ export default function SettingsPage() {
                       ${injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
                     </span>
                   </div>
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').sort((a, b) => b.date.localeCompare(a.date)).map((inj) => (
-                      <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-red-950/30 border border-red-900/30">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-red-400 font-medium text-sm">−${inj.amount.toLocaleString()}</span>
-                            <span className="text-zinc-600 text-xs">{inj.date}</span>
-                          </div>
-                          {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
-                        </div>
-                        <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
-                      </div>
-                    ))}
-                    {injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').length === 0 && (
-                      <p className="text-zinc-600 text-xs py-2">No owner draws</p>
-                    )}
+                  <div className="space-y-2">
+                    {(() => {
+                      const moneyOut = injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').sort((a, b) => b.date.localeCompare(a.date));
+                      const displayItems = showAllMoneyOut ? moneyOut : moneyOut.slice(0, 5);
+                      const years = [...new Set(displayItems.map(i => i.date.substring(0, 4)))];
+                      
+                      return years.length > 0 ? (
+                        <>
+                          {years.map(year => (
+                            <div key={year}>
+                              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{year}</div>
+                              {displayItems.filter(i => i.date.startsWith(year)).map(inj => (
+                                <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-red-950/30 border border-red-900/30 mb-1">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-red-400 font-medium text-sm">−${inj.amount.toLocaleString()}</span>
+                                      <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                    </div>
+                                    {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                                  </div>
+                                  <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                          {moneyOut.length > 5 && (
+                            <button 
+                              onClick={() => setShowAllMoneyOut(!showAllMoneyOut)}
+                              className="text-xs text-red-400/70 hover:text-red-400"
+                            >
+                              {showAllMoneyOut ? 'Show less' : `Show all (${moneyOut.length})`}
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-zinc-600 text-xs py-2">No owner draws</p>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
