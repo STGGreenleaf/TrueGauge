@@ -287,13 +287,13 @@ export default function OwnerPortal() {
                     <div className="mt-4 pt-4 border-t border-zinc-800">
                       <div className="flex gap-2 mb-3">
                         <button
-                          onClick={() => handleReply(item.id, 'Thanks for the suggestion! We\'ll look into it.')}
+                          onClick={() => setReplyText('Thanks for the suggestion! We\'ll look into it.')}
                           className="text-xs px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
                         >
                           Thanks for the suggestion!
                         </button>
                         <button
-                          onClick={() => handleReply(item.id, 'Fixed! Thanks for reporting.')}
+                          onClick={() => setReplyText('Fixed! Thanks for reporting.')}
                           className="text-xs px-3 py-1.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400"
                         >
                           Fixed! Thanks.
