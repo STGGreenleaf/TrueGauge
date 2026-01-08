@@ -271,55 +271,57 @@ export default function Dashboard() {
                       <p className="text-zinc-400 text-xs mt-1">Progress toward covering your monthly fixed costs. At 100%, the business sustains itself.</p>
                     </div>
                     
-                    {/* Two Column Layout */}
+                    {/* Two Column Layout - Uniform: Title, Subtitle, Amount */}
                     <div className="grid grid-cols-2 gap-px bg-zinc-800/50">
-                      {/* Left Column - What You Have */}
-                      <div className="bg-zinc-900/80 p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Revenue</div>
+                      {/* Left Column - Revenue */}
+                      <div className="bg-zinc-900/80 p-3 space-y-3">
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500">Revenue</div>
                         
-                        <div className="mb-3">
-                          <div className="text-zinc-500 text-[10px]">Month-to-Date Sales</div>
-                          <div className="text-white text-lg font-semibold">{formatCurrency(data.mtdNetSales)}</div>
+                        <div>
+                          <div className="text-zinc-400 text-[11px] font-medium">Month-to-Date Sales</div>
+                          <div className="text-white text-xl font-bold">{formatCurrency(data.mtdNetSales)}</div>
                         </div>
                         
-                        <div className="mb-3">
-                          <div className="text-zinc-500 text-[10px]">After COGS & Fees ({marginPct}% margin)</div>
-                          <div className="text-cyan-400 text-lg font-semibold">{formatCurrency(grossProfit)}</div>
-                          <div className="text-[10px] text-zinc-600">← This pays your NUT</div>
+                        <div>
+                          <div className="text-cyan-400 text-[11px] font-medium">Gross Profit</div>
+                          <div className="text-zinc-500 text-[10px]">{marginPct}% margin after COGS & fees</div>
+                          <div className="text-cyan-400 text-xl font-bold">{formatCurrency(grossProfit)}</div>
                         </div>
-                        
-                        {overage > 0 && (
-                          <div className="p-2 rounded bg-emerald-900/30 border border-emerald-600/30">
-                            <div className="text-emerald-400 text-[10px]">★ Profit Above NUT</div>
-                            <div className="text-emerald-400 font-semibold">+{formatCurrency(overage)}</div>
-                          </div>
-                        )}
                       </div>
                       
-                      {/* Right Column - What You Owe */}
-                      <div className="bg-zinc-900/80 p-3">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Fixed Costs</div>
+                      {/* Right Column - Fixed Costs */}
+                      <div className="bg-zinc-900/80 p-3 space-y-3">
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500">Fixed Costs</div>
                         
-                        <div className="mb-3">
-                          <div className="text-zinc-500 text-[10px]">Monthly NUT</div>
-                          <div className="text-white text-lg font-semibold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
+                        <div>
+                          <div className="text-zinc-400 text-[11px] font-medium">Monthly NUT</div>
+                          <div className="text-white text-xl font-bold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
                         </div>
                         
-                        <div className="mb-3">
-                          <div className="text-emerald-400 text-[10px]">✓ Covered</div>
-                          <div className="text-emerald-400 text-lg font-semibold">{formatCurrency(nutCovered)}</div>
-                          <div className="text-[10px] text-zinc-600">{nutPct}% of NUT</div>
-                        </div>
-                        
-                        <div className="p-2 rounded bg-amber-900/30 border border-amber-600/30">
-                          <div className="text-amber-400 text-[10px] flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                            NUT Remaining (inner arc)
-                          </div>
-                          <div className="text-amber-400 font-semibold">{formatCurrency(nutRemaining)}</div>
+                        <div>
+                          <div className="text-emerald-400 text-[11px] font-medium">✓ Covered</div>
+                          <div className="text-zinc-500 text-[10px]">{nutPct}% of fixed costs paid</div>
+                          <div className="text-emerald-400 text-xl font-bold">{formatCurrency(nutCovered)}</div>
                         </div>
                       </div>
                     </div>
+                    
+                    {/* NUT Remaining - Full Width Cradle */}
+                    <div className="px-4 py-3 bg-amber-900/20 border-t border-amber-600/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span className="text-amber-400 text-[11px] font-medium uppercase tracking-wider">NUT Remaining (inner arc)</span>
+                      </div>
+                      <div className="text-amber-400 text-2xl font-bold">{formatCurrency(nutRemaining)}</div>
+                      <div className="text-amber-300/60 text-[10px]">Amount still needed to cover this month&apos;s fixed costs</div>
+                    </div>
+                    
+                    {overage > 0 && (
+                      <div className="px-4 py-2 bg-emerald-900/30 border-t border-emerald-600/30">
+                        <div className="text-emerald-400 text-[11px] font-medium">★ Profit Above NUT</div>
+                        <div className="text-emerald-400 text-lg font-bold">+{formatCurrency(overage)}</div>
+                      </div>
+                    )}
                     
                     {/* Footer */}
                     <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800">
@@ -389,25 +391,41 @@ export default function Dashboard() {
                       <p className="text-zinc-400 text-[10px] mt-0.5">Progress toward covering monthly fixed costs.</p>
                     </div>
                     
-                    {/* Two Column Layout */}
+                    {/* Two Column Layout - Uniform */}
                     <div className="grid grid-cols-2 gap-px bg-zinc-800/50">
-                      <div className="bg-zinc-900/80 p-2">
-                        <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Revenue</div>
-                        <div className="text-zinc-500 text-[9px]">Sales (MTD)</div>
-                        <div className="text-white text-sm font-semibold">{formatCurrency(data.mtdNetSales)}</div>
-                        <div className="text-zinc-500 text-[9px] mt-1">Gross Profit ({marginPct}%)</div>
-                        <div className="text-cyan-400 text-sm font-semibold">{formatCurrency(grossProfit)}</div>
-                      </div>
-                      <div className="bg-zinc-900/80 p-2">
-                        <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-1">Fixed Costs</div>
-                        <div className="text-zinc-500 text-[9px]">Monthly NUT</div>
-                        <div className="text-white text-sm font-semibold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
-                        <div className="text-amber-400 text-[9px] mt-1 flex items-center gap-1">
-                          <span className="w-1 h-1 rounded-full bg-amber-400"></span>
-                          NUT Left (inner arc)
+                      <div className="bg-zinc-900/80 p-2 space-y-2">
+                        <div className="text-[9px] uppercase tracking-wider text-zinc-500">Revenue</div>
+                        <div>
+                          <div className="text-zinc-400 text-[10px]">Sales (MTD)</div>
+                          <div className="text-white text-base font-bold">{formatCurrency(data.mtdNetSales)}</div>
                         </div>
-                        <div className="text-amber-400 text-sm font-semibold">{formatCurrency(nutRemaining)}</div>
+                        <div>
+                          <div className="text-cyan-400 text-[10px]">Gross Profit</div>
+                          <div className="text-zinc-500 text-[9px]">{marginPct}% margin</div>
+                          <div className="text-cyan-400 text-base font-bold">{formatCurrency(grossProfit)}</div>
+                        </div>
                       </div>
+                      <div className="bg-zinc-900/80 p-2 space-y-2">
+                        <div className="text-[9px] uppercase tracking-wider text-zinc-500">Fixed Costs</div>
+                        <div>
+                          <div className="text-zinc-400 text-[10px]">Monthly NUT</div>
+                          <div className="text-white text-base font-bold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
+                        </div>
+                        <div>
+                          <div className="text-emerald-400 text-[10px]">✓ Covered</div>
+                          <div className="text-zinc-500 text-[9px]">{nutPct}% paid</div>
+                          <div className="text-emerald-400 text-base font-bold">{formatCurrency(nutCovered)}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* NUT Remaining - Full Width Cradle */}
+                    <div className="px-3 py-2 bg-amber-900/20 border-t border-amber-600/30">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span className="text-amber-400 text-[10px] font-medium uppercase tracking-wider">NUT Remaining</span>
+                      </div>
+                      <div className="text-amber-400 text-xl font-bold">{formatCurrency(nutRemaining)}</div>
                     </div>
                     
                     {/* Footer */}
