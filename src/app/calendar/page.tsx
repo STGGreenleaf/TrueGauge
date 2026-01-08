@@ -313,7 +313,7 @@ export default function CalendarPage() {
                 <LayoutGrid className="h-4 w-4" />
               </button>
               <button
-                onClick={() => setViewMode('week')}
+                onClick={() => { setViewMode('week'); setCurrentDate(new Date()); }}
                 className={`p-2 transition-all ${viewMode === 'week' ? 'bg-cyan-500/20 text-cyan-400' : 'text-zinc-600 hover:text-zinc-400'}`}
                 title="Week View"
               >
