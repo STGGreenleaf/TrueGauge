@@ -42,18 +42,18 @@ interface Vendor {
 }
 
 const CATEGORIES = [
-  { key: 'COGS', label: 'COGS', icon: ShoppingCart },
-  { key: 'OPEX', label: 'OPEX', icon: Receipt },
-  { key: 'CAPEX', label: 'CAPEX', icon: Wrench },
-  { key: 'OWNER_DRAW', label: 'Owner Draw', icon: User },
-  { key: 'supplies', label: 'Supplies', icon: ShoppingCart },
-  { key: 'services', label: 'Services', icon: Receipt },
-  { key: 'utilities', label: 'Utilities', icon: Receipt },
-  { key: 'insurance', label: 'Insurance', icon: Receipt },
-  { key: 'marketing', label: 'Marketing', icon: Receipt },
-  { key: 'shipping', label: 'Shipping', icon: ShoppingCart },
-  { key: 'maintenance', label: 'Maintenance', icon: Wrench },
-  { key: 'fees', label: 'Fees', icon: Receipt },
+  { key: 'COGS', label: 'COGS', example: 'inventory, food cost, raw materials', icon: ShoppingCart },
+  { key: 'OPEX', label: 'OPEX', example: 'rent, payroll, utilities', icon: Receipt },
+  { key: 'CAPEX', label: 'CAPEX', example: 'equipment, renovations, vehicles', icon: Wrench },
+  { key: 'OWNER_DRAW', label: 'Owner Draw', example: 'personal withdrawals', icon: User },
+  { key: 'supplies', label: 'Supplies', example: 'cups, lids, napkins, bags', icon: ShoppingCart },
+  { key: 'services', label: 'Services', example: 'IT support, cleaning, consulting', icon: Receipt },
+  { key: 'utilities', label: 'Utilities', example: 'electric, gas, water, trash', icon: Receipt },
+  { key: 'insurance', label: 'Insurance', example: 'liability, property, workers comp', icon: Receipt },
+  { key: 'marketing', label: 'Marketing', example: 'ads, signage, promotions', icon: Receipt },
+  { key: 'shipping', label: 'Shipping', example: 'freight, postage, delivery', icon: ShoppingCart },
+  { key: 'maintenance', label: 'Maintenance', example: 'repairs, HVAC, plumbing', icon: Wrench },
+  { key: 'fees', label: 'Fees', example: 'bank fees, processing, licenses', icon: Receipt },
 ];
 
 export default function VendorsPage() {
@@ -70,7 +70,7 @@ export default function VendorsPage() {
   });
   const [formData, setFormData] = useState({
     name: '',
-    defaultCategory: 'COGS',
+    defaultCategory: '',
     typicalAmount: '',
     isRecurring: false,
     recurrenceRule: 'NONE',
@@ -232,27 +232,29 @@ export default function VendorsPage() {
               </div>
 
               <div>
-                <Label className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Default Category</Label>
+                <Label className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Category</Label>
                 <select
                   value={formData.defaultCategory}
                   onChange={(e) => setFormData({ ...formData, defaultCategory: e.target.value })}
                   className="mt-2 w-full rounded-lg border border-zinc-700/50 bg-zinc-800/50 px-3 py-2.5 text-sm text-white"
                 >
+                  <option value="" disabled>Choose a category...</option>
                   {CATEGORIES.map((cat) => (
-                    <option key={cat.key} value={cat.key}>{cat.label}</option>
+                    <option key={cat.key} value={cat.key}>{cat.label} — {cat.example}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <Label className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Typical Amount (optional)</Label>
+                <Label className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Usual Amount</Label>
                 <Input
                   type="number"
                   value={formData.typicalAmount}
                   onChange={(e) => setFormData({ ...formData, typicalAmount: e.target.value })}
-                  placeholder="0.00"
+                  placeholder="e.g. 350"
                   className="mt-2 border-zinc-700/50 bg-zinc-800/50 text-white placeholder:text-zinc-600"
                 />
+                <p className="mt-1 text-xs text-zinc-600">What you normally pay this vendor</p>
               </div>
 
               <div className="flex items-center gap-3 rounded-lg border border-zinc-700/30 bg-zinc-800/30 p-3">
