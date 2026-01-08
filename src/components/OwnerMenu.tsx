@@ -76,7 +76,10 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
               {/* User View Toggle */}
               <button
                 onClick={() => {
-                  onToggleUserView(!userViewEnabled);
+                  const newValue = !userViewEnabled;
+                  onToggleUserView(newValue);
+                  localStorage.setItem('userViewEnabled', String(newValue));
+                  window.location.reload();
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-md transition-colors ${
                   userViewEnabled 
