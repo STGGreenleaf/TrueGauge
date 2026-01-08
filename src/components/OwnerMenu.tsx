@@ -115,19 +115,18 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
               </button>
 
-              {/* Owner Dashboard */}
+              {/* Owner Portal */}
               <button
                 onClick={() => {
-                  // TODO: Navigate to owner dashboard
+                  window.location.href = '/owner-portal';
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-400 transition-colors opacity-50 cursor-not-allowed"
-                disabled
+                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
               >
                 <LayoutDashboard className="h-4 w-4" />
                 <div className="text-left">
-                  <div className="text-sm font-medium">Owner Dashboard</div>
-                  <div className="text-xs text-zinc-500">Coming soon</div>
+                  <div className="text-sm font-medium">Owner Portal</div>
+                  <div className="text-xs text-zinc-500">Analytics & Feedback</div>
                 </div>
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
               </button>

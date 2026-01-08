@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Settings, RefreshCw, Gauge } from 'lucide-react';
 import { OwnerMenu } from '@/components/OwnerMenu';
+import { FeedbackButton } from '@/components/FeedbackButton';
 
 interface NavProps {
   onRefresh?: () => void;
@@ -93,6 +94,8 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
           </Button>
         </div>
       </div>
+      {/* Feedback button for all users */}
+      <FeedbackButton />
     </header>
   );
 }
