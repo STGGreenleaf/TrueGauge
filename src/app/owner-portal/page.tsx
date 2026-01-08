@@ -352,22 +352,34 @@ export default function OwnerPortal() {
                 <TrendingUp className="w-4 h-4 text-cyan-500" />
                 Store Health
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Stores with Data</div>
-                  <div className="text-2xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/5 p-4 border border-white/10 shadow-lg backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Stores with Data</div>
+                    <div className="text-3xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Inactive Stores</div>
-                  <div className="text-2xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/5 p-4 border border-white/10 shadow-lg backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Inactive Stores</div>
+                    <div className="text-3xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Users/Store</div>
-                  <div className="text-2xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/5 p-4 border border-white/10 shadow-lg backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Avg Users/Store</div>
+                    <div className="text-3xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Actions (30d)</div>
-                  <div className="text-2xl font-bold text-amber-400">{analytics.userActivity.totalActions30d}</div>
+                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-white/10 to-white/5 p-4 border border-white/10 shadow-lg backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                  <div className="relative">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-400 mb-1">Total Actions (30d)</div>
+                    <div className="text-3xl font-bold text-amber-400">{analytics.userActivity.totalActions30d}</div>
+                  </div>
                 </div>
               </div>
             </div>
