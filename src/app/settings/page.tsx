@@ -496,6 +496,11 @@ export default function SettingsPage() {
               
               {hoursExpanded && (
                 <div className="border-t border-zinc-700/30 p-4 space-y-4">
+                  {/* Hours Summary */}
+                  <div className="text-sm text-zinc-300 font-medium">
+                    {Object.values(settings.openHoursTemplate || {}).reduce((a: number, b: number) => a + b, 0)}h/week • Closes {(settings.storeCloseHour ?? 16) === 0 ? '12 AM' : (settings.storeCloseHour ?? 16) < 12 ? `${settings.storeCloseHour} AM` : (settings.storeCloseHour ?? 16) === 12 ? '12 PM' : `${(settings.storeCloseHour ?? 16) - 12} PM`}
+                  </div>
+                  
                   {/* Weekly Hours Grid */}
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-3">Hours Open Per Day</div>
