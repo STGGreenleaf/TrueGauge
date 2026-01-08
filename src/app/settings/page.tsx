@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
-import { OwnerMenu } from '@/components/OwnerMenu';
+import { Nav } from '@/components/Nav';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -19,10 +19,10 @@ export default function SettingsPage() {
     return false;
   });
   
-  // Persist userViewEnabled to localStorage
   useEffect(() => {
     localStorage.setItem('userViewEnabled', String(userViewEnabled));
   }, [userViewEnabled]);
+  
   const [nutExpanded, setNutExpanded] = useState(false);
   const [hoursExpanded, setHoursExpanded] = useState(false);
   const [refYearExpanded, setRefYearExpanded] = useState(false);
@@ -395,26 +395,9 @@ export default function SettingsPage() {
         <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-violet-600/10 blur-[100px]" />
       </div>
 
+      <Nav showRefresh={false} />
+
       <div className="relative z-10 mx-auto max-w-2xl px-6 py-8">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
-              Settings
-            </div>
-            <OwnerMenu 
-              onToggleUserView={setUserViewEnabled} 
-              userViewEnabled={userViewEnabled} 
-            />
-          </div>
-        </div>
 
         {/* Business Info Card */}
         <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
