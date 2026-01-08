@@ -56,7 +56,7 @@ interface Analytics {
 export default function OwnerPortal() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'analytics' | 'stores'>('inbox');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'analytics' | 'stores'>('analytics');
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [expandedFeedback, setExpandedFeedback] = useState<string | null>(null);
@@ -161,22 +161,6 @@ export default function OwnerPortal() {
         {/* Tabs */}
         <div className="flex gap-2 mb-6 border-b border-zinc-800 pb-4">
           <button
-            onClick={() => setActiveTab('inbox')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'inbox' 
-                ? 'bg-cyan-500/20 text-cyan-400' 
-                : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Inbox
-            {unreadCount > 0 && (
-              <span className="bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full font-bold">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          <button
             onClick={() => setActiveTab('analytics')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'analytics' 
@@ -197,6 +181,22 @@ export default function OwnerPortal() {
           >
             <Store className="w-4 h-4" />
             Stores
+          </button>
+          <button
+            onClick={() => setActiveTab('inbox')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'inbox' 
+                ? 'bg-cyan-500/20 text-cyan-400' 
+                : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Inbox
+            {unreadCount > 0 && (
+              <span className="bg-cyan-500 text-black text-xs px-1.5 py-0.5 rounded-full font-bold">
+                {unreadCount}
+              </span>
+            )}
           </button>
         </div>
 

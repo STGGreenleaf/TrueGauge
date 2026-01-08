@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { MessageSquareShare, X, Send, Check } from 'lucide-react';
 
-export function FeedbackButton() {
+interface FeedbackButtonProps {
+  inline?: boolean;
+}
+
+export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [type, setType] = useState<'feature' | 'bug'>('feature');
   const [message, setMessage] = useState('');
@@ -58,19 +62,26 @@ export function FeedbackButton() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Inline or Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
-          hasUnreadReply 
-            ? 'bg-cyan-500 text-black animate-pulse' 
-            : 'bg-zinc-800 text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700'
-        }`}
+        className={inline 
+          ? `relative p-2 rounded transition-colors ${
+              hasUnreadReply 
+                ? 'text-cyan-400' 
+                : 'text-zinc-500 hover:text-zinc-300'
+            }`
+          : `fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg transition-all hover:scale-110 ${
+              hasUnreadReply 
+                ? 'bg-cyan-500 text-black animate-pulse' 
+                : 'bg-zinc-800 text-zinc-400 hover:text-cyan-400 hover:bg-zinc-700'
+            }`
+        }
         title="Send Feedback"
       >
-        <MessageSquareShare className="w-5 h-5" />
+        <MessageSquareShare className={inline ? "w-4 h-4" : "w-5 h-5"} />
         {hasUnreadReply && (
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-400 rounded-full animate-ping" />
+          <span className={`absolute ${inline ? '-top-0.5 -right-0.5 w-2 h-2' : '-top-1 -right-1 w-3 h-3'} bg-cyan-400 rounded-full animate-ping`} />
         )}
       </button>
 

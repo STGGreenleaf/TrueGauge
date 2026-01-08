@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, RefreshCw, Gauge } from 'lucide-react';
+import { Settings, RefreshCw, Gauge, MessageSquareShare } from 'lucide-react';
 import { OwnerMenu } from '@/components/OwnerMenu';
 import { FeedbackButton } from '@/components/FeedbackButton';
 
@@ -46,7 +46,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/50 backdrop-blur-md bg-black/50">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
         {/* Left side: Logo */}
         <a href="/" className="cursor-pointer">
           <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400">
@@ -54,7 +54,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
             <span className="font-light">GAUGE</span>
           </h1>
         </a>
-        {/* Right side: Owner hamburger + Dashboard + Refresh + Settings */}
+        {/* Right side: Owner hamburger + Messages + Dashboard + Refresh + Settings */}
         <div className="flex items-center gap-1">
           {isOwner && (
             <OwnerMenu 
@@ -62,6 +62,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
               userViewEnabled={userViewEnabled} 
             />
           )}
+          <FeedbackButton inline />
           {showDashboard && (
             <Button
               variant="ghost"
@@ -94,8 +95,6 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
           </Button>
         </div>
       </div>
-      {/* Feedback button for all users */}
-      <FeedbackButton />
     </header>
   );
 }
