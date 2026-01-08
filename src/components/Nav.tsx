@@ -45,7 +45,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
   }, [userViewEnabled]);
 
   return (
-    <header className="relative z-10 border-b border-zinc-800/50">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/50 backdrop-blur-md bg-black/50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Left side: Logo */}
         <a href="/" className="cursor-pointer">
