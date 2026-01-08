@@ -1393,7 +1393,7 @@ export default function SettingsPage() {
               )}
               
               <p className="text-xs text-zinc-600">
-                Sets the starting cash balance for year-over-year reference in the Liquidity dial.
+                Set your opening cash balance for the year. This anchors the Liquidity dial — showing how far you've come since day one of the fiscal year.
               </p>
               
               {/* Emergency Floor */}
