@@ -233,23 +233,15 @@ export default function VendorsPage() {
 
               <div>
                 <Label className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Default Category</Label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <select
+                  value={formData.defaultCategory}
+                  onChange={(e) => setFormData({ ...formData, defaultCategory: e.target.value })}
+                  className="mt-2 w-full rounded-lg border border-zinc-700/50 bg-zinc-800/50 px-3 py-2.5 text-sm text-white"
+                >
                   {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, defaultCategory: cat.key })}
-                      className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-all ${
-                        formData.defaultCategory === cat.key
-                          ? 'border-cyan-500/50 bg-cyan-500/20 text-cyan-300'
-                          : 'border-zinc-700/50 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
-                      }`}
-                    >
-                      <cat.icon className="h-4 w-4" />
-                      {cat.label}
-                    </button>
+                    <option key={cat.key} value={cat.key}>{cat.label}</option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div>

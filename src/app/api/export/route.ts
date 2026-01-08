@@ -58,6 +58,22 @@ export async function GET(request: NextRequest) {
     const cashInjections = await prisma.cashInjection.findMany({ where: { organizationId: orgId }, orderBy: { date: 'desc' } });
     const vendors = await prisma.vendorTemplate.findMany({ where: { organizationId: orgId }, orderBy: { name: 'asc' } });
 
+    // Vendor spend summary - aggregated by vendor name
+    const vendorSpendStats = await prisma.expenseTransaction.groupBy({
+      by: ['vendorName'],
+      where: { organizationId: orgId },
+      _sum: { amount: true },
+      _avg: { amount: true },
+      _count: { amount: true },
+    });
+    
+    const vendorSpendSummary = vendorSpendStats.map(v => ({
+      vendorName: v.vendorName,
+      totalSpend: v._sum.amount || 0,
+      avgSpend: v._avg.amount ? Math.round(v._avg.amount) : 0,
+      transactionCount: v._count.amount || 0,
+    })).sort((a, b) => b.totalSpend - a.totalSpend);
+
     if (format === 'json') {
       // JSON export
       const exportData = {
@@ -73,6 +89,7 @@ export async function GET(request: NextRequest) {
         yearStartAnchors,
         cashInjections,
         vendors,
+        vendorSpendSummary,
       };
 
       return new NextResponse(JSON.stringify(exportData, null, 2), {
@@ -131,6 +148,10 @@ export async function GET(request: NextRequest) {
       // Vendors CSV
       const vendorHeaders = ['id', 'name', 'defaultCategory', 'typicalAmount', 'isRecurring', 'createdAt'];
       archive.append(buildCsv(vendorHeaders, vendors as unknown as Record<string, unknown>[]), { name: 'vendors.csv' });
+
+      // Vendor Spend Summary CSV
+      const spendSummaryHeaders = ['vendorName', 'totalSpend', 'avgSpend', 'transactionCount'];
+      archive.append(buildCsv(spendSummaryHeaders, vendorSpendSummary as unknown as Record<string, unknown>[]), { name: 'vendor_spend_summary.csv' });
 
       // Finalize archive
       await archive.finalize();
