@@ -48,6 +48,9 @@ export default function SettingsPage() {
   const [showMoreSnapshotYears, setShowMoreSnapshotYears] = useState(false);
   const [expandedSnapshotYears, setExpandedSnapshotYears] = useState<Set<string>>(new Set());
   
+  // Year start anchors state
+  const [yearAnchors, setYearAnchors] = useState<Array<{ id: string; year: number; amount: number; date: string; note: string | null }>>([]);
+  
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
   const [showMoreYearsIn, setShowMoreYearsIn] = useState(false);
@@ -104,6 +107,7 @@ export default function SettingsPage() {
     fetchReferenceMonths(refYear, userViewEnabled);
     fetchInjections(userViewEnabled);
     fetchSnapshots(userViewEnabled);
+    fetchYearAnchors(userViewEnabled);
   }, [userViewEnabled]);
   
   // Fetch cash snapshots history
@@ -117,6 +121,20 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error fetching snapshots:', error);
+    }
+  };
+  
+  // Fetch year start anchors
+  const fetchYearAnchors = async (useShowcase = false) => {
+    try {
+      const url = useShowcase ? '/api/year-start-anchors?showcase=true' : '/api/year-start-anchors';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setYearAnchors(data);
+      }
+    } catch (error) {
+      console.error('Error fetching year anchors:', error);
     }
   };
   
@@ -1395,6 +1413,36 @@ export default function SettingsPage() {
               <p className="text-xs text-zinc-600">
                 Set your opening cash balance for the year. This anchors the Liquidity dial — showing how far you've come since day one of the fiscal year.
               </p>
+              
+              {/* Year Anchors History */}
+              {yearAnchors.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">All Years</div>
+                  <div className="space-y-1">
+                    {yearAnchors.map((anchor, idx) => {
+                      const prev = yearAnchors[idx + 1];
+                      const diff = prev ? anchor.amount - prev.amount : 0;
+                      return (
+                        <div key={anchor.id} className="py-2 px-3 rounded bg-violet-950/30 border border-violet-900/30">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-violet-400 font-bold">{anchor.year}</span>
+                              <span className="text-violet-300 font-medium">${anchor.amount.toLocaleString()}</span>
+                              <span className="text-zinc-600 text-xs">{anchor.date}</span>
+                              {prev && diff !== 0 && (
+                                <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {anchor.note && <p className="text-zinc-500 text-xs mt-1">{anchor.note}</p>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               
               {/* Emergency Floor */}
               <div className="mt-6 pt-4 border-t border-zinc-700/50">

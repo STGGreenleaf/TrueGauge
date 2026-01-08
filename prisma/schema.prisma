@@ -9,18 +9,19 @@ datasource db {
 }
 
 model Organization {
-  id            String               @id @default(cuid())
-  name          String
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  cashSnapshots CashSnapshot[]
-  injections    CashInjection[]
-  dayEntries    DayEntry[]
-  expenses      ExpenseTransaction[]
-  users         OrganizationUser[]
-  references    ReferenceMonth[]
-  settings      Settings?
-  vendors       VendorTemplate[]
+  id              String               @id @default(cuid())
+  name            String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  cashSnapshots   CashSnapshot[]
+  injections      CashInjection[]
+  dayEntries      DayEntry[]
+  expenses        ExpenseTransaction[]
+  users           OrganizationUser[]
+  references      ReferenceMonth[]
+  settings        Settings?
+  vendors         VendorTemplate[]
+  yearStartAnchors YearStartAnchor[]
 }
 
 model CashSnapshot {
@@ -33,6 +34,20 @@ model CashSnapshot {
 
   @@index([organizationId])
   @@index([date])
+}
+
+model YearStartAnchor {
+  id             String       @id @default(cuid())
+  organizationId String
+  year           Int
+  amount         Float
+  date           String
+  note           String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year])
+  @@index([organizationId])
 }
 
 model User {
