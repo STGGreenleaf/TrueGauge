@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -77,6 +77,11 @@ export default function SettingsPage() {
   const [orgUsers, setOrgUsers] = useState<Array<{ id: string; visibleId: string; email: string; name: string | null; role: string; joinedAt: string; avatarUrl: string }>>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<Array<{ id: string; email: string; role: string; createdAt: string }>>([]);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('member');
+  const [inviting, setInviting] = useState(false);
   
   // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
@@ -121,10 +126,11 @@ export default function SettingsPage() {
     fetchYearAnchors(userViewEnabled);
   }, [userViewEnabled]);
   
-  // Fetch users when drawer expands
+  // Fetch users and invites when drawer expands
   useEffect(() => {
-    if (usersExpanded && orgUsers.length === 0) {
-      fetchUsers();
+    if (usersExpanded) {
+      if (orgUsers.length === 0) fetchUsers();
+      fetchInvites();
     }
   }, [usersExpanded]);
   
@@ -166,6 +172,53 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error removing user:', error);
+    }
+  };
+  
+  const fetchInvites = async () => {
+    try {
+      const res = await fetch('/api/invites');
+      if (res.ok) {
+        const data = await res.json();
+        setPendingInvites(data.invites || []);
+      }
+    } catch (error) {
+      console.error('Error fetching invites:', error);
+    }
+  };
+  
+  const sendInvite = async () => {
+    if (!inviteEmail || !inviteEmail.includes('@')) return;
+    setInviting(true);
+    try {
+      const res = await fetch('/api/invites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      });
+      if (res.ok) {
+        setInviteEmail('');
+        setShowInviteForm(false);
+        fetchInvites();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to send invite');
+      }
+    } catch (error) {
+      console.error('Error sending invite:', error);
+    } finally {
+      setInviting(false);
+    }
+  };
+  
+  const cancelInvite = async (inviteId: string) => {
+    try {
+      const res = await fetch(`/api/invites?id=${inviteId}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchInvites();
+      }
+    } catch (error) {
+      console.error('Error canceling invite:', error);
     }
   };
   
@@ -667,11 +720,98 @@ export default function SettingsPage() {
                     </div>
                   )}
                   
-                  <p className="mt-3 text-xs text-zinc-600">
-                    {isAdmin 
-                      ? 'Admins can change roles and remove users. Members have view/edit access.'
-                      : 'Users are added when they sign in with access to this organization.'}
-                  </p>
+                  {/* Pending Invites */}
+                  {pendingInvites.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-zinc-700/30">
+                      <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Pending Invites</div>
+                      <div className="space-y-2">
+                        {pendingInvites.map((invite) => (
+                          <div
+                            key={invite.id}
+                            className="flex items-center justify-between p-2 rounded-lg bg-amber-900/10 border border-amber-700/20"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-amber-500" />
+                              <span className="text-sm text-zinc-300">{invite.email}</span>
+                              <span className="text-[9px] uppercase text-amber-400">({invite.role})</span>
+                            </div>
+                            {isAdmin && (
+                              <button
+                                onClick={() => cancelInvite(invite.id)}
+                                className="text-zinc-500 hover:text-red-400 p-1"
+                                title="Cancel invite"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Invite Form */}
+                  {isAdmin && (
+                    <div className="mt-4 pt-4 border-t border-zinc-700/30">
+                      {showInviteForm ? (
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-zinc-400 text-xs">Email Address</Label>
+                            <Input
+                              type="email"
+                              placeholder="partner@email.com"
+                              value={inviteEmail}
+                              onChange={(e) => setInviteEmail(e.target.value)}
+                              className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-zinc-400 text-xs">Role</Label>
+                            <select
+                              value={inviteRole}
+                              onChange={(e) => setInviteRole(e.target.value)}
+                              className="mt-1 w-full h-9 rounded-md border border-zinc-700 bg-zinc-800 px-3 text-sm text-white"
+                            >
+                              <option value="member">Member</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={sendInvite}
+                              disabled={inviting || !inviteEmail}
+                              className="flex-1 py-2 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              {inviting ? 'Sending...' : 'Send Invite'}
+                            </button>
+                            <button
+                              onClick={() => { setShowInviteForm(false); setInviteEmail(''); }}
+                              className="px-4 py-2 rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-300 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-zinc-500">
+                            When they sign in with Google, they&apos;ll automatically join this store.
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setShowInviteForm(true)}
+                          className="flex items-center gap-2 text-sm text-cyan-400 hover:text-cyan-300"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Invite User
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  
+                  {!isAdmin && (
+                    <p className="mt-3 text-xs text-zinc-600">
+                      Users are added when they sign in with access to this organization.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

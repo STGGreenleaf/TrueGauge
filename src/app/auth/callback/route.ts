@@ -74,38 +74,71 @@ export async function GET(request: Request) {
             console.log(`Created legacy org for owner ${userEmail}`)
           }
         } else {
-          // New user - create user with Showcase Template org
-          const user = await prisma.user.create({
-            data: {
-              id: data.user.id,
-              email: userEmail,
-              name: data.user.user_metadata?.full_name || userEmail.split('@')[0],
-              avatarUrl: data.user.user_metadata?.avatar_url,
-            },
-          })
+          // New user - check for pending invites first
+          const pendingInvite = await prisma.invite.findFirst({
+            where: { email: userEmail.toLowerCase() },
+          });
 
-          // Create new organization with Showcase Template data
-          const org = await prisma.organization.create({
-            data: {
-              name: 'Demo Coffee Co',
-              users: {
-                create: {
-                  userId: user.id,
-                  role: 'owner',
+          if (pendingInvite) {
+            // User was invited - create user and link to existing org
+            const user = await prisma.user.create({
+              data: {
+                id: data.user.id,
+                email: userEmail,
+                name: data.user.user_metadata?.full_name || userEmail.split('@')[0],
+                avatarUrl: data.user.user_metadata?.avatar_url,
+              },
+            });
+
+            // Add user to the organization they were invited to
+            await prisma.organizationUser.create({
+              data: {
+                organizationId: pendingInvite.organizationId,
+                userId: user.id,
+                role: pendingInvite.role,
+              },
+            });
+
+            // Delete the invite since it's been used
+            await prisma.invite.delete({
+              where: { id: pendingInvite.id },
+            });
+
+            console.log(`Invited user ${userEmail} joined org ${pendingInvite.organizationId}`);
+          } else {
+            // No invite - create user with new Demo org
+            const user = await prisma.user.create({
+              data: {
+                id: data.user.id,
+                email: userEmail,
+                name: data.user.user_metadata?.full_name || userEmail.split('@')[0],
+                avatarUrl: data.user.user_metadata?.avatar_url,
+              },
+            });
+
+            // Create new organization with Showcase Template data
+            const org = await prisma.organization.create({
+              data: {
+                name: 'Demo Coffee Co',
+                users: {
+                  create: {
+                    userId: user.id,
+                    role: 'owner',
+                  },
+                },
+                settings: {
+                  create: {
+                    businessName: 'Demo Coffee Co',
+                    monthlyFixedNut: 15500,
+                    targetCogsPct: 35,
+                    targetFeesPct: 3,
+                  },
                 },
               },
-              settings: {
-                create: {
-                  businessName: 'Demo Coffee Co',
-                  monthlyFixedNut: 15500,
-                  targetCogsPct: 35,
-                  targetFeesPct: 3,
-                },
-              },
-            },
-          })
+            });
 
-          console.log(`Created new user ${userEmail} with Showcase Template org ${org.id}`)
+            console.log(`Created new user ${userEmail} with Showcase Template org ${org.id}`);
+          }
         }
       }
 

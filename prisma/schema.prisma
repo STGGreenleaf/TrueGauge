@@ -17,6 +17,7 @@ model Organization {
   injections      CashInjection[]
   dayEntries      DayEntry[]
   expenses        ExpenseTransaction[]
+  invites         Invite[]
   users           OrganizationUser[]
   references      ReferenceMonth[]
   settings        Settings?
@@ -72,6 +73,20 @@ model OrganizationUser {
   @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
+}
+
+model Invite {
+  id             String       @id @default(cuid())
+  organizationId String
+  email          String
+  role           String       @default("member")
+  invitedBy      String?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([email])
+  @@index([organizationId])
 }
 
 model Settings {
