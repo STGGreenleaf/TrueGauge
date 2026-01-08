@@ -60,6 +60,7 @@ export default function OwnerPortal() {
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [expandedFeedback, setExpandedFeedback] = useState<string | null>(null);
+  const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
 
@@ -325,52 +326,163 @@ export default function OwnerPortal() {
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && analytics && (
-          <div className="space-y-6">
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Stores</div>
-                <div className="text-3xl font-bold text-cyan-400">{analytics.healthMetrics.totalStores}</div>
+          <div className="space-y-4">
+            {/* Total Stores */}
+            <button
+              onClick={() => setExpandedMetric(expandedMetric === 'stores' ? null : 'stores')}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Stores</div>
+                  <div className="text-3xl font-bold text-cyan-400">{analytics.healthMetrics.totalStores}</div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform ${expandedMetric === 'stores' ? 'rotate-180' : ''}`} />
               </div>
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Users</div>
-                <div className="text-3xl font-bold text-emerald-400">{analytics.healthMetrics.totalUsers}</div>
+            </button>
+            {expandedMetric === 'stores' && (
+              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 -mt-2 ml-4">
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {analytics.storeDetails.map(store => (
+                    <div key={store.id} className="flex items-center justify-between py-2 border-b border-zinc-700 last:border-0">
+                      <div>
+                        <div className="text-sm text-zinc-200">{store.name}</div>
+                        <div className="text-xs text-zinc-500">{store.dayEntries} entries · {store.userCount} users</div>
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded ${store.dayEntries > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}`}>
+                        {store.dayEntries > 0 ? 'Active' : 'Inactive'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Active (30d)</div>
-                <div className="text-3xl font-bold text-amber-400">{analytics.userActivity.activeUsers30d}</div>
-              </div>
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Unread Messages</div>
-                <div className="text-3xl font-bold text-red-400">{analytics.feedbackStats.unread}</div>
-              </div>
-            </div>
+            )}
 
-            {/* Store Health */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
-              <h3 className="text-sm font-medium text-zinc-300 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-cyan-500" />
-                Store Health
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
+            {/* Total Users */}
+            <button
+              onClick={() => setExpandedMetric(expandedMetric === 'users' ? null : 'users')}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Stores with Data</div>
-                  <div className="text-2xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Users</div>
+                  <div className="text-3xl font-bold text-emerald-400">{analytics.healthMetrics.totalUsers}</div>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Inactive Stores</div>
-                  <div className="text-2xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Users/Store</div>
-                  <div className="text-2xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Actions (30d)</div>
-                  <div className="text-2xl font-bold text-amber-400">{analytics.userActivity.totalActions30d}</div>
+                <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform ${expandedMetric === 'users' ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+            {expandedMetric === 'users' && (
+              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 -mt-2 ml-4">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {analytics.storeDetails.map(store => (
+                    <div key={store.id}>
+                      <div className="text-xs font-medium text-zinc-400 mb-1">{store.name}</div>
+                      {store.users.map((user, i) => (
+                        <div key={i} className="flex items-center justify-between py-1 pl-3 text-sm">
+                          <span className="text-zinc-300">{user.email}</span>
+                          <span className="text-xs text-zinc-500">{user.role}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Active Users */}
+            <button
+              onClick={() => setExpandedMetric(expandedMetric === 'active' ? null : 'active')}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Active (30d)</div>
+                  <div className="text-3xl font-bold text-amber-400">{analytics.userActivity.activeUsers30d}</div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform ${expandedMetric === 'active' ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+            {expandedMetric === 'active' && (
+              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 -mt-2 ml-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Active Users</div>
+                    <div className="text-2xl font-bold text-amber-400">{analytics.userActivity.activeUsers30d}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Total Actions</div>
+                    <div className="text-2xl font-bold text-cyan-400">{analytics.userActivity.totalActions30d}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Actions/User</div>
+                    <div className="text-2xl font-bold text-emerald-400">
+                      {analytics.userActivity.activeUsers30d > 0 
+                        ? (analytics.userActivity.totalActions30d / analytics.userActivity.activeUsers30d).toFixed(1)
+                        : 0}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Unread Messages */}
+            <button
+              onClick={() => { setActiveTab('inbox'); setExpandedMetric(null); }}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Unread Messages</div>
+                  <div className="text-3xl font-bold text-red-400">{analytics.feedbackStats.unread}</div>
+                  <div className="text-xs text-zinc-500 mt-1">of {analytics.feedbackStats.total} total</div>
+                </div>
+                <MessageSquare className="w-5 h-5 text-zinc-500" />
+              </div>
+            </button>
+
+            {/* Store Health Summary */}
+            <button
+              onClick={() => setExpandedMetric(expandedMetric === 'health' ? null : 'health')}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 text-left hover:border-zinc-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Store Health</div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData} active</span>
+                    <span className="text-2xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive} inactive</span>
+                  </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-zinc-500 transition-transform ${expandedMetric === 'health' ? 'rotate-180' : ''}`} />
+              </div>
+            </button>
+            {expandedMetric === 'health' && (
+              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 -mt-2 ml-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Stores with Data</div>
+                    <div className="text-2xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Inactive Stores</div>
+                    <div className="text-2xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Users/Store</div>
+                    <div className="text-2xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
+                  </div>
+                </div>
+                <div className="border-t border-zinc-700 pt-3">
+                  <div className="text-xs text-zinc-400 mb-2">Inactive stores:</div>
+                  {analytics.storeDetails.filter(s => s.dayEntries === 0).map(store => (
+                    <div key={store.id} className="text-sm text-zinc-300 py-1">{store.name}</div>
+                  ))}
+                  {analytics.storeDetails.filter(s => s.dayEntries === 0).length === 0 && (
+                    <div className="text-sm text-zinc-500">All stores have data!</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
