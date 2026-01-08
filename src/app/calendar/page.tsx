@@ -240,7 +240,7 @@ export default function CalendarPage() {
         <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-cyan-400"
+            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
           >
             <ArrowLeft className="h-4 w-4" />
             Dashboard

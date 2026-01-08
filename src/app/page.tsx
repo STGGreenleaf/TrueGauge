@@ -163,7 +163,7 @@ export default function Dashboard() {
               size="icon"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="text-zinc-500 hover:text-cyan-400"
+              className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
@@ -171,7 +171,7 @@ export default function Dashboard() {
               variant="ghost"
               size="icon"
               onClick={() => router.push('/settings')}
-              className="text-zinc-500 hover:text-cyan-400"
+              className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
             >
               <Settings className="h-4 w-4" />
             </Button>

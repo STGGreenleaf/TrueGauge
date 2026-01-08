@@ -42,7 +42,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
-        className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10"
+        className="text-violet-400 hover:text-violet-300 hover:bg-transparent"
       >
         {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
       </Button>
