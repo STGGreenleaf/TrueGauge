@@ -1431,12 +1431,13 @@ export default function SettingsPage() {
                         const prev = yearAnchors[idx + 1];
                         const diff = prev ? anchor.amount - prev.amount : 0;
                         return (
-                          <div key={anchor.id} className="py-2 px-3 rounded bg-zinc-800/40 border border-zinc-700/30 backdrop-blur-sm">
-                            <div className="flex items-center justify-between">
+                          <div key={anchor.id} className="py-2 px-3 rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-900/5 border border-violet-500/20 backdrop-blur-sm relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                            <div className="flex items-center justify-between relative">
                               <div className="flex items-center gap-3">
-                                <span className="text-zinc-300 font-bold">{anchor.year}</span>
-                                <span className="text-zinc-400 font-medium">${anchor.amount.toLocaleString()}</span>
-                                <span className="text-zinc-600 text-xs">{anchor.date}</span>
+                                <span className="text-violet-300 font-bold">{anchor.year}</span>
+                                <span className="text-violet-200/80 font-medium">${anchor.amount.toLocaleString()}</span>
+                                <span className="text-zinc-500 text-xs">{anchor.date}</span>
                                 {prev && diff !== 0 && (
                                   <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                     {diff > 0 ? '+' : ''}${diff.toLocaleString()}
@@ -1444,7 +1445,7 @@ export default function SettingsPage() {
                                 )}
                               </div>
                             </div>
-                            {anchor.note && <p className="text-zinc-500 text-xs mt-1 italic">{anchor.note}</p>}
+                            {anchor.note && <p className="text-violet-300/50 text-xs mt-1 italic relative">{anchor.note}</p>}
                           </div>
                         );
                       })}
