@@ -325,49 +325,37 @@ export default function VendorsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 divide-y divide-zinc-800/50">
             {vendors.map((vendor) => {
               const Icon = getCategoryIcon(vendor.defaultCategory);
               return (
-                <Card key={vendor.id} className="border-zinc-800 bg-zinc-900/50">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-800">
-                        <Icon className="h-5 w-5 text-zinc-400" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-white">{vendor.name}</div>
-                        <div className="flex items-center gap-2 text-xs text-zinc-500">
-                          <span>{vendor.defaultCategory}</span>
-                          {vendor.typicalAmount && (
-                            <span>• {formatCurrency(vendor.typicalAmount)}</span>
-                          )}
-                          {vendor.isRecurring && (
-                            <span className="text-purple-400">• {vendor.recurrenceRule.toLowerCase()}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEdit(vendor)}
-                        className="h-8 w-8 text-zinc-500 hover:text-white"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(vendor.id)}
-                        className="h-8 w-8 text-zinc-500 hover:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={vendor.id} className="flex items-center justify-between px-3 py-2 hover:bg-zinc-800/30">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className="h-4 w-4 text-zinc-500 flex-shrink-0" />
+                    <span className="text-sm text-white truncate">{vendor.name}</span>
+                    <span className="text-xs text-zinc-600">{vendor.defaultCategory}</span>
+                    {vendor.typicalAmount && (
+                      <span className="text-xs text-cyan-400/70">{formatCurrency(vendor.typicalAmount)}</span>
+                    )}
+                    {vendor.isRecurring && (
+                      <span className="text-[10px] text-violet-400 uppercase">{vendor.recurrenceRule}</span>
+                    )}
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => handleOpenEdit(vendor)}
+                      className="p-1.5 text-zinc-600 hover:text-white"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(vendor.id)}
+                      className="p-1.5 text-zinc-600 hover:text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
