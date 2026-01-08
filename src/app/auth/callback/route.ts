@@ -17,12 +17,14 @@ export async function GET(request: Request) {
 
     if (!error && data.user) {
       const userEmail = data.user.email!;
+      console.log(`Auth callback for: ${userEmail}`);
       
-      // Check if user already exists
-      let existingUser = await prisma.user.findUnique({
-        where: { id: data.user.id },
-        include: { organizations: true },
-      })
+      try {
+        // Check if user already exists
+        let existingUser = await prisma.user.findUnique({
+          where: { id: data.user.id },
+          include: { organizations: true },
+        })
 
       if (!existingUser) {
         // Check if this is the owner email - link to legacy org
@@ -140,6 +142,9 @@ export async function GET(request: Request) {
             console.log(`Created new user ${userEmail} with Showcase Template org ${org.id}`);
           }
         }
+      }
+      } catch (dbError) {
+        console.error('Auth callback DB error:', dbError);
       }
 
       return NextResponse.redirect(`${origin}${next}`)
