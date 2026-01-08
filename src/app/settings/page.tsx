@@ -248,7 +248,7 @@ export default function SettingsPage() {
   const recalculateNut = (s: SettingsType) => {
     const total = (s.nutRent || 0) + (s.nutUtilities || 0) + (s.nutPhone || 0) + 
                   (s.nutInternet || 0) + (s.nutInsurance || 0) + (s.nutLoanPayment || 0) + 
-                  (s.nutPayroll || 0) + (s.nutOther1 || 0) + (s.nutOther2 || 0) + (s.nutOther3 || 0);
+                  (s.nutPayroll || 0) + (s.nutSubscriptions || 0) + (s.nutOther1 || 0) + (s.nutOther2 || 0) + (s.nutOther3 || 0);
     setSettings((prev) => ({ ...prev, monthlyFixedNut: total }));
   };
 
@@ -553,6 +553,20 @@ export default function SettingsPage() {
                         className="mt-1 h-9 border-zinc-700 bg-zinc-800 text-sm text-white"
                       />
                     </div>
+                    <div>
+                      <div className="h-5 flex items-center"><Label className="text-xs text-zinc-400">Subscriptions</Label></div>
+                      <Input
+                        type="number"
+                        value={settings.nutSubscriptions || ''}
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          updateSetting('nutSubscriptions', val);
+                          recalculateNut({ ...settings, nutSubscriptions: val });
+                        }}
+                        className="mt-1 h-9 border-zinc-700 bg-zinc-800 text-sm text-white"
+                      />
+                    </div>
                     {/* Other 1 - editable label */}
                     <div className="col-span-2">
                       <input
@@ -646,7 +660,7 @@ export default function SettingsPage() {
                     <span className="font-bold text-white">
                       ${((settings.nutRent || 0) + (settings.nutUtilities || 0) + (settings.nutPhone || 0) + 
                          (settings.nutInternet || 0) + (settings.nutInsurance || 0) + (settings.nutLoanPayment || 0) + 
-                         (settings.nutPayroll || 0) + (settings.nutOther1 || 0) + (settings.nutOther2 || 0) + (settings.nutOther3 || 0)).toLocaleString()}
+                         (settings.nutPayroll || 0) + (settings.nutSubscriptions || 0) + (settings.nutOther1 || 0) + (settings.nutOther2 || 0) + (settings.nutOther3 || 0)).toLocaleString()}
                     </span>
                   </div>
                 </div>

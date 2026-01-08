@@ -47,6 +47,7 @@ export const SettingsSchema = z.object({
   nutInsurance: z.number().min(0).optional(),
   nutLoanPayment: z.number().min(0).optional(),
   nutPayroll: z.number().min(0).optional(),
+  nutSubscriptions: z.number().min(0).optional(),
   nutOther1: z.number().min(0).optional(),
   nutOther1Label: z.string().optional(),
   nutOther1Note: z.string().nullable().optional(),

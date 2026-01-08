@@ -62,6 +62,7 @@ model Settings {
   nutInsurance         Float        @default(0)
   nutLoanPayment       Float        @default(0)
   nutPayroll           Float        @default(0)
+  nutSubscriptions     Float        @default(0)
   nutOther1            Float        @default(0)
   nutOther1Label       String       @default("Other 1")
   nutOther1Note        String?
