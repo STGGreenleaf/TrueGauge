@@ -45,7 +45,8 @@ export default function SettingsPage() {
   const [snapshotSaving, setSnapshotSaving] = useState(false);
   const [snapshotSaved, setSnapshotSaved] = useState(false);
   const [snapshots, setSnapshots] = useState<Array<{ id: string; date: string; amount: number }>>([]);
-  const [showMoreSnapshots, setShowMoreSnapshots] = useState(false);
+  const [showMoreSnapshotYears, setShowMoreSnapshotYears] = useState(false);
+  const [expandedSnapshotYears, setExpandedSnapshotYears] = useState<Set<string>>(new Set());
   
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
@@ -991,31 +992,84 @@ export default function SettingsPage() {
               {snapshots.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-zinc-800/50">
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">History</div>
-                  <div className="space-y-1">
-                    {(showMoreSnapshots ? snapshots : snapshots.slice(0, 5)).map((snap, idx) => {
-                      const prev = snapshots[idx + 1];
-                      const diff = prev ? snap.amount - prev.amount : 0;
-                      return (
-                        <div key={snap.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-zinc-800/50 border border-zinc-700/30">
-                          <div className="flex items-center gap-3">
-                            <span className="text-cyan-400 font-medium text-sm">${snap.amount.toLocaleString()}</span>
-                            <span className="text-zinc-600 text-xs">{snap.date}</span>
-                            {prev && diff !== 0 && (
-                              <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {diff > 0 ? '+' : ''}${diff.toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                          <button onClick={() => deleteSnapshot(snap.id)} className="text-zinc-600 hover:text-red-400 text-xs">×</button>
+                  {(() => {
+                    const recent = snapshots.slice(0, 3);
+                    const allYears = [...new Set(snapshots.map(s => s.date.substring(0, 4)))].sort((a, b) => b.localeCompare(a));
+                    const displayYears = showMoreSnapshotYears ? allYears : allYears.slice(0, 3);
+                    
+                    return (
+                      <div className="space-y-2">
+                        {/* Recent entries */}
+                        <div className="mb-2">
+                          <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Recent</div>
+                          {recent.map((snap, idx) => {
+                            const prev = snapshots[idx + 1];
+                            const diff = prev ? snap.amount - prev.amount : 0;
+                            return (
+                              <div key={snap.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-zinc-800/50 border border-zinc-700/30 mb-1">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-cyan-400 font-medium text-sm">${snap.amount.toLocaleString()}</span>
+                                  <span className="text-zinc-600 text-xs">{snap.date}</span>
+                                  {prev && diff !== 0 && (
+                                    <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                      {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                                <button onClick={() => deleteSnapshot(snap.id)} className="text-zinc-600 hover:text-red-400 text-xs">×</button>
+                              </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                  {snapshots.length > 5 && (
-                    <button onClick={() => setShowMoreSnapshots(!showMoreSnapshots)} className="text-xs text-cyan-400/70 hover:text-cyan-400 mt-2">
-                      {showMoreSnapshots ? 'Show less' : `Show all (${snapshots.length})`}
-                    </button>
-                  )}
+                        
+                        {/* Collapsible years */}
+                        {displayYears.map(year => {
+                          const yearItems = snapshots.filter(s => s.date.startsWith(year));
+                          const isExpanded = expandedSnapshotYears.has(year);
+                          return (
+                            <div key={year} className="border-t border-zinc-800/30 pt-1">
+                              <button
+                                onClick={() => {
+                                  const newSet = new Set(expandedSnapshotYears);
+                                  isExpanded ? newSet.delete(year) : newSet.add(year);
+                                  setExpandedSnapshotYears(newSet);
+                                }}
+                                className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-400 w-full"
+                              >
+                                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                {year} ({yearItems.length})
+                              </button>
+                              {isExpanded && yearItems.map((snap, idx) => {
+                                const allIdx = snapshots.findIndex(s => s.id === snap.id);
+                                const prev = snapshots[allIdx + 1];
+                                const diff = prev ? snap.amount - prev.amount : 0;
+                                return (
+                                  <div key={snap.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-zinc-800/50 border border-zinc-700/30 mb-1 ml-3">
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-cyan-400 font-medium text-sm">${snap.amount.toLocaleString()}</span>
+                                      <span className="text-zinc-600 text-xs">{snap.date.substring(5)}</span>
+                                      {prev && diff !== 0 && (
+                                        <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                          {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <button onClick={() => deleteSnapshot(snap.id)} className="text-zinc-600 hover:text-red-400 text-xs">×</button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                        
+                        {allYears.length > 3 && (
+                          <button onClick={() => setShowMoreSnapshotYears(!showMoreSnapshotYears)} className="text-xs text-cyan-400/70 hover:text-cyan-400">
+                            {showMoreSnapshotYears ? 'Show less years' : `Show more years (${allYears.length - 3})`}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
