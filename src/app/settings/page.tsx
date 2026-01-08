@@ -28,7 +28,7 @@ export default function SettingsPage() {
   const [refYearExpanded, setRefYearExpanded] = useState(false);
   const [financialsExpanded, setFinancialsExpanded] = useState(false);
   const [yearStartExpanded, setYearStartExpanded] = useState(false);
-  const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
+  const [businessInfoExpanded, setBusinessInfoExpanded] = useState(true);
   const [optionalGoalsExpanded, setOptionalGoalsExpanded] = useState(false);
   const [refYear, setRefYear] = useState(new Date().getFullYear() - 1);
   const [refMonths, setRefMonths] = useState<Record<number, number>>({});
