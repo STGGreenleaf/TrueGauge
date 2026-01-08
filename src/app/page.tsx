@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
 import { Button } from '@/components/ui/button';
-import { Settings, RefreshCw, Plus, CalendarDays } from 'lucide-react';
+import { Plus, CalendarDays } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
-import { OwnerMenu } from '@/components/OwnerMenu';
+import { Nav } from '@/components/Nav';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -162,39 +162,7 @@ export default function Dashboard() {
         <div className="absolute left-1/4 top-1/2 h-[300px] w-[300px] rounded-full bg-violet-500/5 blur-[80px]" />
       </div>
 
-      {/* Header - minimal luxury */}
-      <header className="relative z-10 border-b border-zinc-800/50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          {/* Left side: Logo */}
-          <a href="/" className="cursor-pointer">
-            <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400"><span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span><span className="font-light">GAUGE</span></h1>
-          </a>
-          {/* Right side: Owner hamburger + Refresh + Settings */}
-          <div className="flex items-center gap-1">
-            <OwnerMenu 
-              onToggleUserView={setUserViewEnabled} 
-              userViewEnabled={userViewEnabled} 
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/settings')}
-              className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Nav onRefresh={handleRefresh} refreshing={refreshing} />
 
       <main className="relative z-10 mx-auto max-w-5xl px-6 py-8" onClick={() => setActiveTip(null)}>
         
