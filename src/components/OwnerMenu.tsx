@@ -49,9 +49,9 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
 
       {isOpen && mounted && createPortal(
           <>
-            {/* Invisible backdrop for click-away */}
+            {/* Invisible backdrop for click-away - starts below nav header */}
             <div 
-              className="fixed inset-0 z-[9998]" 
+              className="fixed inset-0 top-14 z-[9998]" 
               onClick={() => setIsOpen(false)}
             />
             
