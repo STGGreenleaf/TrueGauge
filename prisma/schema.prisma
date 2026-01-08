@@ -114,6 +114,7 @@ model Settings {
   yearStartCashAmount  Float?
   yearStartCashDate    String       @default("2025-01-01")
   businessStartDate    String?
+  splashDuration       Int          @default(3000)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: NoAction)

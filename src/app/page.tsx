@@ -16,13 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true); // Always show on load
-  const [animationDuration, setAnimationDuration] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('splashDuration');
-      return saved ? parseInt(saved) : 3000; // Default 3 seconds
-    }
-    return 3000;
-  });
+  const [animationDuration, setAnimationDuration] = useState(3000);
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const [userViewEnabled, setUserViewEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -43,6 +37,10 @@ export default function Dashboard() {
       if (res.ok) {
         const dashboardData = await res.json();
         setData(dashboardData);
+        // Load splash duration from settings
+        if (dashboardData.settings?.splashDuration) {
+          setAnimationDuration(dashboardData.settings.splashDuration);
+        }
       }
     } catch (error) {
       console.error('Error fetching dashboard:', error);

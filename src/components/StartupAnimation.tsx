@@ -151,7 +151,12 @@ export default function StartupAnimation({
           value={duration}
           onChange={(e) => {
             const newDuration = parseInt(e.target.value);
-            localStorage.setItem('splashDuration', String(newDuration));
+            // Save to database
+            fetch('/api/settings/splash-duration', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ duration: newDuration }),
+            });
             window.dispatchEvent(new CustomEvent('splash-duration-change', { detail: newDuration }));
           }}
           className="w-40 h-1 bg-zinc-800 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-zinc-500 [&::-webkit-slider-thumb]:hover:bg-zinc-400"
