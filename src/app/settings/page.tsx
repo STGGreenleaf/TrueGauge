@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -82,6 +82,8 @@ export default function SettingsPage() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
   const [inviting, setInviting] = useState(false);
+  const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
+  const [lastInvitedEmail, setLastInvitedEmail] = useState('');
   
   // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
@@ -197,6 +199,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
       });
       if (res.ok) {
+        setLastInvitedEmail(inviteEmail);
         setInviteEmail('');
         setShowInviteForm(false);
         fetchInvites();
@@ -209,6 +212,13 @@ export default function SettingsPage() {
     } finally {
       setInviting(false);
     }
+  };
+  
+  const copyInviteLink = async () => {
+    const link = 'https://truegauge.app/login';
+    await navigator.clipboard.writeText(link);
+    setInviteLinkCopied(true);
+    setTimeout(() => setInviteLinkCopied(false), 2000);
   };
   
   const cancelInvite = async (inviteId: string) => {
@@ -723,7 +733,16 @@ export default function SettingsPage() {
                   {/* Pending Invites */}
                   {pendingInvites.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-zinc-700/30">
-                      <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-2">Pending Invites</div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-[10px] uppercase tracking-widest text-zinc-500">Pending Invites</div>
+                        <button
+                          onClick={copyInviteLink}
+                          className="flex items-center gap-1.5 text-[10px] text-cyan-400 hover:text-cyan-300"
+                        >
+                          {inviteLinkCopied ? <Check className="w-3 h-3" /> : <Link className="w-3 h-3" />}
+                          {inviteLinkCopied ? 'Copied!' : 'Copy Login Link'}
+                        </button>
+                      </div>
                       <div className="space-y-2">
                         {pendingInvites.map((invite) => (
                           <div
@@ -747,6 +766,9 @@ export default function SettingsPage() {
                           </div>
                         ))}
                       </div>
+                      <p className="mt-2 text-[10px] text-zinc-500">
+                        Send them the link → they sign in with Google → auto-join your store
+                      </p>
                     </div>
                   )}
                   
