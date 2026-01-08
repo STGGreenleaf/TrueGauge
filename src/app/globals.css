@@ -119,7 +119,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    background-color: black;
+  }
   body {
     @apply bg-background text-foreground;
+    background-color: black;
+    min-height: 100vh;
   }
 }
