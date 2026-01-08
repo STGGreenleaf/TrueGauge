@@ -771,6 +771,7 @@ export default function Dashboard() {
       {showAnimation && (
         <StartupAnimation 
           duration={animationDuration}
+          loop={true}
           onComplete={() => setShowAnimation(false)}
         />
       )}
