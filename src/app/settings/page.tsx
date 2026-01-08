@@ -918,25 +918,14 @@ export default function SettingsPage() {
           {refYearExpanded && (
           <div className="p-5 border-t border-zinc-800/50">
             <div className="rounded-lg border border-zinc-700/30 bg-gradient-to-b from-zinc-800/40 to-zinc-900/60">
-              <button
-                type="button"
-                onClick={() => setRefYearExpanded(!refYearExpanded)}
-                className="flex w-full items-center justify-between p-4"
-              >
-                <div className="text-left">
-                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Monthly Totals</div>
-                  <div className="mt-1 text-sm text-zinc-400">
-                    {refYear} • ${Object.values(refMonths).reduce((a, b) => a + b, 0).toLocaleString()} total
-                  </div>
+              <div className="p-4">
+                <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Monthly Totals</div>
+                <div className="mt-1 text-sm text-zinc-400">
+                  {refYear} • ${Object.values(refMonths).reduce((a, b) => a + b, 0).toLocaleString()} total
                 </div>
-                <div className="flex items-center gap-2 text-zinc-500">
-                  <span className="text-xs">{refYearExpanded ? 'Hide' : 'Edit'}</span>
-                  {refYearExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </div>
-              </button>
+              </div>
               
-              {refYearExpanded && (
-                <div className="border-t border-zinc-700/30 p-4 space-y-4">
+              <div className="border-t border-zinc-700/30 p-4 space-y-4">
                   {/* Year selector */}
                   <div className="flex items-center gap-3">
                     <Label className="text-zinc-400 text-xs">Year:</Label>
@@ -991,7 +980,6 @@ export default function SettingsPage() {
                     Enter last year's monthly net sales (ex-tax) for dashboard comparison.
                   </p>
                 </div>
-              )}
             </div>
           </div>
           )}</div>
