@@ -1472,7 +1472,7 @@ export default function SettingsPage() {
                   className="mt-1 border-zinc-700 bg-zinc-800 text-white"
                 />
                 <p className="text-xs text-zinc-600 mt-2">
-                  Your &quot;don&apos;t go below&quot; amount. Burn analysis shows days until hitting this floor.
+                  The safety net — enough to cover exit strategy. e.g. moving costs, storage, and a graceful transition if needed. Burn analysis shows days until hitting this floor.
                 </p>
               </div>
             </div>
