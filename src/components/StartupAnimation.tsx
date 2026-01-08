@@ -6,42 +6,47 @@ import { X } from 'lucide-react';
 interface StartupAnimationProps {
   onComplete?: () => void;
   loop?: boolean;
+  duration?: number; // Total duration in ms (default 3000)
 }
 
 export default function StartupAnimation({ 
   onComplete, 
   loop = false,
+  duration = 3000,
 }: StartupAnimationProps) {
   const [brightness, setBrightness] = useState(0);
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
     let timeouts: NodeJS.Timeout[] = [];
+    
+    // Scale timing proportionally to duration
+    const scale = duration / 3000;
 
     const run = () => {
       setBrightness(0);
       setShowText(false);
       
-      // Fade in lights
-      timeouts.push(setTimeout(() => setBrightness(0.3), 600));
-      timeouts.push(setTimeout(() => setBrightness(1), 1200));
+      // Fade in lights (scaled)
+      timeouts.push(setTimeout(() => setBrightness(0.3), 600 * scale));
+      timeouts.push(setTimeout(() => setBrightness(1), 1200 * scale));
       
       // Text reveals with lights at full - lit from behind effect
-      timeouts.push(setTimeout(() => setShowText(true), 1200));
+      timeouts.push(setTimeout(() => setShowText(true), 1200 * scale));
       
-      // Complete or loop at 3s total
+      // Complete or loop at duration
       timeouts.push(setTimeout(() => {
         if (loop) {
           setTimeout(run, 1000);
         } else {
           onComplete?.();
         }
-      }, 3000));
+      }, duration));
     };
 
     run();
     return () => timeouts.forEach(clearTimeout);
-  }, [loop, onComplete]);
+  }, [loop, onComplete, duration]);
 
   return (
     <div 

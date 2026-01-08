@@ -15,7 +15,14 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(false); // Only show via easter egg
+  const [showAnimation, setShowAnimation] = useState(true); // Always show on load
+  const [animationDuration, setAnimationDuration] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('splashDuration');
+      return saved ? parseInt(saved) : 3000; // Default 3 seconds
+    }
+    return 3000;
+  });
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const [userViewEnabled, setUserViewEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -64,10 +71,18 @@ export default function Dashboard() {
     const handleShowSplash = () => setShowAnimation(true);
     window.addEventListener('show-splash', handleShowSplash);
     
+    // Listen for duration changes from owner menu
+    const handleDurationChange = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      setAnimationDuration(customEvent.detail);
+    };
+    window.addEventListener('splash-duration-change', handleDurationChange);
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('show-splash', handleShowSplash);
+      window.removeEventListener('splash-duration-change', handleDurationChange);
     };
   }, [userViewEnabled]);
 
@@ -757,7 +772,7 @@ export default function Dashboard() {
       {/* Startup Animation Overlay */}
       {showAnimation && (
         <StartupAnimation 
-          loop={true}
+          duration={animationDuration}
           onComplete={() => setShowAnimation(false)}
         />
       )}

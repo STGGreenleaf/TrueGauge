@@ -97,21 +97,44 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
               </button>
 
               {/* Splash Page */}
-              <button
-                onClick={() => {
-                  // Trigger splash animation
-                  window.dispatchEvent(new CustomEvent('show-splash'));
-                  setIsOpen(false);
-                }}
-                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
-              >
-                <Sparkles className="h-4 w-4" />
-                <div className="text-left">
-                  <div className="text-sm font-medium">Splash Page</div>
-                  <div className="text-xs text-zinc-500">Preview animation</div>
+              <div className="p-3 rounded-md hover:bg-zinc-800 transition-colors">
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent('show-splash'));
+                    setIsOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 text-zinc-300"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <div className="text-left">
+                    <div className="text-sm font-medium">Splash Page</div>
+                    <div className="text-xs text-zinc-500">Preview animation</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
+                </button>
+                <div className="mt-3 pl-7">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-500">Duration</span>
+                    <span className="text-xs text-cyan-400">{(parseInt(localStorage.getItem('splashDuration') || '3000') / 1000).toFixed(1)}s</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1000"
+                    max="8000"
+                    step="500"
+                    defaultValue={localStorage.getItem('splashDuration') || '3000'}
+                    onChange={(e) => {
+                      localStorage.setItem('splashDuration', e.target.value);
+                      window.dispatchEvent(new CustomEvent('splash-duration-change', { detail: parseInt(e.target.value) }));
+                    }}
+                    className="w-full h-1 bg-zinc-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
+                  />
+                  <div className="flex justify-between text-[10px] text-zinc-600 mt-1">
+                    <span>1s</span>
+                    <span>8s</span>
+                  </div>
                 </div>
-                <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
-              </button>
+              </div>
 
               {/* Owner Dashboard */}
               <button
