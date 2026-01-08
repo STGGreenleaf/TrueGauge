@@ -545,9 +545,17 @@ export default function Dashboard() {
                 <div className="absolute right-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
                   <div className="font-medium text-cyan-400 text-base mb-2">Velocity: {velocity.toFixed(2)}x</div>
                   <p className="text-sm text-zinc-300 mb-2"><strong>{velocity >= 1 ? 'Revving hot!' : 'Need more throttle'}</strong> — {velocity >= 1 ? 'ahead' : 'behind'} of required pace.</p>
-                  <div className="text-xs text-zinc-500 space-y-1">
+                  <div className="text-xs text-zinc-500 space-y-1 mb-3">
                     <div>Avg/day: {formatCurrency(actualDailyAvg)}</div>
                     <div>Need/day: {formatCurrency(requiredDailyAvg)}</div>
+                  </div>
+                  <div className="border-t border-zinc-700 pt-2 text-xs text-zinc-400">
+                    <div className="font-medium mb-1">Gauge Guide:</div>
+                    <div className="space-y-0.5">
+                      <div><span className="text-cyan-400">4 bars</span> = on pace (1.0x)</div>
+                      <div><span className="text-emerald-400">5-8 bars</span> = ahead, crushing it</div>
+                      <div><span className="text-red-400">&lt;4 bars</span> = behind, accelerate</div>
+                    </div>
                   </div>
                 </div>
               );
