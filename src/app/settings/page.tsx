@@ -782,7 +782,7 @@ export default function SettingsPage() {
                       onChange={(e) => {
                         const yr = parseInt(e.target.value);
                         setRefYear(yr);
-                        fetchReferenceMonths(yr);
+                        fetchReferenceMonths(yr, userViewEnabled);
                       }}
                       className="h-9 rounded-md border border-zinc-700 bg-zinc-800 px-3 text-sm text-white"
                     >
