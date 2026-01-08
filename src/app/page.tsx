@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAnimation, setShowAnimation] = useState(true); // Always show on load
   const [animationDuration, setAnimationDuration] = useState(3000);
+  const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const [userViewEnabled, setUserViewEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -37,10 +38,12 @@ export default function Dashboard() {
       if (res.ok) {
         const dashboardData = await res.json();
         setData(dashboardData);
-        // Load splash duration from settings
-        if (dashboardData.settings?.splashDuration) {
-          setAnimationDuration(dashboardData.settings.splashDuration);
-        }
+      }
+      // Fetch global splash duration
+      const durationRes = await fetch('/api/settings/splash-duration');
+      if (durationRes.ok) {
+        const { duration } = await durationRes.json();
+        setAnimationDuration(duration);
       }
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -52,6 +55,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboard(userViewEnabled);
+    
+    // Check if user is owner
+    const checkOwner = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setIsOwner(data.email === 'collingreenleaf@gmail.com');
+        }
+      } catch {
+        setIsOwner(false);
+      }
+    };
+    checkOwner();
     
     // Re-fetch when tab becomes visible (user returns from Settings)
     const handleVisibility = () => {
@@ -773,6 +790,7 @@ export default function Dashboard() {
           duration={animationDuration}
           loop={true}
           onComplete={() => setShowAnimation(false)}
+          isOwner={isOwner}
         />
       )}
     </div>
