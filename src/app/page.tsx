@@ -487,46 +487,71 @@ export default function Dashboard() {
               </div>
             )}
             
-            {/* Top-right: Cash Logged - clickable */}
+            {/* Top-right: Velocity RPM - clickable */}
             <button 
               className="absolute top-0 right-1 text-right"
-              onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'logged' ? null : 'logged'); }}
+              onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'velocity' ? null : 'velocity'); }}
             >
-              <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Cash Logged</div>
-              <div className="flex gap-1 justify-end items-start">
-                {Array.from({ length: 8 }).map((_, i) => {
-                  const filled = i < Math.min(8, Math.round((Math.abs(data.cashHealthResult) / data.settings.monthlyFixedNut) * 8));
-                  const progress = i / 7;
-                  let color: string;
-                  if (progress < 0.5) {
-                    const t = progress / 0.5;
-                    color = `rgb(${Math.round(239 + (245-239)*t)}, ${Math.round(68 + (158-68)*t)}, ${Math.round(68 + (11-68)*t)})`;
-                  } else {
-                    const t = (progress - 0.5) / 0.5;
-                    color = `rgb(${Math.round(245 + (34-245)*t)}, ${Math.round(158 + (211-158)*t)}, ${Math.round(11 + (238-11)*t)})`;
-                  }
-                  return (
-                    <div
-                      key={i}
-                      className="w-2 rounded-sm"
-                      style={{
-                        height: 12 + i * 3,
-                        backgroundColor: filled ? color : '#27272a',
-                        boxShadow: filled ? `0 0 6px ${color}` : 'none',
-                      }}
-                    />
-                  );
-                })}
-              </div>
+              {(() => {
+                const today = new Date();
+                const dayOfMonth = today.getDate();
+                const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                const actualDailyAvg = dayOfMonth > 0 ? data.mtdNetSales / dayOfMonth : 0;
+                const requiredDailyAvg = data.survivalGoal / daysInMonth;
+                const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
+                const velocityStatus = velocity >= 1 ? 'positive' : 'negative';
+                
+                return (
+                  <>
+                    <div className="text-[9px] uppercase tracking-widest text-zinc-500 mb-1">Velocity</div>
+                    <div className="flex gap-1 justify-end items-start">
+                      {Array.from({ length: 8 }).map((_, i) => {
+                        const filled = i < Math.min(8, Math.round(velocity * 4));
+                        const progress = i / 7;
+                        let color: string;
+                        if (progress < 0.5) {
+                          const t = progress / 0.5;
+                          color = `rgb(${Math.round(239 + (245-239)*t)}, ${Math.round(68 + (158-68)*t)}, ${Math.round(68 + (11-68)*t)})`;
+                        } else {
+                          const t = (progress - 0.5) / 0.5;
+                          color = `rgb(${Math.round(245 + (34-245)*t)}, ${Math.round(158 + (211-158)*t)}, ${Math.round(11 + (238-11)*t)})`;
+                        }
+                        return (
+                          <div
+                            key={i}
+                            className="w-2 rounded-sm"
+                            style={{
+                              height: 12 + i * 3,
+                              backgroundColor: filled ? color : '#27272a',
+                              boxShadow: filled ? `0 0 6px ${color}` : 'none',
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
             </button>
-            {activeTip === 'logged' && (
-              <div className="absolute right-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
-                <div className="font-medium text-cyan-400 text-base mb-2">Cash Logged: {formatCurrency(data.cashHealthResult)}</div>
-                <p className="text-sm text-zinc-300 mb-2"><strong>Logged</strong> means net sales minus expenses you've recorded this month.</p>
-                <p className="text-sm text-zinc-300 mb-2">This shows how much cash activity you've tracked.</p>
-                <p className="text-xs text-zinc-500">{data.confidenceLevel === 'LOW' ? '⚠️ Low confidence - missing expense data?' : 'Good data coverage.'}</p>
-              </div>
-            )}
+            {activeTip === 'velocity' && (() => {
+              const today = new Date();
+              const dayOfMonth = today.getDate();
+              const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+              const actualDailyAvg = dayOfMonth > 0 ? data.mtdNetSales / dayOfMonth : 0;
+              const requiredDailyAvg = data.survivalGoal / daysInMonth;
+              const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
+              
+              return (
+                <div className="absolute right-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line text-left">
+                  <div className="font-medium text-cyan-400 text-base mb-2">Velocity: {velocity.toFixed(2)}x</div>
+                  <p className="text-sm text-zinc-300 mb-2"><strong>{velocity >= 1 ? 'Revving hot!' : 'Need more throttle'}</strong> — {velocity >= 1 ? 'ahead' : 'behind'} of required pace.</p>
+                  <div className="text-xs text-zinc-500 space-y-1">
+                    <div>Avg/day: {formatCurrency(actualDailyAvg)}</div>
+                    <div>Need/day: {formatCurrency(requiredDailyAvg)}</div>
+                  </div>
+                </div>
+              );
+            })()}
             
             {/* Bottom-left: Pace Delta value */}
             <div className="absolute bottom-0 left-1">
@@ -537,16 +562,28 @@ export default function Dashboard() {
               <div className="text-[9px] text-zinc-500">{data.paceDelta >= 0 ? 'ahead' : 'behind'}</div>
             </div>
             
-            {/* Bottom-right: Cash Logged value */}
-            <div className="absolute bottom-0 right-1 text-right">
-              <div className={`text-lg font-bold ${cashStatus === 'positive' ? 'text-cyan-400' : 'text-red-400'}`}
-                   style={{ textShadow: `0 0 12px ${cashStatus === 'positive' ? '#22d3ee' : '#ef4444'}` }}>
-                ${(Math.abs(data.cashHealthResult) / 1000).toFixed(1)}k
-              </div>
-              <div className="text-[9px] text-zinc-500">
-                {data.confidenceLevel === 'LOW' ? 'missing?' : data.cashHealthResult >= 0 ? 'logged' : 'over'}
-              </div>
-            </div>
+            {/* Bottom-right: Velocity value */}
+            {(() => {
+              const today = new Date();
+              const dayOfMonth = today.getDate();
+              const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+              const actualDailyAvg = dayOfMonth > 0 ? data.mtdNetSales / dayOfMonth : 0;
+              const requiredDailyAvg = data.survivalGoal / daysInMonth;
+              const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
+              const velocityStatus = velocity >= 1 ? 'positive' : 'negative';
+              
+              return (
+                <div className="absolute bottom-0 right-1 text-right">
+                  <div className={`text-lg font-bold ${velocityStatus === 'positive' ? 'text-cyan-400' : 'text-red-400'}`}
+                       style={{ textShadow: `0 0 12px ${velocityStatus === 'positive' ? '#22d3ee' : '#ef4444'}` }}>
+                    {velocity.toFixed(2)}x
+                  </div>
+                  <div className="text-[9px] text-zinc-500">
+                    {velocity >= 1 ? 'on pace' : 'behind'}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Last Year Reference */}
