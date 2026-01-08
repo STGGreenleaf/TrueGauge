@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -1868,7 +1868,7 @@ export default function SettingsPage() {
           onClick={() => router.push('/vendors')}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700/50 bg-zinc-800/30 py-4 font-light tracking-wide text-zinc-400 transition-all hover:border-zinc-600 hover:text-zinc-300"
         >
-          <Building2 className="h-4 w-4" />
+          <Landmark className="h-4 w-4" />
           Manage Vendors
         </button>
       </div>
