@@ -1304,38 +1304,24 @@ export default function SettingsPage() {
                 <Input
                   id="cashSnapshotAmount"
                   type="number"
-                  value={settings.cashSnapshotAmount ?? ''}
+                  defaultValue=""
                   onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    const val = e.target.value === '' ? null : parseFloat(e.target.value);
-                    updateSetting('cashSnapshotAmount', val);
-                  }}
                   onBlur={(e) => {
                     const val = e.target.value === '' ? null : parseFloat(e.target.value);
-                    saveSnapshot(val, settings.cashSnapshotAsOf ?? null);
+                    if (val !== null) {
+                      const today = new Date().toISOString().split('T')[0];
+                      updateSetting('cashSnapshotAmount', val);
+                      updateSetting('cashSnapshotAsOf', today);
+                      saveSnapshot(val, today);
+                      e.target.value = '';
+                    }
                   }}
-                  placeholder="e.g. 12500"
+                  placeholder="Enter new amount..."
                   className="mt-1 border-zinc-700 bg-zinc-800 text-white"
                 />
               </div>
               
-              <div>
-                <Label htmlFor="cashSnapshotAsOf" className="text-zinc-300">
-                  As of Date (YYYY-MM-DD)
-                </Label>
-                <Input
-                  id="cashSnapshotAsOf"
-                  type="date"
-                  value={settings.cashSnapshotAsOf ?? ''}
-                  onChange={(e) => {
-                    const val = e.target.value === '' ? null : e.target.value;
-                    updateSetting('cashSnapshotAsOf', val);
-                    // Auto-save on date change (date picker closes on select)
-                    saveSnapshot(settings.cashSnapshotAmount ?? null, val);
-                  }}
-                  className="mt-1 border-zinc-700 bg-zinc-800 text-white [color-scheme:dark]"
-                />
-              </div>
+              <p className="text-xs text-zinc-500 mt-1">Saves with today's date automatically</p>
               
               {/* Summary display with save status */}
               {settings.cashSnapshotAmount !== null && settings.cashSnapshotAmount !== undefined && settings.cashSnapshotAsOf ? (
