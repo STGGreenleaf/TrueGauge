@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, Download, Check, AlertCircle, Wallet, Pencil } from 'lucide-react';
+import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Check, AlertCircle, Wallet, Pencil } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { OwnerMenu } from '@/components/OwnerMenu';
 
@@ -47,8 +47,10 @@ export default function SettingsPage() {
   
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
-  const [showAllMoneyIn, setShowAllMoneyIn] = useState(false);
-  const [showAllMoneyOut, setShowAllMoneyOut] = useState(false);
+  const [showMoreYearsIn, setShowMoreYearsIn] = useState(false);
+  const [showMoreYearsOut, setShowMoreYearsOut] = useState(false);
+  const [expandedYearsIn, setExpandedYearsIn] = useState<Set<string>>(new Set());
+  const [expandedYearsOut, setExpandedYearsOut] = useState<Set<string>>(new Set());
   const [injections, setInjections] = useState<Array<{ id: number; date: string; amount: number; type: string; note: string | null }>>([]);
   const [newInjectionDate, setNewInjectionDate] = useState('');
   const [newInjectionAmount, setNewInjectionAmount] = useState('');
@@ -999,20 +1001,22 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     {(() => {
                       const moneyIn = injections.filter(i => i.type === 'injection').sort((a, b) => b.date.localeCompare(a.date));
-                      const displayItems = showAllMoneyIn ? moneyIn : moneyIn.slice(0, 5);
-                      const years = [...new Set(displayItems.map(i => i.date.substring(0, 4)))];
+                      const recent = moneyIn.slice(0, 3);
+                      const allYears = [...new Set(moneyIn.map(i => i.date.substring(0, 4)))].sort((a, b) => b.localeCompare(a));
+                      const displayYears = showMoreYearsIn ? allYears : allYears.slice(0, 3);
                       
-                      return years.length > 0 ? (
+                      return moneyIn.length > 0 ? (
                         <>
-                          {years.map(year => (
-                            <div key={year}>
-                              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{year}</div>
-                              {displayItems.filter(i => i.date.startsWith(year)).map(inj => (
+                          {/* Recent entries */}
+                          {recent.length > 0 && (
+                            <div className="mb-2">
+                              <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Recent</div>
+                              {recent.map(inj => (
                                 <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-emerald-950/30 border border-emerald-900/30 mb-1">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="text-emerald-400 font-medium text-sm">+${inj.amount.toLocaleString()}</span>
-                                      <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                      <span className="text-zinc-600 text-xs">{inj.date}</span>
                                     </div>
                                     {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
                                   </div>
@@ -1020,13 +1024,42 @@ export default function SettingsPage() {
                                 </div>
                               ))}
                             </div>
-                          ))}
-                          {moneyIn.length > 5 && (
-                            <button 
-                              onClick={() => setShowAllMoneyIn(!showAllMoneyIn)}
-                              className="text-xs text-emerald-400/70 hover:text-emerald-400"
-                            >
-                              {showAllMoneyIn ? 'Show less' : `Show all (${moneyIn.length})`}
+                          )}
+                          {/* Collapsible years */}
+                          {displayYears.map(year => {
+                            const yearItems = moneyIn.filter(i => i.date.startsWith(year));
+                            const isExpanded = expandedYearsIn.has(year);
+                            return (
+                              <div key={year} className="border-t border-zinc-800/30 pt-1">
+                                <button
+                                  onClick={() => {
+                                    const newSet = new Set(expandedYearsIn);
+                                    isExpanded ? newSet.delete(year) : newSet.add(year);
+                                    setExpandedYearsIn(newSet);
+                                  }}
+                                  className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-400 w-full"
+                                >
+                                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                  {year} ({yearItems.length})
+                                </button>
+                                {isExpanded && yearItems.map(inj => (
+                                  <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-emerald-950/30 border border-emerald-900/30 mb-1 ml-3">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-emerald-400 font-medium text-sm">+${inj.amount.toLocaleString()}</span>
+                                        <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                      </div>
+                                      {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                                    </div>
+                                    <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                          {allYears.length > 3 && (
+                            <button onClick={() => setShowMoreYearsIn(!showMoreYearsIn)} className="text-xs text-emerald-400/70 hover:text-emerald-400">
+                              {showMoreYearsIn ? 'Show less years' : `Show more years (${allYears.length - 3})`}
                             </button>
                           )}
                         </>
@@ -1048,20 +1081,22 @@ export default function SettingsPage() {
                   <div className="space-y-2">
                     {(() => {
                       const moneyOut = injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').sort((a, b) => b.date.localeCompare(a.date));
-                      const displayItems = showAllMoneyOut ? moneyOut : moneyOut.slice(0, 5);
-                      const years = [...new Set(displayItems.map(i => i.date.substring(0, 4)))];
+                      const recent = moneyOut.slice(0, 3);
+                      const allYears = [...new Set(moneyOut.map(i => i.date.substring(0, 4)))].sort((a, b) => b.localeCompare(a));
+                      const displayYears = showMoreYearsOut ? allYears : allYears.slice(0, 3);
                       
-                      return years.length > 0 ? (
+                      return moneyOut.length > 0 ? (
                         <>
-                          {years.map(year => (
-                            <div key={year}>
-                              <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">{year}</div>
-                              {displayItems.filter(i => i.date.startsWith(year)).map(inj => (
+                          {/* Recent entries */}
+                          {recent.length > 0 && (
+                            <div className="mb-2">
+                              <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Recent</div>
+                              {recent.map(inj => (
                                 <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-red-950/30 border border-red-900/30 mb-1">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                       <span className="text-red-400 font-medium text-sm">−${inj.amount.toLocaleString()}</span>
-                                      <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                      <span className="text-zinc-600 text-xs">{inj.date}</span>
                                     </div>
                                     {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
                                   </div>
@@ -1069,13 +1104,42 @@ export default function SettingsPage() {
                                 </div>
                               ))}
                             </div>
-                          ))}
-                          {moneyOut.length > 5 && (
-                            <button 
-                              onClick={() => setShowAllMoneyOut(!showAllMoneyOut)}
-                              className="text-xs text-red-400/70 hover:text-red-400"
-                            >
-                              {showAllMoneyOut ? 'Show less' : `Show all (${moneyOut.length})`}
+                          )}
+                          {/* Collapsible years */}
+                          {displayYears.map(year => {
+                            const yearItems = moneyOut.filter(i => i.date.startsWith(year));
+                            const isExpanded = expandedYearsOut.has(year);
+                            return (
+                              <div key={year} className="border-t border-zinc-800/30 pt-1">
+                                <button
+                                  onClick={() => {
+                                    const newSet = new Set(expandedYearsOut);
+                                    isExpanded ? newSet.delete(year) : newSet.add(year);
+                                    setExpandedYearsOut(newSet);
+                                  }}
+                                  className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-400 w-full"
+                                >
+                                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                  {year} ({yearItems.length})
+                                </button>
+                                {isExpanded && yearItems.map(inj => (
+                                  <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-red-950/30 border border-red-900/30 mb-1 ml-3">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-red-400 font-medium text-sm">−${inj.amount.toLocaleString()}</span>
+                                        <span className="text-zinc-600 text-xs">{inj.date.substring(5)}</span>
+                                      </div>
+                                      {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                                    </div>
+                                    <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                          {allYears.length > 3 && (
+                            <button onClick={() => setShowMoreYearsOut(!showMoreYearsOut)} className="text-xs text-red-400/70 hover:text-red-400">
+                              {showMoreYearsOut ? 'Show less years' : `Show more years (${allYears.length - 3})`}
                             </button>
                           )}
                         </>
