@@ -65,6 +65,7 @@ export async function PUT(request: Request) {
         yearStartCashDate: validated.yearStartCashDate,
         operatingFloorCash: validated.operatingFloorCash ?? 0,
         targetReserveCash: validated.targetReserveCash ?? 100000,
+        businessStartDate: validated.businessStartDate,
       },
       create: {
         organizationId: orgId,
@@ -100,6 +101,7 @@ export async function PUT(request: Request) {
         yearStartCashDate: validated.yearStartCashDate,
         operatingFloorCash: validated.operatingFloorCash ?? 0,
         targetReserveCash: validated.targetReserveCash ?? 100000,
+        businessStartDate: validated.businessStartDate,
       },
     });
     

@@ -69,6 +69,8 @@ export const SettingsSchema = z.object({
   // Reserve thresholds
   operatingFloorCash: z.number().min(0).optional(),
   targetReserveCash: z.number().min(0).optional(),
+  // Business start date for "days in business" counter
+  businessStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 });
 
 export const DayEntrySchema = z.object({
@@ -314,6 +316,8 @@ export interface DashboardData {
     };
     aboveFloor: number;
     toTarget: number;
+    businessStartDate: string | null;
+    daysInBusiness: number | null;
   };
 }
 

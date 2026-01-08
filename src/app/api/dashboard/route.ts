@@ -547,6 +547,11 @@ export async function GET(request: Request) {
           amount: inj.amount,
           note: inj.note,
         })),
+        // Business start date and days in business
+        businessStartDate: settings.businessStartDate,
+        daysInBusiness: settings.businessStartDate 
+          ? Math.floor((new Date().getTime() - new Date(settings.businessStartDate).getTime()) / (1000 * 60 * 60 * 24))
+          : null,
       },
     });
   } catch (error) {

@@ -293,6 +293,19 @@ export default function SettingsPage() {
                 className="mt-1 border-zinc-700 bg-zinc-800 text-white"
               />
             </div>
+            <div>
+              <Label htmlFor="businessStartDate" className="text-zinc-300">
+                Business Start Date
+              </Label>
+              <Input
+                id="businessStartDate"
+                type="date"
+                value={settings.businessStartDate || ''}
+                onChange={(e) => updateSetting('businessStartDate', e.target.value || null)}
+                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+              />
+              <p className="mt-1 text-xs text-zinc-500">Used to calculate "Days in Business" on dashboard</p>
+            </div>
             {/* Store Hours - Collapsible */}
             <div className="rounded-lg border border-zinc-700/30 bg-gradient-to-b from-zinc-800/40 to-zinc-900/60">
               <button
