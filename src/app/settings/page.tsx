@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -459,7 +459,7 @@ export default function SettingsPage() {
             onClick={() => setBusinessInfoExpanded(!businessInfoExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Business Information</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><Building2 className="h-4 w-4" />Business Information</h2>
             {businessInfoExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {businessInfoExpanded && (
@@ -684,7 +684,7 @@ export default function SettingsPage() {
             onClick={() => setFinancialsExpanded(!financialsExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Financial Targets</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><ChartCandlestick className="h-4 w-4" />Financial Targets</h2>
             {financialsExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {financialsExpanded && (
@@ -1041,7 +1041,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Reference Year (Last Year)</h2>
+              <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><CalendarRange className="h-4 w-4" />Reference Year (Last Year)</h2>
               <span className="text-xs text-zinc-600">{refYear} • ${Object.values(refMonths).reduce((a, b) => a + b, 0).toLocaleString()}</span>
             </div>
             {refYearExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
@@ -1123,7 +1123,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <Wallet className="h-4 w-4 text-zinc-500" />
+              <Aperture className="h-4 w-4 text-zinc-500" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Cash Snapshot</h2>
             </div>
             {cashSnapshotExpanded ? (
@@ -1292,7 +1292,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <Wallet className="h-4 w-4 text-cyan-500" />
+              <ChartColumnStacked className="h-4 w-4 text-cyan-500" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Capital Flow</h2>
               {injections.length > 0 && (() => {
                 const totalIn = injections.filter(i => i.type === 'injection').reduce((sum, i) => sum + i.amount, 0);
@@ -1544,7 +1544,7 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <Wallet className="h-4 w-4 text-violet-500" />
+              <Ruler className="h-4 w-4 text-violet-500" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Starting Cash (Year Anchor)</h2>
             </div>
             {yearStartExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
