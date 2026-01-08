@@ -13,9 +13,12 @@ interface VendorRecord {
   autopopulateChecklist: boolean;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const orgId = await getCurrentOrgId();
+    const { searchParams } = new URL(request.url);
+    const showcase = searchParams.get('showcase') === 'true';
+    
+    const orgId = showcase ? 'showcase-template' : await getCurrentOrgId();
     const vendors: VendorRecord[] = await prisma.vendorTemplate.findMany({
       where: { organizationId: orgId },
       orderBy: { name: 'asc' },

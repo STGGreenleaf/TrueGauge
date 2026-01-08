@@ -49,6 +49,12 @@ export default function VendorsPage() {
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState<Vendor | null>(null);
+  const [userViewEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('userViewEnabled') === 'true';
+    }
+    return false;
+  });
   const [formData, setFormData] = useState({
     name: '',
     defaultCategory: 'COGS',
@@ -64,7 +70,8 @@ export default function VendorsPage() {
 
   const fetchVendors = async () => {
     try {
-      const res = await fetch('/api/vendors');
+      const url = userViewEnabled ? '/api/vendors?showcase=true' : '/api/vendors';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setVendors(data);
