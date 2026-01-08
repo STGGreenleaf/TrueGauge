@@ -30,7 +30,7 @@ export async function GET() {
     const orgs = await prisma.organization.findMany({
       where: { id: { not: 'showcase-template' } },
       include: {
-        settings: { select: { businessName: true, monthlyNut: true } },
+        settings: { select: { businessName: true, monthlyFixedNut: true } },
         users: { include: { user: { select: { email: true, name: true } } } },
         _count: { select: { dayEntries: true, expenses: true } },
       },
@@ -49,7 +49,7 @@ export async function GET() {
     const storeDetails = orgs.map(org => ({
       id: org.id,
       name: org.settings?.businessName || org.name,
-      monthlyNut: org.settings?.monthlyNut || 0,
+      monthlyNut: org.settings?.monthlyFixedNut || 0,
       userCount: org.users.length,
       users: org.users.map(u => ({
         email: u.user.email,
