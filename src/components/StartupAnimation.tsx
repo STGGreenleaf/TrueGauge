@@ -66,10 +66,16 @@ export default function StartupAnimation({
     return () => timeouts.forEach(clearTimeout);
   }, [loop, onComplete, duration]);
 
+  // Overlay opacity follows brightness - dashboard shows through as lights dim
+  const overlayOpacity = Math.max(0.3, brightness);
+
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#000' }}
+      style={{ 
+        backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})`,
+        transition: 'background-color 0.8s ease-out',
+      }}
     >
       {/* Left light - pure glow */}
       <div 
