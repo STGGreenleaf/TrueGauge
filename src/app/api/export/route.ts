@@ -4,10 +4,10 @@ import archiver from 'archiver';
 import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 // Approved export tables - drift test will verify this list
-export const APPROVED_EXPORT_TABLES = ['settings', 'dayEntries', 'expenseTransactions', 'referenceMonths'] as const;
+export const APPROVED_EXPORT_TABLES = ['settings', 'dayEntries', 'expenseTransactions', 'referenceMonths', 'cashSnapshots', 'yearStartAnchors', 'cashInjections', 'vendors'] as const;
 
 // Schema version - bump when export shape changes
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 // Helper: escape CSV value
 function csvEscape(value: string | number | boolean | null | undefined): string {
@@ -53,6 +53,10 @@ export async function GET(request: NextRequest) {
     const dayEntries = await prisma.dayEntry.findMany({ where: { organizationId: orgId }, orderBy: { date: 'asc' } });
     const expenseTransactions = await prisma.expenseTransaction.findMany({ where: { organizationId: orgId }, orderBy: { date: 'asc' } });
     const referenceMonths = await prisma.referenceMonth.findMany({ where: { organizationId: orgId }, orderBy: [{ year: 'asc' }, { month: 'asc' }] });
+    const cashSnapshots = await prisma.cashSnapshot.findMany({ where: { organizationId: orgId }, orderBy: { date: 'desc' } });
+    const yearStartAnchors = await prisma.yearStartAnchor.findMany({ where: { organizationId: orgId }, orderBy: { year: 'desc' } });
+    const cashInjections = await prisma.cashInjection.findMany({ where: { organizationId: orgId }, orderBy: { date: 'desc' } });
+    const vendors = await prisma.vendorTemplate.findMany({ where: { organizationId: orgId }, orderBy: { name: 'asc' } });
 
     if (format === 'json') {
       // JSON export
@@ -65,6 +69,10 @@ export async function GET(request: NextRequest) {
         dayEntries,
         expenseTransactions,
         referenceMonths,
+        cashSnapshots,
+        yearStartAnchors,
+        cashInjections,
+        vendors,
       };
 
       return new NextResponse(JSON.stringify(exportData, null, 2), {
@@ -107,6 +115,22 @@ export async function GET(request: NextRequest) {
       // Reference months CSV
       const refMonthsHeaders = ['id', 'year', 'month', 'referenceNetSalesExTax', 'note', 'createdAt'];
       archive.append(buildCsv(refMonthsHeaders, referenceMonths as unknown as Record<string, unknown>[]), { name: 'reference_months.csv' });
+
+      // Cash snapshots CSV
+      const snapshotHeaders = ['id', 'date', 'amount', 'createdAt'];
+      archive.append(buildCsv(snapshotHeaders, cashSnapshots as unknown as Record<string, unknown>[]), { name: 'cash_snapshots.csv' });
+
+      // Year start anchors CSV
+      const anchorHeaders = ['id', 'year', 'amount', 'date', 'note', 'createdAt'];
+      archive.append(buildCsv(anchorHeaders, yearStartAnchors as unknown as Record<string, unknown>[]), { name: 'year_start_anchors.csv' });
+
+      // Cash injections CSV
+      const injectionHeaders = ['id', 'date', 'amount', 'type', 'note', 'createdAt'];
+      archive.append(buildCsv(injectionHeaders, cashInjections as unknown as Record<string, unknown>[]), { name: 'cash_injections.csv' });
+
+      // Vendors CSV
+      const vendorHeaders = ['id', 'name', 'defaultCategory', 'typicalAmount', 'isRecurring', 'createdAt'];
+      archive.append(buildCsv(vendorHeaders, vendors as unknown as Record<string, unknown>[]), { name: 'vendors.csv' });
 
       // Finalize archive
       await archive.finalize();

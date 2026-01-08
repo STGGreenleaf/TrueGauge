@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Check, AlertCircle, Wallet, Pencil } from 'lucide-react';
+import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { OwnerMenu } from '@/components/OwnerMenu';
 
@@ -39,6 +39,10 @@ export default function SettingsPage() {
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [exporting, setExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [importing, setImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showStartStoreModal, setShowStartStoreModal] = useState(false);
+  const [startingStore, setStartingStore] = useState(false);
   
   // Cash snapshot state
   const [cashSnapshotExpanded, setCashSnapshotExpanded] = useState(false);
@@ -299,6 +303,70 @@ export default function SettingsPage() {
       setTimeout(() => setExportStatus('idle'), 5000);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    setImporting(true);
+    setImportStatus('idle');
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data, wipeFirst: false }),
+      });
+      
+      if (!res.ok) throw new Error('Import failed');
+      
+      setImportStatus('success');
+      setTimeout(() => setImportStatus('idle'), 3000);
+      
+      // Refresh all data
+      fetchSettings(userViewEnabled);
+      fetchSnapshots(userViewEnabled);
+      fetchYearAnchors(userViewEnabled);
+      fetchInjections(userViewEnabled);
+    } catch (error) {
+      console.error('Import error:', error);
+      setImportStatus('error');
+      setTimeout(() => setImportStatus('idle'), 5000);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleStartStore = async () => {
+    setStartingStore(true);
+    try {
+      // Wipe all data and create fresh settings
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          data: { 
+            meta: { schemaVersion: 2 },
+            settings: { businessName: 'My Store' }
+          }, 
+          wipeFirst: true 
+        }),
+      });
+      
+      if (!res.ok) throw new Error('Failed to start store');
+      
+      // Turn off demo mode
+      localStorage.setItem('userViewEnabled', 'false');
+      setUserViewEnabled(false);
+      
+      // Refresh
+      window.location.reload();
+    } catch (error) {
+      console.error('Start store error:', error);
+    } finally {
+      setStartingStore(false);
+      setShowStartStoreModal(false);
     }
   };
 
@@ -1524,8 +1592,8 @@ export default function SettingsPage() {
                 </div>
                 <p className="mt-2 text-xs text-zinc-600">
                   {exportFormat === 'json' 
-                    ? 'Single file with all data. Best for full backup.'
-                    : 'ZIP with 4 CSV files. Opens in spreadsheets.'}
+                    ? 'Complete backup — all data in one portable file.'
+                    : 'ZIP with 8 CSV files. Opens in spreadsheets.'}
                 </p>
               </div>
               
@@ -1560,13 +1628,105 @@ export default function SettingsPage() {
                 )}
               </button>
               
+              {/* Import Section */}
+              <div className="pt-4 border-t border-zinc-800/50">
+                <Label className="text-zinc-300 text-sm">Import Backup</Label>
+                <p className="text-xs text-zinc-600 mt-1 mb-2">
+                  Load a JSON backup to restore your data. Merges with existing data.
+                </p>
+                <label className={`w-full flex items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium transition-all cursor-pointer ${
+                  importStatus === 'success'
+                    ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300'
+                    : importStatus === 'error'
+                    ? 'border-red-500/50 bg-red-500/10 text-red-300'
+                    : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                } ${importing ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImport(file);
+                      e.target.value = '';
+                    }}
+                    disabled={importing}
+                  />
+                  {importing ? (
+                    'Importing...'
+                  ) : importStatus === 'success' ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Import Complete
+                    </>
+                  ) : importStatus === 'error' ? (
+                    <>
+                      <AlertCircle className="h-4 w-4" />
+                      Import Failed
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      Choose JSON File
+                    </>
+                  )}
+                </label>
+              </div>
+              
               <p className="text-xs text-zinc-600">
-                Exports Settings, Day Entries, Expenses, and Reference Months.
-                Raw data only — no computed values.
+                Exports everything: Settings, Sales, Expenses, Cash Snapshots, Year Anchors, Capital Flow, Vendors.
               </p>
+              
+              {/* Start Your Store - Demo mode only */}
+              {userViewEnabled && (
+                <div className="pt-4 border-t border-zinc-800/50">
+                  <button
+                    onClick={() => setShowStartStoreModal(true)}
+                    className="w-full flex items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 py-3 text-sm font-medium text-emerald-300 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20"
+                  >
+                    <Rocket className="h-4 w-4" />
+                    Start Your Store
+                  </button>
+                  <p className="text-xs text-zinc-600 mt-2">
+                    Ready to build your own? This wipes the demo and starts fresh with your store.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
+        
+        {/* Start Your Store Modal */}
+        {showStartStoreModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="mx-4 w-full max-w-md rounded-xl border border-red-500/30 bg-zinc-900 p-6 shadow-2xl">
+              <h3 className="text-lg font-medium text-white mb-2">Start Your Store</h3>
+              <p className="text-sm text-zinc-400 mb-4">
+                This will <span className="text-red-400 font-medium">permanently delete</span> all demo data and create a fresh, empty store for you to build.
+              </p>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 mb-4">
+                <p className="text-xs text-amber-300">
+                  ⚠️ No going back — demo data will be gone forever. You&apos;ll start with a clean slate and work your way down this settings page to configure your store.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowStartStoreModal(false)}
+                  className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleStartStore}
+                  disabled={startingStore}
+                  className="flex-1 rounded-lg border border-emerald-500/50 bg-emerald-500/20 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/30 disabled:opacity-50"
+                >
+                  {startingStore ? 'Starting...' : 'Start Fresh'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Save Button */}
         <button
