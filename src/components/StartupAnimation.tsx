@@ -9,10 +9,12 @@ interface StartupAnimationProps {
   duration?: number; // Total duration in ms (default 3000)
 }
 
+const CYCLE_TIME = 10000; // Fixed 10 second cycle
+
 export default function StartupAnimation({ 
   onComplete, 
   loop = false,
-  duration = 3000,
+  duration = 3000, // How long the "on" portion is (fade in + hold)
 }: StartupAnimationProps) {
   const [brightness, setBrightness] = useState(0);
   const [showText, setShowText] = useState(false);
@@ -20,28 +22,44 @@ export default function StartupAnimation({
   useEffect(() => {
     let timeouts: NodeJS.Timeout[] = [];
     
-    // Scale timing proportionally to duration
-    const scale = duration / 3000;
+    // Animation ON time = duration (user controlled)
+    // Fade out time = remaining time before 10s cycle restarts
+    const fadeOutStart = duration;
+    const fadeOutDuration = CYCLE_TIME - duration - 500; // Leave 500ms black gap
 
     const run = () => {
       setBrightness(0);
       setShowText(false);
       
-      // Fade in lights (scaled)
-      timeouts.push(setTimeout(() => setBrightness(0.3), 600 * scale));
-      timeouts.push(setTimeout(() => setBrightness(1), 1200 * scale));
+      // Fade in lights (first 40% of duration)
+      timeouts.push(setTimeout(() => setBrightness(0.3), duration * 0.2));
+      timeouts.push(setTimeout(() => setBrightness(1), duration * 0.4));
       
-      // Text reveals with lights at full - lit from behind effect
-      timeouts.push(setTimeout(() => setShowText(true), 1200 * scale));
+      // Text reveals at 40% of duration
+      timeouts.push(setTimeout(() => setShowText(true), duration * 0.4));
       
-      // Complete or loop at duration
+      // Start fade out at end of duration
+      timeouts.push(setTimeout(() => {
+        setBrightness(0.6);
+      }, fadeOutStart));
+      
+      timeouts.push(setTimeout(() => {
+        setBrightness(0.3);
+        setShowText(false);
+      }, fadeOutStart + fadeOutDuration * 0.3));
+      
+      timeouts.push(setTimeout(() => {
+        setBrightness(0);
+      }, fadeOutStart + fadeOutDuration * 0.6));
+      
+      // Loop or complete at end of cycle
       timeouts.push(setTimeout(() => {
         if (loop) {
-          setTimeout(run, 1000);
+          run();
         } else {
           onComplete?.();
         }
-      }, duration));
+      }, CYCLE_TIME));
     };
 
     run();
