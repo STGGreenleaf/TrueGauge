@@ -57,16 +57,14 @@ export default function StartupAnimation({
       timeouts.push(setTimeout(() => setOverlayOpacity(0.3), duration + 2000));
       timeouts.push(setTimeout(() => setOverlayOpacity(0), duration + 2500));
       
-      // Phase 4: Loop - fade back to black, restart
-      timeouts.push(setTimeout(() => setOverlayOpacity(1), CYCLE_TIME - 500));
-      
-      timeouts.push(setTimeout(() => {
-        if (loop) {
-          run();
-        } else {
-          onComplete?.();
-        }
-      }, CYCLE_TIME));
+      if (loop) {
+        // Phase 4: Loop mode only - fade back to black, restart
+        timeouts.push(setTimeout(() => setOverlayOpacity(1), CYCLE_TIME - 500));
+        timeouts.push(setTimeout(() => run(), CYCLE_TIME));
+      } else {
+        // Non-loop: complete shortly after overlay fades
+        timeouts.push(setTimeout(() => onComplete?.(), duration + 3000));
+      }
     };
 
     run();
