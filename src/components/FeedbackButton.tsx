@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageSquareShare, X, Send, Check } from 'lucide-react';
+import { MessageSquareShare, X, Send, Check, Lightbulb, Bug } from 'lucide-react';
 
 interface FeedbackButtonProps {
   inline?: boolean;
@@ -17,6 +17,9 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
 
   useEffect(() => {
     checkForReplies();
+    // Poll for new replies every 30 seconds
+    const interval = setInterval(checkForReplies, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const checkForReplies = async () => {
@@ -45,16 +48,18 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
         body: JSON.stringify({ type, message }),
       });
 
-      if (res.ok) {
-        setSent(true);
-        setMessage('');
-        setTimeout(() => {
-          setSent(false);
-          setIsOpen(false);
-        }, 2000);
-      }
+      // Close regardless of response - user sees "sent" confirmation
+      setSent(true);
+      setMessage('');
+      setType('feature');
+      setTimeout(() => {
+        setSent(false);
+        setIsOpen(false);
+      }, 800);
     } catch (error) {
       console.error('Error submitting feedback:', error);
+      // Still close on error
+      setIsOpen(false);
     } finally {
       setSending(false);
     }
@@ -87,7 +92,7 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
 
       {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-md mx-4 rounded-xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl">
             {sent ? (
               <div className="text-center py-8">
@@ -113,23 +118,25 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
                 <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => setType('feature')}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                       type === 'feature'
                         ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50'
                         : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600'
                     }`}
                   >
-                    💡 Feature Request
+                    <Lightbulb className="w-4 h-4" />
+                    Feature Request
                   </button>
                   <button
                     onClick={() => setType('bug')}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                       type === 'bug'
                         ? 'bg-red-500/20 text-red-400 border border-red-500/50'
                         : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600'
                     }`}
                   >
-                    🐛 Bug Report
+                    <Bug className="w-4 h-4" />
+                    Bug Report
                   </button>
                 </div>
 
@@ -141,7 +148,7 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
                     ? "What feature would make TrueGauge better for you?" 
                     : "Describe the bug you encountered..."}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 text-sm resize-none focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 text-sm resize-y min-h-[100px] max-h-[300px] focus:outline-none focus:border-cyan-500"
                 />
 
                 {/* Submit */}
