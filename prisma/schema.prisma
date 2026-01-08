@@ -64,10 +64,13 @@ model Settings {
   nutPayroll           Float        @default(0)
   nutOther1            Float        @default(0)
   nutOther1Label       String       @default("Other 1")
+  nutOther1Note        String?
   nutOther2            Float        @default(0)
   nutOther2Label       String       @default("Other 2")
+  nutOther2Note        String?
   nutOther3            Float        @default(0)
   nutOther3Label       String       @default("Other 3")
+  nutOther3Note        String?
   monthlyRoofFund      Float        @default(0)
   monthlyOwnerDrawGoal Float        @default(0)
   openHoursTemplate    String       @default("{\"mon\":0,\"tue\":8,\"wed\":8,\"thu\":8,\"fri\":8,\"sat\":8,\"sun\":5}")

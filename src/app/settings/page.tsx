@@ -554,64 +554,91 @@ export default function SettingsPage() {
                       />
                     </div>
                     {/* Other 1 - editable label */}
-                    <div>
+                    <div className="col-span-2">
                       <input
                         type="text"
                         value={settings.nutOther1Label || 'Other 1'}
                         onChange={(e) => updateSetting('nutOther1Label', e.target.value)}
                         className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
                       />
-                      <Input
-                        type="number"
-                        value={settings.nutOther1 || ''}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value) || 0;
-                          updateSetting('nutOther1', val);
-                          recalculateNut({ ...settings, nutOther1: val });
-                        }}
-                        className="mt-1 h-9 border-zinc-700 bg-zinc-800 text-sm text-white"
-                      />
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          type="number"
+                          value={settings.nutOther1 || ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateSetting('nutOther1', val);
+                            recalculateNut({ ...settings, nutOther1: val });
+                          }}
+                          className="h-9 w-24 border-zinc-700 bg-zinc-800 text-sm text-white"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Notes (e.g. bundled items)"
+                          value={settings.nutOther1Note || ''}
+                          onChange={(e) => updateSetting('nutOther1Note', e.target.value || null)}
+                          className="h-9 flex-1 border-zinc-700 bg-zinc-800 text-xs text-zinc-400"
+                        />
+                      </div>
                     </div>
                     {/* Other 2 - editable label */}
-                    <div>
+                    <div className="col-span-2">
                       <input
                         type="text"
                         value={settings.nutOther2Label || 'Other 2'}
                         onChange={(e) => updateSetting('nutOther2Label', e.target.value)}
                         className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
                       />
-                      <Input
-                        type="number"
-                        value={settings.nutOther2 || ''}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value) || 0;
-                          updateSetting('nutOther2', val);
-                          recalculateNut({ ...settings, nutOther2: val });
-                        }}
-                        className="mt-1 h-9 border-zinc-700 bg-zinc-800 text-sm text-white"
-                      />
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          type="number"
+                          value={settings.nutOther2 || ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateSetting('nutOther2', val);
+                            recalculateNut({ ...settings, nutOther2: val });
+                          }}
+                          className="h-9 w-24 border-zinc-700 bg-zinc-800 text-sm text-white"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Notes (e.g. bundled items)"
+                          value={settings.nutOther2Note || ''}
+                          onChange={(e) => updateSetting('nutOther2Note', e.target.value || null)}
+                          className="h-9 flex-1 border-zinc-700 bg-zinc-800 text-xs text-zinc-400"
+                        />
+                      </div>
                     </div>
                     {/* Other 3 - editable label */}
-                    <div>
+                    <div className="col-span-2">
                       <input
                         type="text"
                         value={settings.nutOther3Label || 'Other 3'}
                         onChange={(e) => updateSetting('nutOther3Label', e.target.value)}
                         className="h-5 w-full bg-transparent text-xs text-cyan-400 focus:outline-none"
                       />
-                      <Input
-                        type="number"
-                        value={settings.nutOther3 || ''}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => {
-                          const val = parseFloat(e.target.value) || 0;
-                          updateSetting('nutOther3', val);
-                          recalculateNut({ ...settings, nutOther3: val });
-                        }}
-                        className="mt-1 h-9 border-zinc-700 bg-zinc-800 text-sm text-white"
-                      />
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          type="number"
+                          value={settings.nutOther3 || ''}
+                          onFocus={(e) => e.target.select()}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            updateSetting('nutOther3', val);
+                            recalculateNut({ ...settings, nutOther3: val });
+                          }}
+                          className="h-9 w-24 border-zinc-700 bg-zinc-800 text-sm text-white"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Notes (e.g. bundled items)"
+                          value={settings.nutOther3Note || ''}
+                          onChange={(e) => updateSetting('nutOther3Note', e.target.value || null)}
+                          className="h-9 flex-1 border-zinc-700 bg-zinc-800 text-xs text-zinc-400"
+                        />
+                      </div>
                     </div>
                   </div>
                   <div className="mt-4 flex items-center justify-between rounded-lg border border-zinc-700/30 bg-zinc-800/50 p-3">

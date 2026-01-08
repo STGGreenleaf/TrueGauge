@@ -49,10 +49,13 @@ export const SettingsSchema = z.object({
   nutPayroll: z.number().min(0).optional(),
   nutOther1: z.number().min(0).optional(),
   nutOther1Label: z.string().optional(),
+  nutOther1Note: z.string().nullable().optional(),
   nutOther2: z.number().min(0).optional(),
   nutOther2Label: z.string().optional(),
+  nutOther2Note: z.string().nullable().optional(),
   nutOther3: z.number().min(0).optional(),
   nutOther3Label: z.string().optional(),
+  nutOther3Note: z.string().nullable().optional(),
   // Optional goals
   monthlyRoofFund: z.number().min(0),
   monthlyOwnerDrawGoal: z.number().min(0),
