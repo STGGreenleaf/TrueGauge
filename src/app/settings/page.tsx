@@ -52,7 +52,7 @@ export default function SettingsPage() {
   const [newInjectionDate, setNewInjectionDate] = useState('');
   const [newInjectionAmount, setNewInjectionAmount] = useState('');
   const [newInjectionNote, setNewInjectionNote] = useState('');
-  const [newInjectionType, setNewInjectionType] = useState<'injection' | 'withdrawal'>('injection');
+  const [newInjectionType, setNewInjectionType] = useState<'injection' | 'withdrawal' | 'owner_draw'>('injection');
   const [injectionSaving, setInjectionSaving] = useState(false);
   
   // Reference months saved confirmation
@@ -82,13 +82,14 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchSettings(userViewEnabled);
     fetchReferenceMonths(refYear, userViewEnabled);
-    fetchInjections();
+    fetchInjections(userViewEnabled);
   }, [userViewEnabled]);
   
   // Fetch cash injections
-  const fetchInjections = async () => {
+  const fetchInjections = async (useShowcase = false) => {
     try {
-      const res = await fetch('/api/cash-injections');
+      const url = useShowcase ? '/api/cash-injections?showcase=true' : '/api/cash-injections';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setInjections(data);
@@ -117,7 +118,7 @@ export default function SettingsPage() {
         setNewInjectionDate('');
         setNewInjectionAmount('');
         setNewInjectionNote('');
-        fetchInjections();
+        fetchInjections(userViewEnabled);
       }
     } catch (error) {
       console.error('Error adding injection:', error);
@@ -131,7 +132,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch(`/api/cash-injections?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        fetchInjections();
+        fetchInjections(userViewEnabled);
       }
     } catch (error) {
       console.error('Error deleting injection:', error);
@@ -967,15 +968,15 @@ export default function SettingsPage() {
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
-              <Wallet className="h-4 w-4 text-emerald-500" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Capital Injections</h2>
+              <Wallet className="h-4 w-4 text-cyan-500" />
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Capital Flow</h2>
               {injections.length > 0 && (() => {
                 const totalIn = injections.filter(i => i.type === 'injection').reduce((sum, i) => sum + i.amount, 0);
-                const totalOut = injections.filter(i => i.type === 'withdrawal').reduce((sum, i) => sum + i.amount, 0);
+                const totalOut = injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').reduce((sum, i) => sum + i.amount, 0);
                 const net = totalIn - totalOut;
                 return (
                   <span className={`text-xs ${net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    ${net.toLocaleString()} net
+                    ${Math.abs(net).toLocaleString()} {net >= 0 ? 'in' : 'out'}
                   </span>
                 );
               })()}
@@ -988,100 +989,120 @@ export default function SettingsPage() {
           </button>
           
           {injectionsExpanded && (
-            <div className="border-t border-zinc-800/50 p-5 space-y-4">
-              {/* Type selector */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setNewInjectionType('injection')}
-                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                    newInjectionType === 'injection' 
-                      ? 'bg-emerald-600 text-white' 
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                  }`}
-                >
-                  + Capital In
-                </button>
-                <button
-                  onClick={() => setNewInjectionType('withdrawal')}
-                  className={`flex-1 py-2 px-3 rounded text-sm font-medium transition-colors ${
-                    newInjectionType === 'withdrawal' 
-                      ? 'bg-red-600 text-white' 
-                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-                  }`}
-                >
-                  − Capital Out
-                </button>
+            <div className="border-t border-zinc-800/50 p-5">
+              {/* Two column layout */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Money In Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-medium text-emerald-400 uppercase tracking-wider">Money In</h3>
+                    <span className="text-xs text-emerald-400/70">
+                      ${injections.filter(i => i.type === 'injection').reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {injections.filter(i => i.type === 'injection').sort((a, b) => b.date.localeCompare(a.date)).map((inj) => (
+                      <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-emerald-950/30 border border-emerald-900/30">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-400 font-medium text-sm">+${inj.amount.toLocaleString()}</span>
+                            <span className="text-zinc-600 text-xs">{inj.date}</span>
+                          </div>
+                          {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                        </div>
+                        <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                      </div>
+                    ))}
+                    {injections.filter(i => i.type === 'injection').length === 0 && (
+                      <p className="text-zinc-600 text-xs py-2">No capital injections</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Money Out Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-medium text-red-400 uppercase tracking-wider">Money Out</h3>
+                    <span className="text-xs text-red-400/70">
+                      ${injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').reduce((sum, i) => sum + i.amount, 0).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="space-y-1 max-h-48 overflow-y-auto">
+                    {injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').sort((a, b) => b.date.localeCompare(a.date)).map((inj) => (
+                      <div key={inj.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-red-950/30 border border-red-900/30">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-red-400 font-medium text-sm">−${inj.amount.toLocaleString()}</span>
+                            <span className="text-zinc-600 text-xs">{inj.date}</span>
+                          </div>
+                          {inj.note && <p className="text-zinc-500 text-xs truncate">{inj.note}</p>}
+                        </div>
+                        <button onClick={() => deleteInjection(inj.id)} className="text-zinc-600 hover:text-red-400 text-xs ml-2">×</button>
+                      </div>
+                    ))}
+                    {injections.filter(i => i.type === 'withdrawal' || i.type === 'owner_draw').length === 0 && (
+                      <p className="text-zinc-600 text-xs py-2">No owner draws</p>
+                    )}
+                  </div>
+                </div>
               </div>
               
-              {/* Add new injection form */}
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label className="text-zinc-400 text-xs">Date</Label>
+              {/* Add new entry form */}
+              <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => setNewInjectionType('injection')}
+                    className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition-colors ${
+                      newInjectionType === 'injection' 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    }`}
+                  >
+                    + Money In
+                  </button>
+                  <button
+                    onClick={() => setNewInjectionType('owner_draw')}
+                    className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition-colors ${
+                      newInjectionType === 'owner_draw' || newInjectionType === 'withdrawal'
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    }`}
+                  >
+                    − Money Out
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
                   <Input
                     type="date"
                     value={newInjectionDate}
                     onChange={(e) => setNewInjectionDate(e.target.value)}
-                    className="mt-1 border-zinc-700 bg-zinc-800 text-white text-sm [color-scheme:dark]"
+                    className="border-zinc-700 bg-zinc-800 text-white text-xs [color-scheme:dark]"
                   />
-                </div>
-                <div>
-                  <Label className="text-zinc-400 text-xs">Amount ($)</Label>
                   <Input
                     type="number"
                     value={newInjectionAmount}
                     onChange={(e) => setNewInjectionAmount(e.target.value)}
-                    placeholder={newInjectionType === 'injection' ? '60000' : '5000'}
-                    className="mt-1 border-zinc-700 bg-zinc-800 text-white text-sm"
+                    placeholder="Amount"
+                    className="border-zinc-700 bg-zinc-800 text-white text-xs"
                   />
-                </div>
-                <div>
-                  <Label className="text-zinc-400 text-xs">Note (optional)</Label>
                   <Input
                     type="text"
                     value={newInjectionNote}
                     onChange={(e) => setNewInjectionNote(e.target.value)}
-                    placeholder={newInjectionType === 'injection' ? 'Initial capital' : 'Owner draw'}
-                    className="mt-1 border-zinc-700 bg-zinc-800 text-white text-sm"
+                    placeholder="Note"
+                    className="border-zinc-700 bg-zinc-800 text-white text-xs"
                   />
+                  <button
+                    onClick={addInjection}
+                    disabled={injectionSaving || !newInjectionDate || !newInjectionAmount}
+                    className={`py-2 px-3 rounded disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-xs font-medium transition-colors ${
+                      newInjectionType === 'injection' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
+                    }`}
+                  >
+                    {injectionSaving ? '...' : 'Add'}
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={addInjection}
-                disabled={injectionSaving || !newInjectionDate || !newInjectionAmount}
-                className={`w-full py-2 px-4 rounded disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-sm font-medium transition-colors ${
-                  newInjectionType === 'injection' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'
-                }`}
-              >
-                {injectionSaving ? 'Saving...' : 'Make Transfer'}
-              </button>
-              
-              {/* List existing injections */}
-              {injections.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-zinc-800/50">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider">History</p>
-                  {injections.sort((a, b) => a.date.localeCompare(b.date)).map((inj) => (
-                    <div key={inj.id} className="flex items-center justify-between py-2 px-3 rounded bg-zinc-800/50">
-                      <div>
-                        <span className={`font-medium ${inj.type === 'withdrawal' ? 'text-red-400' : 'text-emerald-400'}`}>
-                          {inj.type === 'withdrawal' ? '−' : '+'}${inj.amount.toLocaleString()}
-                        </span>
-                        <span className="text-zinc-500 text-sm ml-2">{inj.date}</span>
-                        {inj.note && <span className="text-zinc-600 text-sm ml-2">— {inj.note}</span>}
-                      </div>
-                      <button
-                        onClick={() => deleteInjection(inj.id)}
-                        className="text-zinc-600 hover:text-red-400 text-xs"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <p className="text-xs text-zinc-600">
-                Track capital you've invested into the business. The green "CAPITAL" line shows cumulative injections over time.
-              </p>
             </div>
           )}
         </div>

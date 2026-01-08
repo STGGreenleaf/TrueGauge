@@ -2,13 +2,18 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getCurrentOrgId } from '@/lib/org';
 
+const SHOWCASE_ORG_ID = 'showcase-template';
+
 // GET - fetch all cash injections
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const orgId = await getCurrentOrgId();
+    const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
+    
     const injections = await prisma.cashInjection.findMany({
       where: { organizationId: orgId },
-      orderBy: { date: 'asc' },
+      orderBy: { date: 'desc' },
     });
     return NextResponse.json(injections);
   } catch (error) {
