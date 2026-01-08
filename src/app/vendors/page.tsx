@@ -46,6 +46,14 @@ const CATEGORIES = [
   { key: 'OPEX', label: 'OPEX', icon: Receipt },
   { key: 'CAPEX', label: 'CAPEX', icon: Wrench },
   { key: 'OWNER_DRAW', label: 'Owner Draw', icon: User },
+  { key: 'supplies', label: 'Supplies', icon: ShoppingCart },
+  { key: 'services', label: 'Services', icon: Receipt },
+  { key: 'utilities', label: 'Utilities', icon: Receipt },
+  { key: 'insurance', label: 'Insurance', icon: Receipt },
+  { key: 'marketing', label: 'Marketing', icon: Receipt },
+  { key: 'shipping', label: 'Shipping', icon: ShoppingCart },
+  { key: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { key: 'fees', label: 'Fees', icon: Receipt },
 ];
 
 export default function VendorsPage() {
@@ -68,7 +76,7 @@ export default function VendorsPage() {
     recurrenceRule: 'NONE',
     dueDayOfMonth: '',
   });
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['COGS', 'OPEX', 'CAPEX', 'OWNER_DRAW']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(CATEGORIES.map(c => c.key)));
 
   useEffect(() => {
     fetchVendors();
