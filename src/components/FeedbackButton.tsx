@@ -62,6 +62,31 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
     }
   };
 
+  const markAllAsRead = async () => {
+    // Mark all replied messages as read when closing inbox
+    const unreadMessages = myMessages.filter(m => m.ownerReply && m.status === 'replied');
+    for (const msg of unreadMessages) {
+      try {
+        await fetch('/api/feedback/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: msg.id }),
+        });
+      } catch {
+        // Silently fail
+      }
+    }
+    setHasUnreadReply(false);
+  };
+
+  const handleClose = () => {
+    // If viewing inbox with unread replies, mark them as read
+    if (viewMode === 'inbox' && hasUnreadReply) {
+      markAllAsRead();
+    }
+    setIsOpen(false);
+  };
+
   const handleSubmit = async () => {
     if (!message.trim()) return;
 
@@ -143,7 +168,7 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
                       <Plus className="w-5 h-5" />
                     </button>
                     <button
-                      onClick={() => setIsOpen(false)}
+                      onClick={handleClose}
                       className="p-1 rounded hover:bg-zinc-800 text-zinc-500"
                     >
                       <X className="w-5 h-5" />
@@ -213,7 +238,7 @@ export function FeedbackButton({ inline = false }: FeedbackButtonProps) {
                       </button>
                     )}
                     <button
-                      onClick={() => setIsOpen(false)}
+                      onClick={handleClose}
                       className="p-1 rounded hover:bg-zinc-800 text-zinc-500"
                     >
                       <X className="w-5 h-5" />
