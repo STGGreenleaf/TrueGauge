@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
@@ -14,6 +13,7 @@ import {
   Check,
   X,
 } from 'lucide-react';
+import { Nav } from '@/components/Nav';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isToday, getDay, addWeeks, subWeeks, isSameWeek } from 'date-fns';
 
 interface DayData {
@@ -235,18 +235,11 @@ export default function CalendarPage() {
         <div className="absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-violet-600/10 blur-[100px]" />
       </div>
 
+      <Nav showRefresh={false} />
+
       <div className="relative z-10 mx-auto max-w-4xl px-6 py-8">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </button>
-          
-          {/* View Mode Toggle + LY Toggle */}
+        {/* View Mode Toggle + LY Toggle */}
+        <div className="mb-6 flex items-center justify-end">
           <div className="flex items-center gap-3">
             {/* LY Comparison Toggle */}
             <button

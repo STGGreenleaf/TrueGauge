@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   TrendingUp,
   TrendingDown,
   Download,
 } from 'lucide-react';
+import { Nav } from '@/components/Nav';
 
 interface MonthSummary {
   month: number;
@@ -106,19 +106,14 @@ export default function AnnualPage() {
         <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-violet-600/10 blur-[100px]" />
       </div>
 
+      <Nav showRefresh={false} />
+
       <div className="relative z-10 mx-auto max-w-6xl px-6 py-8">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </button>
+        {/* Export button */}
+        <div className="mb-4 flex justify-end">
           <button
             onClick={handleExport}
-            className="text-zinc-500 transition-colors hover:text-cyan-400"
+            className="text-zinc-500 transition-colors hover:text-zinc-300"
             title="Export CSV"
           >
             <Download className="h-5 w-5" />

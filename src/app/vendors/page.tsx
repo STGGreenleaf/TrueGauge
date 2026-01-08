@@ -15,7 +15,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  ArrowLeft,
   Plus,
   Edit2,
   Trash2,
@@ -27,6 +26,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { Nav } from '@/components/Nav';
 
 interface Vendor {
   id: number;
@@ -185,20 +185,9 @@ export default function VendorsPage() {
         <div className="absolute bottom-0 right-0 h-[300px] w-[300px] rounded-full bg-violet-600/10 blur-[100px]" />
       </div>
 
+      <Nav showRefresh={false} />
+
       <div className="relative z-10 mx-auto max-w-2xl px-6 py-8">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <button
-            onClick={() => router.push('/')}
-            className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Dashboard
-          </button>
-          <div className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
-            Vendors
-          </div>
-        </div>
 
         {/* Add Button */}
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
