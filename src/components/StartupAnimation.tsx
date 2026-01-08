@@ -18,41 +18,46 @@ export default function StartupAnimation({
 }: StartupAnimationProps) {
   const [brightness, setBrightness] = useState(0);
   const [showText, setShowText] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(1);
 
   useEffect(() => {
     let timeouts: NodeJS.Timeout[] = [];
     
-    // Animation ON time = duration (user controlled)
-    // Fade out time = remaining time before 10s cycle restarts
-    const fadeOutStart = duration;
-    const fadeOutDuration = CYCLE_TIME - duration - 500; // Leave 500ms black gap
+    // Timing breakdown within 10s cycle:
+    // 0 → duration: fade in lights, show text, hold
+    // duration → duration+1.5s: fade OUT lights+text (back to black)
+    // duration+1.5s → duration+3s: fade black overlay to reveal dashboard
+    // remaining: hold dashboard visible, then loop back to black
 
     const run = () => {
+      // Reset to black
       setBrightness(0);
       setShowText(false);
+      setOverlayOpacity(1);
       
-      // Fade in lights (first 40% of duration)
+      // Phase 1: Fade in lights (first 40% of duration)
       timeouts.push(setTimeout(() => setBrightness(0.3), duration * 0.2));
       timeouts.push(setTimeout(() => setBrightness(1), duration * 0.4));
       
-      // Text reveals at 40% of duration + 500ms delay
+      // Phase 1b: Text reveals after lights are full + 500ms
       timeouts.push(setTimeout(() => setShowText(true), duration * 0.4 + 500));
       
-      // Start fade out at end of duration
+      // Phase 2: Fade OUT lights + text (1.5s after duration ends)
+      timeouts.push(setTimeout(() => setBrightness(0.5), duration));
       timeouts.push(setTimeout(() => {
-        setBrightness(0.6);
-      }, fadeOutStart));
-      
-      timeouts.push(setTimeout(() => {
-        setBrightness(0.3);
+        setBrightness(0.2);
         setShowText(false);
-      }, fadeOutStart + fadeOutDuration * 0.3));
+      }, duration + 500));
+      timeouts.push(setTimeout(() => setBrightness(0), duration + 1000));
       
-      timeouts.push(setTimeout(() => {
-        setBrightness(0);
-      }, fadeOutStart + fadeOutDuration * 0.6));
+      // Phase 3: THEN fade black overlay to reveal dashboard (after lights are off)
+      timeouts.push(setTimeout(() => setOverlayOpacity(0.7), duration + 1500));
+      timeouts.push(setTimeout(() => setOverlayOpacity(0.3), duration + 2000));
+      timeouts.push(setTimeout(() => setOverlayOpacity(0), duration + 2500));
       
-      // Loop or complete at end of cycle
+      // Phase 4: Loop - fade back to black, restart
+      timeouts.push(setTimeout(() => setOverlayOpacity(1), CYCLE_TIME - 500));
+      
       timeouts.push(setTimeout(() => {
         if (loop) {
           run();
@@ -65,9 +70,6 @@ export default function StartupAnimation({
     run();
     return () => timeouts.forEach(clearTimeout);
   }, [loop, onComplete, duration]);
-
-  // Overlay opacity follows brightness - dashboard shows through as lights dim
-  const overlayOpacity = Math.max(0.3, brightness);
 
   return (
     <div 
