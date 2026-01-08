@@ -1306,13 +1306,15 @@ export default function SettingsPage() {
                   type="number"
                   defaultValue=""
                   onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? null : parseFloat(e.target.value);
+                    updateSetting('cashSnapshotAmount', val);
+                  }}
                   onBlur={(e) => {
                     const val = e.target.value === '' ? null : parseFloat(e.target.value);
                     if (val !== null) {
-                      const today = new Date().toISOString().split('T')[0];
-                      updateSetting('cashSnapshotAmount', val);
-                      updateSetting('cashSnapshotAsOf', today);
-                      saveSnapshot(val, today);
+                      const dateVal = settings.cashSnapshotAsOf || new Date().toISOString().split('T')[0];
+                      saveSnapshot(val, dateVal);
                       e.target.value = '';
                     }
                   }}
@@ -1321,7 +1323,22 @@ export default function SettingsPage() {
                 />
               </div>
               
-              <p className="text-xs text-zinc-500 mt-1">Saves with today's date automatically</p>
+              <div>
+                <Label htmlFor="cashSnapshotAsOf" className="text-zinc-300">
+                  As of Date
+                </Label>
+                <Input
+                  id="cashSnapshotAsOf"
+                  type="date"
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? null : e.target.value;
+                    updateSetting('cashSnapshotAsOf', val);
+                  }}
+                  className="mt-1 border-zinc-700 bg-zinc-800 text-white [color-scheme:dark]"
+                />
+                <p className="text-xs text-zinc-500 mt-1">Defaults to today</p>
+              </div>
               
               {/* Summary display with save status */}
               {settings.cashSnapshotAmount !== null && settings.cashSnapshotAmount !== undefined && settings.cashSnapshotAsOf ? (
@@ -1329,8 +1346,24 @@ export default function SettingsPage() {
                   <p className="text-sm text-cyan-300">
                     ${settings.cashSnapshotAmount.toLocaleString()} as of {settings.cashSnapshotAsOf}
                   </p>
-                  {snapshotSaving && <span className="text-xs text-zinc-500">Saving...</span>}
-                  {snapshotSaved && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="h-3 w-3" /> Saved</span>}
+                  <div className="flex items-center gap-2">
+                    {snapshotSaving && <span className="text-xs text-zinc-500">Saving...</span>}
+                    {snapshotSaved && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check className="h-3 w-3" /> Saved</span>}
+                    <button
+                      onClick={async () => {
+                        updateSetting('cashSnapshotAmount', null);
+                        updateSetting('cashSnapshotAsOf', null);
+                        await fetch('/api/settings', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ cashSnapshotAmount: null, cashSnapshotAsOf: null }),
+                        });
+                      }}
+                      className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-3">
