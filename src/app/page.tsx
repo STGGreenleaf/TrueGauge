@@ -258,38 +258,72 @@ export default function Dashboard() {
                 const profitMargin = 1 - data.settings.targetCogsPct - data.settings.targetFeesPct;
                 const grossProfit = data.mtdNetSales * profitMargin;
                 const nutRemaining = Math.max(0, data.settings.monthlyFixedNut - grossProfit);
-                const nutPct = Math.round((1 - nutRemaining / data.settings.monthlyFixedNut) * 100);
+                const nutCovered = Math.min(grossProfit, data.settings.monthlyFixedNut);
+                const nutPct = Math.round((nutCovered / data.settings.monthlyFixedNut) * 100);
                 const overage = grossProfit > data.settings.monthlyFixedNut ? grossProfit - data.settings.monthlyFixedNut : 0;
+                const cogsPct = Math.round(data.settings.targetCogsPct * 100);
+                const feesPct = Math.round(data.settings.targetFeesPct * 100);
+                const marginPct = Math.round(profitMargin * 100);
                 
                 return (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-80 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
-                    <div className="font-medium text-cyan-400 text-base mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
-                    <p className="text-sm text-zinc-300 mb-3">This is how much of your <strong>monthly survival goal</strong> you&apos;ve hit so far. 100% = you&apos;ve covered all fixed costs for the month.</p>
-                    <div className="mb-2 p-2 rounded bg-zinc-800/50">
-                      <div className="text-zinc-400 text-xs mb-1">Month-to-Date Sales:</div>
-                      <div className="text-white text-sm font-medium">{formatCurrency(data.mtdNetSales)}</div>
-                    </div>
-                    <div className="mb-2 p-2 rounded bg-zinc-800/50">
-                      <div className="text-zinc-400 text-xs mb-1">Monthly Goal:</div>
-                      <div className="text-white text-sm font-medium">{formatCurrency(data.survivalGoal)}</div>
-                    </div>
-                    <div className="mb-2 p-2 rounded bg-amber-900/30 border border-amber-700/50">
-                      <div className="text-amber-400 text-xs mb-1 flex items-center gap-1">
-                        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-                        NUT Remaining (inner arc):
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-80 p-3 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
+                    <div className="font-medium text-cyan-400 text-sm mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
+                    
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/50">
+                        <span className="text-zinc-400">Your Sales (MTD)</span>
+                        <span className="text-white font-medium">{formatCurrency(data.mtdNetSales)}</span>
                       </div>
-                      <div className="text-white text-sm font-medium">{formatCurrency(nutRemaining)} <span className="text-zinc-500 text-xs">({nutPct}% covered)</span></div>
-                      <div className="text-xs text-zinc-500">of {formatCurrency(data.settings.monthlyFixedNut)} fixed costs</div>
-                    </div>
-                    {overage > 0 && (
-                      <div className="mb-2 p-2 rounded bg-emerald-900/30 border border-emerald-700/50">
-                        <div className="text-emerald-400 text-xs mb-1">Profit (above NUT):</div>
-                        <div className="text-white text-sm font-medium">+{formatCurrency(overage)}</div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/30 text-[10px]">
+                        <span className="text-zinc-500">− COGS ({cogsPct}%) − Fees ({feesPct}%)</span>
+                        <span className="text-zinc-500">keeps {marginPct}%</span>
                       </div>
-                    )}
-                    <p className="text-xs text-zinc-500">{data.survivalPercent >= 100 
-                      ? '✓ You hit your survival goal!' 
-                      : `Need ${formatCurrency(data.survivalGoal - data.mtdNetSales)} more sales to hit 100%`}</p>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-cyan-900/30 border border-cyan-700/50">
+                        <span className="text-cyan-400">= Gross Profit</span>
+                        <span className="text-white font-medium">{formatCurrency(grossProfit)}</span>
+                      </div>
+                      
+                      <div className="h-px bg-zinc-700"></div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/50">
+                        <span className="text-zinc-400">Fixed Costs (NUT)</span>
+                        <span className="text-white font-medium">{formatCurrency(data.settings.monthlyFixedNut)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-emerald-900/30 border border-emerald-700/50">
+                        <span className="text-emerald-400">✓ NUT Covered</span>
+                        <span className="text-white font-medium">{formatCurrency(nutCovered)} ({nutPct}%)</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-amber-900/30 border border-amber-700/50">
+                        <span className="text-amber-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                          NUT Left (inner arc)
+                        </span>
+                        <span className="text-white font-medium">{formatCurrency(nutRemaining)}</span>
+                      </div>
+                      
+                      {overage > 0 && (
+                        <div className="flex justify-between p-1.5 rounded bg-emerald-900/50 border border-emerald-500/50">
+                          <span className="text-emerald-300">★ Profit Above NUT</span>
+                          <span className="text-emerald-300 font-medium">+{formatCurrency(overage)}</span>
+                        </div>
+                      )}
+                      
+                      <div className="h-px bg-zinc-700"></div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/50">
+                        <span className="text-zinc-400">Sales Goal (outer arc)</span>
+                        <span className="text-white font-medium">{formatCurrency(data.survivalGoal)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 text-zinc-500">
+                        <span>Still need</span>
+                        <span>{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
@@ -335,26 +369,52 @@ export default function Dashboard() {
                 const profitMargin = 1 - data.settings.targetCogsPct - data.settings.targetFeesPct;
                 const grossProfit = data.mtdNetSales * profitMargin;
                 const nutRemaining = Math.max(0, data.settings.monthlyFixedNut - grossProfit);
-                const nutPct = Math.round((1 - nutRemaining / data.settings.monthlyFixedNut) * 100);
+                const nutCovered = Math.min(grossProfit, data.settings.monthlyFixedNut);
+                const nutPct = Math.round((nutCovered / data.settings.monthlyFixedNut) * 100);
+                const cogsPct = Math.round(data.settings.targetCogsPct * 100);
+                const feesPct = Math.round(data.settings.targetFeesPct * 100);
+                const marginPct = Math.round(profitMargin * 100);
                 
                 return (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-72 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
-                    <div className="font-medium text-cyan-400 text-base mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
-                    <p className="text-sm text-zinc-300 mb-2">How much of your <strong>monthly survival goal</strong> you&apos;ve hit. 100% = fixed costs covered.</p>
-                    <div className="mb-2 p-2 rounded bg-zinc-800/50">
-                      <div className="text-zinc-400 text-xs">Month-to-Date Sales:</div>
-                      <div className="text-white text-sm font-medium">{formatCurrency(data.mtdNetSales)}</div>
-                    </div>
-                    <div className="mb-2 p-2 rounded bg-amber-900/30 border border-amber-700/50">
-                      <div className="text-amber-400 text-xs flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                        NUT Remaining (inner arc):
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-72 p-3 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100]">
+                    <div className="font-medium text-cyan-400 text-sm mb-2">Survival: {Math.round(data.survivalPercent)}%</div>
+                    
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/50">
+                        <span className="text-zinc-400">Sales (MTD)</span>
+                        <span className="text-white font-medium">{formatCurrency(data.mtdNetSales)}</span>
                       </div>
-                      <div className="text-white text-sm font-medium">{formatCurrency(nutRemaining)} <span className="text-zinc-500 text-xs">({nutPct}% covered)</span></div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/30 text-[10px]">
+                        <span className="text-zinc-500">− COGS/Fees</span>
+                        <span className="text-zinc-500">keeps {marginPct}%</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-cyan-900/30 border border-cyan-700/50">
+                        <span className="text-cyan-400">= Gross Profit</span>
+                        <span className="text-white font-medium">{formatCurrency(grossProfit)}</span>
+                      </div>
+                      
+                      <div className="h-px bg-zinc-700"></div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-zinc-800/50">
+                        <span className="text-zinc-400">Fixed Costs</span>
+                        <span className="text-white font-medium">{formatCurrency(data.settings.monthlyFixedNut)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 rounded bg-amber-900/30 border border-amber-700/50">
+                        <span className="text-amber-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                          NUT Left
+                        </span>
+                        <span className="text-white font-medium">{formatCurrency(nutRemaining)}</span>
+                      </div>
+                      
+                      <div className="flex justify-between p-1.5 text-zinc-500">
+                        <span>Still need</span>
+                        <span>{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-zinc-500">{data.survivalPercent >= 100 
-                      ? '✓ Goal reached!' 
-                      : `Need ${formatCurrency(data.survivalGoal - data.mtdNetSales)} more sales`}</p>
                   </div>
                 );
               })()}
