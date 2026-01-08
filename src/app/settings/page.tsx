@@ -6,11 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Save, ArrowLeft, Building2, ChevronDown, ChevronUp, Download, Check, AlertCircle, Wallet } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
+import { OwnerMenu } from '@/components/OwnerMenu';
 
 export default function SettingsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [userViewEnabled, setUserViewEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('userViewEnabled') === 'true';
+    }
+    return false;
+  });
+  
+  // Persist userViewEnabled to localStorage
+  useEffect(() => {
+    localStorage.setItem('userViewEnabled', String(userViewEnabled));
+  }, [userViewEnabled]);
   const [nutExpanded, setNutExpanded] = useState(false);
   const [hoursExpanded, setHoursExpanded] = useState(false);
   const [refYearExpanded, setRefYearExpanded] = useState(false);
@@ -68,10 +80,10 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    fetchSettings();
+    fetchSettings(userViewEnabled);
     fetchReferenceMonths(refYear);
     fetchInjections();
-  }, []);
+  }, [userViewEnabled]);
   
   // Fetch cash injections
   const fetchInjections = async () => {
@@ -162,9 +174,10 @@ export default function SettingsPage() {
     }
   };
 
-  const fetchSettings = async () => {
+  const fetchSettings = async (useShowcase = false) => {
     try {
-      const res = await fetch('/api/settings');
+      const url = useShowcase ? '/api/settings?showcase=true' : '/api/settings';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
@@ -266,8 +279,14 @@ export default function SettingsPage() {
             <ArrowLeft className="h-4 w-4" />
             Dashboard
           </button>
-          <div className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
-            Settings
+          <div className="flex items-center gap-3">
+            <div className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-500">
+              Settings
+            </div>
+            <OwnerMenu 
+              onToggleUserView={setUserViewEnabled} 
+              userViewEnabled={userViewEnabled} 
+            />
           </div>
         </div>
 

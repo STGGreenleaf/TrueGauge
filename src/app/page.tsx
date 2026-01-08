@@ -17,7 +17,17 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false); // Only show via easter egg
   const [activeTip, setActiveTip] = useState<string | null>(null);
-  const [userViewEnabled, setUserViewEnabled] = useState(false);
+  const [userViewEnabled, setUserViewEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('userViewEnabled') === 'true';
+    }
+    return false;
+  });
+  
+  // Persist userViewEnabled to localStorage
+  useEffect(() => {
+    localStorage.setItem('userViewEnabled', String(userViewEnabled));
+  }, [userViewEnabled]);
 
   const fetchDashboard = async (useShowcase = false) => {
     try {

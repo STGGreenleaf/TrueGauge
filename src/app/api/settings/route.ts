@@ -3,9 +3,15 @@ import prisma from '@/lib/db';
 import { SettingsSchema } from '@/lib/types';
 import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
-export async function GET() {
+const SHOWCASE_ORG_ID = 'showcase-template';
+
+export async function GET(request: Request) {
   try {
-    const orgId = await getCurrentOrgId();
+    // Check for showcase mode (User View toggle)
+    const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const settings = await getOrCreateSettings(orgId);
     
     // Parse openHoursTemplate from JSON string
