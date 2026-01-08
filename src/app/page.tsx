@@ -323,8 +323,12 @@ export default function Dashboard() {
                       </div>
                     )}
                     
-                    {/* Footer */}
-                    <div className="px-4 py-2 bg-zinc-800/30 border-t border-zinc-800">
+                    {/* Footer - Explicit explanation */}
+                    <div className="px-4 py-3 bg-zinc-800/30 border-t border-zinc-800">
+                      <div className="text-[10px] text-zinc-400 mb-2 leading-relaxed">
+                        You must sell <span className="text-white font-medium">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400 font-medium">{marginPct}%</span> after COGS & fees.
+                        <br />That <span className="text-cyan-400 font-medium">{marginPct}%</span> is your gross profit — it pays the <span className="text-white font-medium">{formatCurrency(data.settings.monthlyFixedNut)}</span> NUT.
+                      </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-zinc-500">Sales goal (outer arc @ 100%)</span>
                         <span className="text-zinc-300">{formatCurrency(data.survivalGoal)}</span>
@@ -428,10 +432,15 @@ export default function Dashboard() {
                       <div className="text-amber-400 text-xl font-bold">{formatCurrency(nutRemaining)}</div>
                     </div>
                     
-                    {/* Footer */}
-                    <div className="px-3 py-1.5 bg-zinc-800/30 border-t border-zinc-800 flex justify-between text-[10px]">
-                      <span className="text-zinc-500">Still need</span>
-                      <span className="text-cyan-400">{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                    {/* Footer - Explicit explanation */}
+                    <div className="px-3 py-2 bg-zinc-800/30 border-t border-zinc-800">
+                      <div className="text-[9px] text-zinc-400 mb-1.5 leading-relaxed">
+                        You must sell <span className="text-white font-medium">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400 font-medium">{marginPct}%</span> after COGS & fees.
+                      </div>
+                      <div className="flex justify-between text-[10px]">
+                        <span className="text-zinc-500">Still need</span>
+                        <span className="text-cyan-400">{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                      </div>
                     </div>
                   </div>
                 );
