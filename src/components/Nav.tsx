@@ -9,11 +9,12 @@ interface NavProps {
   onRefresh?: () => void;
   refreshing?: boolean;
   showRefresh?: boolean;
+  showDashboard?: boolean; // Hide when already on dashboard
 }
 
 const OWNER_EMAIL = 'collingreenleaf@gmail.com';
 
-export function Nav({ onRefresh, refreshing = false, showRefresh = true }: NavProps) {
+export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDashboard = true }: NavProps) {
   const [isOwner, setIsOwner] = useState(false);
   const [userViewEnabled, setUserViewEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -60,15 +61,17 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true }: NavPr
               userViewEnabled={userViewEnabled} 
             />
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.location.href = '/'}
-            className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
-            title="Dashboard"
-          >
-            <Gauge className="h-4 w-4" />
-          </Button>
+          {showDashboard && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.location.href = '/'}
+              className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
+              title="Dashboard"
+            >
+              <Gauge className="h-4 w-4" />
+            </Button>
+          )}
           {showRefresh && onRefresh && (
             <Button
               variant="ghost"

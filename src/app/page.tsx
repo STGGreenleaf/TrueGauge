@@ -15,7 +15,16 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(true); // Always show on load
+  const [showAnimation, setShowAnimation] = useState(() => {
+    // Only show animation on first load of session, not on navigation back
+    if (typeof window !== 'undefined') {
+      const hasShown = sessionStorage.getItem('splashShown');
+      if (hasShown) return false;
+      sessionStorage.setItem('splashShown', 'true');
+      return true;
+    }
+    return false;
+  });
   const [animationDuration, setAnimationDuration] = useState(3000);
   const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
@@ -162,7 +171,7 @@ export default function Dashboard() {
         <div className="absolute left-1/4 top-1/2 h-[300px] w-[300px] rounded-full bg-violet-500/5 blur-[80px]" />
       </div>
 
-      <Nav onRefresh={handleRefresh} refreshing={refreshing} />
+      <Nav onRefresh={handleRefresh} refreshing={refreshing} showDashboard={false} />
 
       <main className="relative z-10 mx-auto max-w-5xl px-6 py-8" onClick={() => setActiveTip(null)}>
         
