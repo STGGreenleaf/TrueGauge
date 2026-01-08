@@ -53,7 +53,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
           />
           
           {/* Menu Panel */}
-          <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-violet-500/30 bg-zinc-900/95 backdrop-blur-xl shadow-xl shadow-violet-500/10">
+          <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-lg border border-violet-500/30 bg-zinc-950/95 backdrop-blur-xl shadow-xl shadow-violet-500/10">
             <div className="p-3 border-b border-zinc-800">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-violet-500 animate-pulse" />
