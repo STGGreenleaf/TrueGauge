@@ -12,6 +12,8 @@ import {
   Rows3,
   Check,
   X,
+  Download,
+  ChevronDown,
 } from 'lucide-react';
 import { Nav } from '@/components/Nav';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isToday, getDay, addWeeks, subWeeks, isSameWeek } from 'date-fns';
@@ -46,6 +48,8 @@ export default function CalendarPage() {
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [showLY, setShowLY] = useState(false);
+  const [showJumpTo, setShowJumpTo] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const editInputRef = useRef<HTMLInputElement>(null);
 
   const year = currentDate.getFullYear();
@@ -226,6 +230,31 @@ export default function CalendarPage() {
     return (monthData.survivalGoal / monthDays.length) * dayOfMonth;
   };
 
+  // Export report as CSV
+  const exportReport = async (scope: 'month' | 'year') => {
+    try {
+      const params = scope === 'year' 
+        ? `year=${year}` 
+        : `month=${monthStr}`;
+      const res = await fetch(`/api/calendar/export?${params}`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = scope === 'year' 
+          ? `truegauge-${year}-report.csv` 
+          : `truegauge-${monthStr}-report.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black">
       {/* Ambient background - violet accent */}
@@ -295,6 +324,92 @@ export default function CalendarPage() {
           >
             <ChevronRight className="h-6 w-6" />
           </button>
+        </div>
+
+        {/* Jump To & Export Row */}
+        <div className="mb-4 flex items-center justify-center gap-4">
+          {/* Jump To dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowJumpTo(!showJumpTo); setShowExport(false); }}
+              className="flex items-center gap-1 px-2 py-1 rounded text-[10px] uppercase tracking-widest text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Jump to <ChevronDown className="h-3 w-3" />
+            </button>
+            {showJumpTo && (
+              <div className="absolute bottom-full right-full mr-8 mb-2 z-50 rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl min-w-[200px]">
+                <div className="flex gap-2 mb-2">
+                  <select
+                    value={month}
+                    onChange={(e) => {
+                      const newMonth = parseInt(e.target.value);
+                      setCurrentDate(new Date(year, newMonth - 1, 1));
+                    }}
+                    className="flex-1 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {new Date(2000, i, 1).toLocaleString('default', { month: 'long' })}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={year}
+                    onChange={(e) => {
+                      const newYear = parseInt(e.target.value);
+                      setCurrentDate(new Date(newYear, month - 1, 1));
+                    }}
+                    className="w-20 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-white text-sm"
+                  >
+                    {Array.from({ length: 10 }, (_, i) => {
+                      const y = new Date().getFullYear() - 5 + i;
+                      return <option key={y} value={y}>{y}</option>;
+                    })}
+                  </select>
+                </div>
+                <button
+                  onClick={() => { setCurrentDate(new Date()); setShowJumpTo(false); }}
+                  className="w-full text-xs text-cyan-400 hover:text-cyan-300 py-1"
+                >
+                  Today
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Export dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowExport(!showExport); setShowJumpTo(false); }}
+              className="flex items-center gap-1 px-2 py-1 rounded text-zinc-500 hover:text-zinc-300 transition-colors"
+              title="Export Report"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            {showExport && (
+              <div className="absolute top-full right-0 mt-1 z-50 rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl min-w-[160px]">
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Export</div>
+                <button
+                  onClick={() => {
+                    exportReport('month');
+                    setShowExport(false);
+                  }}
+                  className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                >
+                  This Month (CSV)
+                </button>
+                <button
+                  onClick={() => {
+                    exportReport('year');
+                    setShowExport(false);
+                  }}
+                  className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                >
+                  Full Year (CSV)
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Month Summary with Pace Indicator */}
