@@ -396,7 +396,7 @@ export default function CalendarPage() {
                   }}
                   className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
-                  This Month (CSV)
+                  This Month
                 </button>
                 <button
                   onClick={() => {
@@ -405,7 +405,7 @@ export default function CalendarPage() {
                   }}
                   className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
-                  Full Year (CSV)
+                  Full Year
                 </button>
               </div>
             )}
