@@ -741,12 +741,12 @@ export default function SettingsPage() {
             {/* Monthly Goals */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-700/30">
               <div>
-                <div className="flex items-center gap-1">
+                <div className="h-5 flex items-center gap-1">
                   <input
                     type="text"
                     value={settings.monthlyRoofFundLabel || 'Monthly Roof Fund'}
                     onChange={(e) => updateSetting('monthlyRoofFundLabel', e.target.value)}
-                    className="h-5 flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
+                    className="flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
                   />
                   <Pencil className="h-3 w-3 text-cyan-400/50" />
                 </div>
@@ -761,9 +761,11 @@ export default function SettingsPage() {
                 <p className="mt-1 text-xs text-zinc-600">Included in survival goal</p>
               </div>
               <div>
-                <Label htmlFor="monthlyOwnerDrawGoal" className="text-zinc-300">
-                  Monthly Owner Draw Goal
-                </Label>
+                <div className="h-5 flex items-center">
+                  <Label htmlFor="monthlyOwnerDrawGoal" className="text-zinc-300 text-xs">
+                    Monthly Owner Draw Goal
+                  </Label>
+                </div>
                 <Input
                   id="monthlyOwnerDrawGoal"
                   type="number"
