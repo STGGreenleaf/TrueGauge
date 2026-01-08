@@ -1,15 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { OwnerMenu } from '@/components/OwnerMenu';
-import { Settings } from 'lucide-react';
 
 interface StartupAnimationProps {
   onComplete?: () => void;
   loop?: boolean;
   duration?: number; // Total duration in ms (default 3000)
-  userViewEnabled?: boolean;
-  onToggleUserView?: (enabled: boolean) => void;
 }
 
 const CYCLE_TIME = 10000; // Fixed 10 second cycle
@@ -18,8 +14,6 @@ export default function StartupAnimation({
   onComplete, 
   loop = false,
   duration = 3000, // How long the "on" portion is (fade in + hold)
-  userViewEnabled = false,
-  onToggleUserView,
 }: StartupAnimationProps) {
   const [brightness, setBrightness] = useState(0);
   const [showText, setShowText] = useState(false);
@@ -156,29 +150,7 @@ export default function StartupAnimation({
         </div>
       </div>
 
-      {/* Site Nav Header */}
-      <header className="absolute top-0 left-0 right-0 z-10 border-b border-zinc-800/50">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400">
-              <span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span>
-              <span className="font-light">GAUGE</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-1">
-            {onToggleUserView && (
-              <OwnerMenu 
-                onToggleUserView={onToggleUserView} 
-                userViewEnabled={userViewEnabled} 
-              />
-            )}
-            <a href="/settings" className="p-2 text-zinc-500 hover:text-zinc-300 transition-colors">
-              <Settings className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-      </header>
-
+      
       {/* Duration control - bottom center */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
         <div className="flex items-center gap-3">

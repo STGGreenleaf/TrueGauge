@@ -773,8 +773,6 @@ export default function Dashboard() {
           duration={animationDuration}
           loop={true}
           onComplete={() => setShowAnimation(false)}
-          userViewEnabled={userViewEnabled}
-          onToggleUserView={setUserViewEnabled}
         />
       )}
     </div>
