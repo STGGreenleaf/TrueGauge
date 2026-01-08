@@ -101,7 +101,7 @@ export default function VendorsPage() {
     setEditingVendor(null);
     setFormData({
       name: '',
-      defaultCategory: 'COGS',
+      defaultCategory: '',
       typicalAmount: '',
       isRecurring: false,
       recurrenceRule: 'NONE',
