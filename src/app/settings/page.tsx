@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -72,6 +72,10 @@ export default function SettingsPage() {
   // Reference months saved confirmation
   const [refSaved, setRefSaved] = useState(false);
   
+  // Users state
+  const [usersExpanded, setUsersExpanded] = useState(false);
+  const [orgUsers, setOrgUsers] = useState<Array<{ id: string; email: string; name: string | null; role: string; joinedAt: string }>>([]);
+  
   // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
     if (amount === null || !asOf) return;
@@ -114,6 +118,25 @@ export default function SettingsPage() {
     fetchSnapshots(userViewEnabled);
     fetchYearAnchors(userViewEnabled);
   }, [userViewEnabled]);
+  
+  // Fetch users when drawer expands
+  useEffect(() => {
+    if (usersExpanded && orgUsers.length === 0) {
+      fetchUsers();
+    }
+  }, [usersExpanded]);
+  
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const data = await res.json();
+        setOrgUsers(data.users || []);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
   
   // Fetch cash snapshots history
   const fetchSnapshots = async (useShowcase = false) => {
@@ -524,6 +547,73 @@ export default function SettingsPage() {
                       </select>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Users Drawer */}
+            <div className="rounded-lg border border-zinc-700/30 bg-gradient-to-b from-zinc-800/40 to-zinc-900/60">
+              <button
+                type="button"
+                onClick={() => setUsersExpanded(!usersExpanded)}
+                className="flex w-full items-center justify-between p-4"
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="h-4 w-4 text-zinc-500" />
+                  <div className="text-left">
+                    <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Users</div>
+                    <div className="mt-1 text-sm text-zinc-400">
+                      {orgUsers.length > 0 ? `${orgUsers.length} user${orgUsers.length > 1 ? 's' : ''} with access` : 'Who can access this store'}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-zinc-500">
+                  <span className="text-xs">{usersExpanded ? 'Hide' : 'Show'}</span>
+                  {usersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </div>
+              </button>
+              
+              {usersExpanded && (
+                <div className="border-t border-zinc-700/30 p-4">
+                  <div className="text-[10px] uppercase tracking-widest text-zinc-500 mb-3">Users with Access</div>
+                  
+                  {orgUsers.length === 0 ? (
+                    <div className="text-sm text-zinc-500 py-4 text-center">
+                      Loading users...
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {orgUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-700/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-300">
+                              {user.email.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-sm text-zinc-200">{user.email}</div>
+                              {user.name && <div className="text-xs text-zinc-500">{user.name}</div>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
+                              user.role === 'owner' 
+                                ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-700/30' 
+                                : 'bg-zinc-700/50 text-zinc-400'
+                            }`}>
+                              {user.role}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <p className="mt-3 text-xs text-zinc-600">
+                    Users are added when they sign in with access to this organization.
+                  </p>
                 </div>
               )}
             </div>

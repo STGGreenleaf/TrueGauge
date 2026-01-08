@@ -132,16 +132,15 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled }: OwnerMenuProps)
               {/* Invite Users */}
               <button
                 onClick={() => {
-                  // TODO: Navigate to invite system
+                  window.location.href = '/settings';
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-400 transition-colors opacity-50 cursor-not-allowed"
-                disabled
+                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-400 transition-colors"
               >
                 <Users className="h-4 w-4" />
                 <div className="text-left">
                   <div className="text-sm font-medium">Manage Users</div>
-                  <div className="text-xs text-zinc-500">Coming soon</div>
+                  <div className="text-xs text-zinc-500">Settings → Business Info → Users</div>
                 </div>
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
               </button>
