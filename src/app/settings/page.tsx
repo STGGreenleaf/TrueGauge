@@ -29,8 +29,7 @@ export default function SettingsPage() {
   const [financialsExpanded, setFinancialsExpanded] = useState(false);
   const [yearStartExpanded, setYearStartExpanded] = useState(false);
   const [businessInfoExpanded, setBusinessInfoExpanded] = useState(true);
-  const [optionalGoalsExpanded, setOptionalGoalsExpanded] = useState(false);
-  const [refYear, setRefYear] = useState(new Date().getFullYear() - 1);
+    const [refYear, setRefYear] = useState(new Date().getFullYear() - 1);
   const [refMonths, setRefMonths] = useState<Record<number, number>>({});
   const [refSaving, setRefSaving] = useState(false);
   const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS as SettingsType);
@@ -738,6 +737,38 @@ export default function SettingsPage() {
                 and fees ({Math.round(settings.targetFeesPct * 100)}%)
               </div>
             </div>
+
+            {/* Monthly Goals */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-700/30">
+              <div>
+                <Label htmlFor="monthlyRoofFund" className="text-zinc-300">
+                  Monthly Roof Fund
+                </Label>
+                <Input
+                  id="monthlyRoofFund"
+                  type="number"
+                  value={settings.monthlyRoofFund || ''}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => updateSetting('monthlyRoofFund', parseFloat(e.target.value) || 0)}
+                  className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                />
+                <p className="mt-1 text-xs text-zinc-600">Savings for repairs/equipment</p>
+              </div>
+              <div>
+                <Label htmlFor="monthlyOwnerDrawGoal" className="text-zinc-300">
+                  Monthly Owner Draw Goal
+                </Label>
+                <Input
+                  id="monthlyOwnerDrawGoal"
+                  type="number"
+                  value={settings.monthlyOwnerDrawGoal || ''}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => updateSetting('monthlyOwnerDrawGoal', parseFloat(e.target.value) || 0)}
+                  className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                />
+                <p className="mt-1 text-xs text-zinc-600">Target payment to yourself</p>
+              </div>
+            </div>
           </div>
           )}</div>
 
@@ -834,52 +865,7 @@ export default function SettingsPage() {
           </div>
           )}</div>
 
-        {/* Optional Goals Card */}
-        <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
-          <button
-            onClick={() => setOptionalGoalsExpanded(!optionalGoalsExpanded)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left"
-          >
-            <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Optional Goals</h2>
-            {optionalGoalsExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
-          </button>
-          {optionalGoalsExpanded && (
-          <div className="space-y-4 p-5 border-t border-zinc-800/50">
-            <div>
-              <Label htmlFor="monthlyRoofFund" className="text-zinc-300">
-                Monthly Roof Fund ($)
-              </Label>
-              <Input
-                id="monthlyRoofFund"
-                type="number"
-                value={settings.monthlyRoofFund || ''}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => updateSetting('monthlyRoofFund', parseFloat(e.target.value) || 0)}
-                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-              />
-              <p className="mt-1 text-xs text-zinc-500">
-                Monthly savings for equipment replacement, repairs, etc.
-              </p>
-            </div>
-            <div>
-              <Label htmlFor="monthlyOwnerDrawGoal" className="text-zinc-300">
-                Monthly Owner Draw Goal ($)
-              </Label>
-              <Input
-                id="monthlyOwnerDrawGoal"
-                type="number"
-                value={settings.monthlyOwnerDrawGoal || ''}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) => updateSetting('monthlyOwnerDrawGoal', parseFloat(e.target.value) || 0)}
-                className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-              />
-              <p className="mt-1 text-xs text-zinc-500">
-                Target monthly payment to yourself
-              </p>
-            </div>
-          </div>
-          )}</div>
-
+        
         {/* Cash Snapshot Section */}
         <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
           <button
