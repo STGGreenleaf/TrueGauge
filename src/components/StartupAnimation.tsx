@@ -128,13 +128,38 @@ export default function StartupAnimation({
       {/* Exit button */}
       <button
         onClick={() => onComplete?.()}
-        className="absolute top-5 right-5 flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700/60 bg-zinc-900/90 text-zinc-400 backdrop-blur-sm transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+        className="absolute top-5 right-5 flex h-11 w-11 items-center justify-center rounded-full border border-zinc-700/60 bg-zinc-900/90 text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-500/50 hover:text-zinc-300"
       >
         <X className="h-5 w-5" />
       </button>
 
       <div className="absolute top-7 right-[70px] text-[10px] tracking-widest text-zinc-600">
         EXIT →
+      </div>
+
+      {/* Duration control - bottom center */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] tracking-widest text-zinc-600">DURATION</span>
+          <span className="text-xs text-zinc-400">{(duration / 1000).toFixed(1)}s</span>
+        </div>
+        <input
+          type="range"
+          min="1000"
+          max="8000"
+          step="500"
+          value={duration}
+          onChange={(e) => {
+            const newDuration = parseInt(e.target.value);
+            localStorage.setItem('splashDuration', String(newDuration));
+            window.dispatchEvent(new CustomEvent('splash-duration-change', { detail: newDuration }));
+          }}
+          className="w-40 h-1 bg-zinc-800 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-zinc-500 [&::-webkit-slider-thumb]:hover:bg-zinc-400"
+        />
+        <div className="flex justify-between w-40 text-[9px] text-zinc-700">
+          <span>1s</span>
+          <span>8s</span>
+        </div>
       </div>
     </div>
   );
