@@ -44,6 +44,8 @@ export default function SettingsPage() {
   const [cashSnapshotExpanded, setCashSnapshotExpanded] = useState(false);
   const [snapshotSaving, setSnapshotSaving] = useState(false);
   const [snapshotSaved, setSnapshotSaved] = useState(false);
+  const [snapshots, setSnapshots] = useState<Array<{ id: string; date: string; amount: number }>>([]);
+  const [showMoreSnapshots, setShowMoreSnapshots] = useState(false);
   
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
@@ -61,19 +63,21 @@ export default function SettingsPage() {
   // Reference months saved confirmation
   const [refSaved, setRefSaved] = useState(false);
   
-  // Auto-save cash snapshot
+  // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
+    if (amount === null || !asOf) return;
     setSnapshotSaving(true);
     setSnapshotSaved(false);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'PUT',
+      const res = await fetch('/api/cash-snapshots', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...settings, cashSnapshotAmount: amount, cashSnapshotAsOf: asOf }),
+        body: JSON.stringify({ amount, date: asOf }),
       });
       if (res.ok) {
         setSnapshotSaved(true);
         setTimeout(() => setSnapshotSaved(false), 2000);
+        fetchSnapshots(userViewEnabled);
       }
     } catch (error) {
       console.error('Error saving snapshot:', error);
@@ -81,12 +85,39 @@ export default function SettingsPage() {
       setSnapshotSaving(false);
     }
   };
+  
+  // Delete a snapshot
+  const deleteSnapshot = async (id: string) => {
+    try {
+      const res = await fetch(`/api/cash-snapshots?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchSnapshots(userViewEnabled);
+      }
+    } catch (error) {
+      console.error('Error deleting snapshot:', error);
+    }
+  };
 
   useEffect(() => {
     fetchSettings(userViewEnabled);
     fetchReferenceMonths(refYear, userViewEnabled);
     fetchInjections(userViewEnabled);
+    fetchSnapshots(userViewEnabled);
   }, [userViewEnabled]);
+  
+  // Fetch cash snapshots history
+  const fetchSnapshots = async (useShowcase = false) => {
+    try {
+      const url = useShowcase ? '/api/cash-snapshots?showcase=true' : '/api/cash-snapshots';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setSnapshots(data);
+      }
+    } catch (error) {
+      console.error('Error fetching snapshots:', error);
+    }
+  };
   
   // Fetch cash injections
   const fetchInjections = async (useShowcase = false) => {
@@ -955,6 +986,38 @@ export default function SettingsPage() {
               <p className="text-xs text-zinc-600">
                 Steer the ship by feel, not forensic accounting. A quick cash check-in — no bank login needed — just a snapshot that moves the needle over time.
               </p>
+              
+              {/* Snapshot History */}
+              {snapshots.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">History</div>
+                  <div className="space-y-1">
+                    {(showMoreSnapshots ? snapshots : snapshots.slice(0, 5)).map((snap, idx) => {
+                      const prev = snapshots[idx + 1];
+                      const diff = prev ? snap.amount - prev.amount : 0;
+                      return (
+                        <div key={snap.id} className="flex items-center justify-between py-1.5 px-2 rounded bg-zinc-800/50 border border-zinc-700/30">
+                          <div className="flex items-center gap-3">
+                            <span className="text-cyan-400 font-medium text-sm">${snap.amount.toLocaleString()}</span>
+                            <span className="text-zinc-600 text-xs">{snap.date}</span>
+                            {prev && diff !== 0 && (
+                              <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <button onClick={() => deleteSnapshot(snap.id)} className="text-zinc-600 hover:text-red-400 text-xs">×</button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {snapshots.length > 5 && (
+                    <button onClick={() => setShowMoreSnapshots(!showMoreSnapshots)} className="text-xs text-cyan-400/70 hover:text-cyan-400 mt-2">
+                      {showMoreSnapshots ? 'Show less' : `Show all (${snapshots.length})`}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
