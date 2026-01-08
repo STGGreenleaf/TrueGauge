@@ -43,7 +43,12 @@ export default function CalendarPage() {
   const [monthData, setMonthData] = useState<MonthData | null>(null);
   const [lyMonthData, setLyMonthData] = useState<MonthData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('calendarViewMode') as ViewMode) || 'month';
+    }
+    return 'month';
+  });
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -94,6 +99,11 @@ export default function CalendarPage() {
       console.error('Error fetching LY data:', error);
     }
   };
+
+  // Persist view mode preference
+  useEffect(() => {
+    localStorage.setItem('calendarViewMode', viewMode);
+  }, [viewMode]);
 
   // Focus input when editing
   useEffect(() => {
