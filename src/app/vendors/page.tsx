@@ -24,6 +24,8 @@ import {
   Wrench,
   User,
   Building2,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 interface Vendor {
@@ -66,6 +68,7 @@ export default function VendorsPage() {
     recurrenceRule: 'NONE',
     dueDayOfMonth: '',
   });
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['COGS', 'OPEX', 'CAPEX', 'OWNER_DRAW']));
 
   useEffect(() => {
     fetchVendors();
@@ -328,42 +331,65 @@ export default function VendorsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 divide-y divide-zinc-800/50">
-            {vendors.map((vendor) => {
-              const Icon = getCategoryIcon(vendor.defaultCategory);
+          <div className="space-y-2">
+            {CATEGORIES.map((cat) => {
+              const categoryVendors = vendors.filter(v => v.defaultCategory === cat.key).sort((a, b) => a.name.localeCompare(b.name));
+              if (categoryVendors.length === 0) return null;
+              
+              const isExpanded = expandedCategories.has(cat.key);
+              const categoryTotal = categoryVendors.reduce((sum, v) => sum + (v.totalSpend || 0), 0);
+              const CatIcon = cat.icon;
+              
               return (
-                <div key={vendor.id} className="flex items-center justify-between px-3 py-2 hover:bg-zinc-800/30">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Icon className="h-4 w-4 text-zinc-500 flex-shrink-0" />
-                    <span className="text-sm text-white truncate">{vendor.name}</span>
-                    <span className="text-xs text-zinc-600">{vendor.defaultCategory}</span>
-                    {vendor.isRecurring && (
-                      <span className="text-[10px] text-violet-400 uppercase">{vendor.recurrenceRule}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {vendor.avgSpend ? (
-                      <span className="text-xs text-emerald-400/80" title={`${vendor.txCount} transactions, $${vendor.totalSpend.toLocaleString()} total`}>
-                        avg {formatCurrency(vendor.avgSpend)}
-                      </span>
-                    ) : vendor.typicalAmount ? (
-                      <span className="text-xs text-zinc-500">{formatCurrency(vendor.typicalAmount)}</span>
-                    ) : null}
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleOpenEdit(vendor)}
-                        className="p-1.5 text-zinc-600 hover:text-white"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(vendor.id)}
-                        className="p-1.5 text-zinc-600 hover:text-red-400"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                <div key={cat.key} className="rounded-lg border border-zinc-800 bg-zinc-900/50 overflow-hidden">
+                  <button
+                    onClick={() => {
+                      const newSet = new Set(expandedCategories);
+                      isExpanded ? newSet.delete(cat.key) : newSet.add(cat.key);
+                      setExpandedCategories(newSet);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-zinc-800/30"
+                  >
+                    <div className="flex items-center gap-2">
+                      {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-zinc-500" /> : <ChevronRight className="h-3.5 w-3.5 text-zinc-500" />}
+                      <CatIcon className="h-4 w-4 text-zinc-500" />
+                      <span className="text-sm font-medium text-zinc-300">{cat.label}</span>
+                      <span className="text-xs text-zinc-600">({categoryVendors.length})</span>
                     </div>
-                  </div>
+                    {categoryTotal > 0 && (
+                      <span className="text-xs text-zinc-500">${categoryTotal.toLocaleString()} total</span>
+                    )}
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="border-t border-zinc-800/50 divide-y divide-zinc-800/30">
+                      {categoryVendors.map((vendor) => (
+                        <div key={vendor.id} className="flex items-center justify-between px-3 py-1.5 pl-9 hover:bg-zinc-800/20">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm text-white truncate">{vendor.name}</span>
+                            {vendor.isRecurring && (
+                              <span className="text-[10px] text-violet-400 uppercase">{vendor.recurrenceRule}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {vendor.avgSpend ? (
+                              <span className="text-xs text-emerald-400/70" title={`${vendor.txCount} tx`}>
+                                avg {formatCurrency(vendor.avgSpend)}
+                              </span>
+                            ) : vendor.typicalAmount ? (
+                              <span className="text-xs text-zinc-600">{formatCurrency(vendor.typicalAmount)}</span>
+                            ) : null}
+                            <button onClick={() => handleOpenEdit(vendor)} className="p-1 text-zinc-600 hover:text-white">
+                              <Edit2 className="h-3 w-3" />
+                            </button>
+                            <button onClick={() => handleDelete(vendor.id)} className="p-1 text-zinc-600 hover:text-red-400">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
