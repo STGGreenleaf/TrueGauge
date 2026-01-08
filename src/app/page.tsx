@@ -271,36 +271,36 @@ export default function Dashboard() {
                       <p className="text-zinc-400 text-xs mt-1">Progress toward covering your monthly fixed costs. At 100%, the business sustains itself.</p>
                     </div>
                     
-                    {/* Two Column Layout - Uniform: Title, Subtitle, Amount */}
+                    {/* Two Column Layout - Grid aligned */}
                     <div className="grid grid-cols-2 gap-px bg-zinc-800/50">
                       {/* Left Column - Revenue */}
-                      <div className="bg-zinc-900/80 p-3 space-y-3">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-500">Revenue</div>
+                      <div className="bg-zinc-900/80 p-3">
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-3">Revenue</div>
                         
-                        <div>
-                          <div className="text-zinc-400 text-[11px] font-medium">Month-to-Date Sales</div>
+                        <div className="mb-4">
+                          <div className="text-zinc-400 text-[11px] font-medium h-4">Month-to-Date Sales</div>
                           <div className="text-white text-xl font-bold">{formatCurrency(data.mtdNetSales)}</div>
                         </div>
                         
                         <div>
-                          <div className="text-cyan-400 text-[11px] font-medium">Gross Profit</div>
-                          <div className="text-zinc-500 text-[10px]">{marginPct}% margin after COGS & fees</div>
+                          <div className="text-cyan-400 text-[11px] font-medium h-4">Gross Profit</div>
+                          <div className="text-zinc-500 text-[10px] h-4">{marginPct}% margin</div>
                           <div className="text-cyan-400 text-xl font-bold">{formatCurrency(grossProfit)}</div>
                         </div>
                       </div>
                       
                       {/* Right Column - Fixed Costs */}
-                      <div className="bg-zinc-900/80 p-3 space-y-3">
-                        <div className="text-[10px] uppercase tracking-wider text-zinc-500">Fixed Costs</div>
+                      <div className="bg-zinc-900/80 p-3">
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-3">Fixed Costs</div>
                         
-                        <div>
-                          <div className="text-zinc-400 text-[11px] font-medium">Monthly NUT</div>
+                        <div className="mb-4">
+                          <div className="text-zinc-400 text-[11px] font-medium h-4">Monthly NUT</div>
                           <div className="text-white text-xl font-bold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
                         </div>
                         
                         <div>
-                          <div className="text-emerald-400 text-[11px] font-medium">✓ Covered</div>
-                          <div className="text-zinc-500 text-[10px]">{nutPct}% of fixed costs paid</div>
+                          <div className="text-emerald-400 text-[11px] font-medium h-4">✓ Covered</div>
+                          <div className="text-zinc-500 text-[10px] h-4">{nutPct}% paid</div>
                           <div className="text-emerald-400 text-xl font-bold">{formatCurrency(nutCovered)}</div>
                         </div>
                       </div>
@@ -391,29 +391,29 @@ export default function Dashboard() {
                       <p className="text-zinc-400 text-[10px] mt-0.5">Progress toward covering monthly fixed costs.</p>
                     </div>
                     
-                    {/* Two Column Layout - Uniform */}
+                    {/* Two Column Layout - Grid aligned */}
                     <div className="grid grid-cols-2 gap-px bg-zinc-800/50">
-                      <div className="bg-zinc-900/80 p-2 space-y-2">
-                        <div className="text-[9px] uppercase tracking-wider text-zinc-500">Revenue</div>
-                        <div>
-                          <div className="text-zinc-400 text-[10px]">Sales (MTD)</div>
+                      <div className="bg-zinc-900/80 p-2">
+                        <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-2">Revenue</div>
+                        <div className="mb-3">
+                          <div className="text-zinc-400 text-[10px] h-3.5">Sales (MTD)</div>
                           <div className="text-white text-base font-bold">{formatCurrency(data.mtdNetSales)}</div>
                         </div>
                         <div>
-                          <div className="text-cyan-400 text-[10px]">Gross Profit</div>
-                          <div className="text-zinc-500 text-[9px]">{marginPct}% margin</div>
+                          <div className="text-cyan-400 text-[10px] h-3.5">Gross Profit</div>
+                          <div className="text-zinc-500 text-[9px] h-3">{marginPct}% margin</div>
                           <div className="text-cyan-400 text-base font-bold">{formatCurrency(grossProfit)}</div>
                         </div>
                       </div>
-                      <div className="bg-zinc-900/80 p-2 space-y-2">
-                        <div className="text-[9px] uppercase tracking-wider text-zinc-500">Fixed Costs</div>
-                        <div>
-                          <div className="text-zinc-400 text-[10px]">Monthly NUT</div>
+                      <div className="bg-zinc-900/80 p-2">
+                        <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-2">Fixed Costs</div>
+                        <div className="mb-3">
+                          <div className="text-zinc-400 text-[10px] h-3.5">Monthly NUT</div>
                           <div className="text-white text-base font-bold">{formatCurrency(data.settings.monthlyFixedNut)}</div>
                         </div>
                         <div>
-                          <div className="text-emerald-400 text-[10px]">✓ Covered</div>
-                          <div className="text-zinc-500 text-[9px]">{nutPct}% paid</div>
+                          <div className="text-emerald-400 text-[10px] h-3.5">✓ Covered</div>
+                          <div className="text-zinc-500 text-[9px] h-3">{nutPct}% paid</div>
                           <div className="text-emerald-400 text-base font-bold">{formatCurrency(nutCovered)}</div>
                         </div>
                       </div>
