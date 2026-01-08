@@ -73,6 +73,7 @@ model Settings {
   nutOther3Label       String       @default("Other 3")
   nutOther3Note        String?
   monthlyRoofFund      Float        @default(0)
+  monthlyRoofFundLabel String       @default("Monthly Roof Fund")
   monthlyOwnerDrawGoal Float        @default(0)
   openHoursTemplate    String       @default("{\"mon\":0,\"tue\":8,\"wed\":8,\"thu\":8,\"fri\":8,\"sat\":8,\"sun\":5}")
   storeCloseHour       Int          @default(16)

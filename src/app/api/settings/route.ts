@@ -65,6 +65,7 @@ export async function PUT(request: Request) {
         nutOther3Note: validated.nutOther3Note,
         // Optional goals
         monthlyRoofFund: validated.monthlyRoofFund,
+        monthlyRoofFundLabel: validated.monthlyRoofFundLabel ?? 'Monthly Roof Fund',
         monthlyOwnerDrawGoal: validated.monthlyOwnerDrawGoal,
         openHoursTemplate: JSON.stringify(validated.openHoursTemplate),
         enableTrueHealth: validated.enableTrueHealth,
@@ -105,6 +106,7 @@ export async function PUT(request: Request) {
         nutOther3Note: validated.nutOther3Note,
         // Optional goals
         monthlyRoofFund: validated.monthlyRoofFund,
+        monthlyRoofFundLabel: validated.monthlyRoofFundLabel ?? 'Monthly Roof Fund',
         monthlyOwnerDrawGoal: validated.monthlyOwnerDrawGoal,
         openHoursTemplate: JSON.stringify(validated.openHoursTemplate),
         enableTrueHealth: validated.enableTrueHealth,

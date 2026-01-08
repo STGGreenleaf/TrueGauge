@@ -728,12 +728,12 @@ export default function SettingsPage() {
               <div className="mt-1 text-2xl font-bold text-cyan-400" style={{ textShadow: '0 0 20px rgba(34, 211, 238, 0.4)' }}>
                 $
                 {Math.round(
-                  settings.monthlyFixedNut /
+                  (settings.monthlyFixedNut + (settings.monthlyRoofFund || 0) + (settings.monthlyOwnerDrawGoal || 0)) /
                     (1 - settings.targetCogsPct - settings.targetFeesPct)
                 ).toLocaleString()}
               </div>
               <div className="mt-1 text-xs text-zinc-600">
-                Net sales needed to cover fixed nut after COGS ({Math.round(settings.targetCogsPct * 100)}%) 
+                Includes fixed nut, reserves, and owner draw after COGS ({Math.round(settings.targetCogsPct * 100)}%) 
                 and fees ({Math.round(settings.targetFeesPct * 100)}%)
               </div>
             </div>
@@ -741,9 +741,15 @@ export default function SettingsPage() {
             {/* Monthly Goals */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-700/30">
               <div>
-                <Label htmlFor="monthlyRoofFund" className="text-zinc-300">
-                  Monthly Roof Fund
-                </Label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={settings.monthlyRoofFundLabel || 'Monthly Roof Fund'}
+                    onChange={(e) => updateSetting('monthlyRoofFundLabel', e.target.value)}
+                    className="h-5 flex-1 bg-transparent text-xs text-cyan-400 focus:outline-none"
+                  />
+                  <Pencil className="h-3 w-3 text-cyan-400/50" />
+                </div>
                 <Input
                   id="monthlyRoofFund"
                   type="number"
@@ -752,7 +758,7 @@ export default function SettingsPage() {
                   onChange={(e) => updateSetting('monthlyRoofFund', parseFloat(e.target.value) || 0)}
                   className="mt-1 border-zinc-700 bg-zinc-800 text-white"
                 />
-                <p className="mt-1 text-xs text-zinc-600">Savings for repairs/equipment</p>
+                <p className="mt-1 text-xs text-zinc-600">Included in survival goal</p>
               </div>
               <div>
                 <Label htmlFor="monthlyOwnerDrawGoal" className="text-zinc-300">
@@ -766,7 +772,7 @@ export default function SettingsPage() {
                   onChange={(e) => updateSetting('monthlyOwnerDrawGoal', parseFloat(e.target.value) || 0)}
                   className="mt-1 border-zinc-700 bg-zinc-800 text-white"
                 />
-                <p className="mt-1 text-xs text-zinc-600">Target payment to yourself</p>
+                <p className="mt-1 text-xs text-zinc-600">Included in survival goal</p>
               </div>
             </div>
           </div>

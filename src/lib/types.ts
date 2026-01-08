@@ -59,6 +59,7 @@ export const SettingsSchema = z.object({
   nutOther3Note: z.string().nullable().optional(),
   // Optional goals
   monthlyRoofFund: z.number().min(0),
+  monthlyRoofFundLabel: z.string().optional(),
   monthlyOwnerDrawGoal: z.number().min(0),
   openHoursTemplate: OpenHoursTemplateSchema,
   storeCloseHour: z.number().min(0).max(23).optional(),
