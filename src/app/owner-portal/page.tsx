@@ -457,29 +457,32 @@ export default function OwnerPortal() {
               </div>
             </button>
             {expandedMetric === 'health' && (
-              <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4 -mt-2 ml-4">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Stores with Data</div>
-                    <div className="text-2xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Inactive Stores</div>
-                    <div className="text-2xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Users/Store</div>
-                    <div className="text-2xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
-                  </div>
+              <div className="grid grid-cols-2 gap-3 -mt-2 ml-4">
+                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 backdrop-blur-sm p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Stores with Data</div>
+                  <div className="text-3xl font-bold text-emerald-400">{analytics.healthMetrics.storesWithData}</div>
+                  <div className="text-xs text-zinc-500 mt-1">actively logging</div>
                 </div>
-                <div className="border-t border-zinc-700 pt-3">
-                  <div className="text-xs text-zinc-400 mb-2">Inactive stores:</div>
-                  {analytics.storeDetails.filter(s => s.dayEntries === 0).map(store => (
-                    <div key={store.id} className="text-sm text-zinc-300 py-1">{store.name}</div>
-                  ))}
-                  {analytics.storeDetails.filter(s => s.dayEntries === 0).length === 0 && (
-                    <div className="text-sm text-zinc-500">All stores have data!</div>
-                  )}
+                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 backdrop-blur-sm p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Inactive Stores</div>
+                  <div className="text-3xl font-bold text-zinc-500">{analytics.healthMetrics.storesInactive}</div>
+                  <div className="text-xs text-zinc-500 mt-1">no entries yet</div>
+                </div>
+                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 backdrop-blur-sm p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Avg Users/Store</div>
+                  <div className="text-3xl font-bold text-cyan-400">{analytics.healthMetrics.avgUsersPerStore}</div>
+                  <div className="text-xs text-zinc-500 mt-1">team members</div>
+                </div>
+                <div className="rounded-xl border border-zinc-700/50 bg-zinc-800/30 backdrop-blur-sm p-4">
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">Needs Attention</div>
+                  <div className="text-sm text-zinc-300 mt-2 max-h-16 overflow-y-auto">
+                    {analytics.storeDetails.filter(s => s.dayEntries === 0).length > 0 
+                      ? analytics.storeDetails.filter(s => s.dayEntries === 0).map(store => (
+                          <div key={store.id} className="text-amber-400">{store.name}</div>
+                        ))
+                      : <span className="text-emerald-400">All stores active!</span>
+                    }
+                  </div>
                 </div>
               </div>
             )}
