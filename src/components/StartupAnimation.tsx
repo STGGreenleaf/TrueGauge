@@ -154,12 +154,10 @@ export default function StartupAnimation({
       </div>
 
       
-      {/* Nav Header - same as dashboard (owner only) */}
-      {isOwner && (
-        <div className="absolute top-0 left-0 right-0 z-10">
-          <Nav showRefresh={false} />
-        </div>
-      )}
+      {/* Nav Header - always visible for navigation */}
+      <div className="absolute top-0 left-0 right-0 z-[101]">
+        <Nav showRefresh={false} />
+      </div>
 
       {/* Duration control - bottom center (owner only) */}
       {isOwner && (
