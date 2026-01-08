@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Settings, RefreshCw } from 'lucide-react';
+import { Settings, RefreshCw, Gauge } from 'lucide-react';
 import { OwnerMenu } from '@/components/OwnerMenu';
 
 interface NavProps {
@@ -52,7 +52,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true }: NavPr
             <span className="font-light">GAUGE</span>
           </h1>
         </a>
-        {/* Right side: Owner hamburger + Refresh + Settings */}
+        {/* Right side: Owner hamburger + Dashboard + Refresh + Settings */}
         <div className="flex items-center gap-1">
           {isOwner && (
             <OwnerMenu 
@@ -60,6 +60,15 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true }: NavPr
               userViewEnabled={userViewEnabled} 
             />
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.location.href = '/'}
+            className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
+            title="Dashboard"
+          >
+            <Gauge className="h-4 w-4" />
+          </Button>
           {showRefresh && onRefresh && (
             <Button
               variant="ghost"
