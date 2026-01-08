@@ -230,25 +230,36 @@ export default function CalendarPage() {
     return (monthData.survivalGoal / monthDays.length) * dayOfMonth;
   };
 
-  // Export report as CSV
-  const exportReport = async (scope: 'month' | 'year') => {
+  // Export report as CSV or HTML
+  const exportReport = async (scope: 'month' | 'year', format: 'csv' | 'html' = 'csv') => {
     try {
       const params = scope === 'year' 
-        ? `year=${year}` 
-        : `month=${monthStr}`;
+        ? `year=${year}&format=${format}` 
+        : `month=${monthStr}&format=${format}`;
       const res = await fetch(`/api/calendar/export?${params}`);
       if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = scope === 'year' 
-          ? `truegauge-${year}-report.csv` 
-          : `truegauge-${monthStr}-report.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
+        if (format === 'html') {
+          // Open HTML in new tab for printing
+          const html = await res.text();
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(html);
+            newWindow.document.close();
+          }
+        } else {
+          // Download CSV
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = scope === 'year' 
+            ? `truegauge-${year}-report.csv` 
+            : `truegauge-${monthStr}-report.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+        }
       }
     } catch (error) {
       console.error('Export failed:', error);
@@ -388,24 +399,34 @@ export default function CalendarPage() {
             </button>
             {showExport && (
               <div className="absolute top-full right-0 mt-1 z-50 rounded-lg border border-zinc-700 bg-zinc-900 p-3 shadow-xl min-w-[160px]">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">Export</div>
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">This Month</div>
                 <button
                   onClick={() => {
-                    exportReport('month');
+                    exportReport('month', 'csv');
                     setShowExport(false);
                   }}
                   className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
-                  This Month
+                  Download CSV
                 </button>
                 <button
                   onClick={() => {
-                    exportReport('year');
+                    exportReport('month', 'html');
                     setShowExport(false);
                   }}
                   className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
-                  Full Year
+                  Print Report
+                </button>
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2 mt-3 pt-2 border-t border-zinc-700">Full Year</div>
+                <button
+                  onClick={() => {
+                    exportReport('year', 'csv');
+                    setShowExport(false);
+                  }}
+                  className="w-full text-left px-2 py-1.5 rounded text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
+                >
+                  Download CSV
                 </button>
               </div>
             )}

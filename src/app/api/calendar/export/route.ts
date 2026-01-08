@@ -12,6 +12,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month'); // YYYY-MM
     const yearParam = searchParams.get('year'); // YYYY
+    const format = searchParams.get('format') || 'html'; // 'csv' or 'html'
 
     const dbUser = await prisma.user.findUnique({
       where: { email: user.email },
@@ -313,6 +314,54 @@ export async function GET(request: Request) {
 </body>
 </html>`;
 
+    // CSV format
+    if (format === 'csv') {
+      const csvRows: string[][] = [];
+      csvRows.push(['Date', 'Day', 'TY Sales', 'LY Sales', 'vs LY', 'vs LY %', 'Goal %', 'Expenses', 'Net', 'MTD', 'Pace Target', 'Pace Delta']);
+      
+      for (const row of dailyRows) {
+        csvRows.push([
+          row.date,
+          row.dayName,
+          row.sales.toFixed(2),
+          (row.lySales || 0).toFixed(2) + (row.isLyEstimate ? '*' : ''),
+          (row.vsLy >= 0 ? '+' : '') + row.vsLy.toFixed(2),
+          (row.vsLyPct >= 0 ? '+' : '') + row.vsLyPct.toFixed(1) + '%',
+          row.goalPct.toFixed(0) + '%',
+          row.expenses.toFixed(2),
+          row.net.toFixed(2),
+          row.mtd.toFixed(2),
+          row.paceTarget.toFixed(2),
+          (row.paceDelta >= 0 ? '+' : '') + row.paceDelta.toFixed(2),
+        ]);
+      }
+      
+      // Add summary section
+      csvRows.push([]);
+      csvRows.push(['SUMMARY']);
+      csvRows.push(['Total Net Sales', '$' + fmt(totalSales)]);
+      csvRows.push(['Total Expenses', '$' + fmt(totalExpenses)]);
+      csvRows.push(['Net Profit', '$' + fmt(totalSales - totalExpenses)]);
+      csvRows.push(['Survival Goal', '$' + fmt(survivalGoal)]);
+      csvRows.push(['Goal Achievement', goalAchievement.toFixed(1) + '%']);
+      csvRows.push(['Business Days', businessDays.toString()]);
+      csvRows.push(['Avg Daily Sales', '$' + fmt(avgDailySales)]);
+      csvRows.push(['vs Last Year', fmtDelta(vsLyTotal) + ' (' + fmtPct(vsLyTotalPct) + ')']);
+      csvRows.push(['Best Day', bestDay ? bestDay.date + ' - $' + fmt(bestDay.amount) : '—']);
+      csvRows.push(['Lowest Day', worstDay ? worstDay.date + ' - $' + fmt(worstDay.amount) : '—']);
+      csvRows.push(['Final Pace', fmtDelta(finalPaceDelta)]);
+      
+      const csv = csvRows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+      
+      return new NextResponse(csv, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="truegauge-${reportMonth}-${reportYear}-report.csv"`,
+        },
+      });
+    }
+
+    // HTML format (default)
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html',
