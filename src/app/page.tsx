@@ -323,12 +323,8 @@ export default function Dashboard() {
                       </div>
                     )}
                     
-                    {/* Footer - Explicit explanation */}
+                    {/* Footer */}
                     <div className="px-4 py-3 bg-zinc-800/30 border-t border-zinc-800">
-                      <div className="text-[10px] text-zinc-400 mb-2 leading-relaxed">
-                        You must sell <span className="text-white font-medium">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400 font-medium">{marginPct}%</span> after COGS & fees.
-                        <br />That <span className="text-cyan-400 font-medium">{marginPct}%</span> is your gross profit — it pays the <span className="text-white font-medium">{formatCurrency(data.settings.monthlyFixedNut)}</span> NUT.
-                      </div>
                       <div className="flex justify-between text-xs">
                         <span className="text-zinc-500">Sales goal (outer arc @ 100%)</span>
                         <span className="text-zinc-300">{formatCurrency(data.survivalGoal)}</span>
@@ -336,6 +332,9 @@ export default function Dashboard() {
                       <div className="flex justify-between text-xs mt-1">
                         <span className="text-zinc-500">Still need to sell</span>
                         <span className="text-cyan-400">{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                      </div>
+                      <div className="text-[10px] text-zinc-500 mt-3 leading-relaxed border-t border-zinc-700/50 pt-2">
+                        <span className="text-zinc-300">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400">{marginPct}%</span> after COGS & fees. That <span className="text-cyan-400">{marginPct}%</span> is your gross profit — it pays the <span className="text-zinc-300">{formatCurrency(data.settings.monthlyFixedNut)}</span> NUT.
                       </div>
                     </div>
                   </div>
@@ -432,14 +431,14 @@ export default function Dashboard() {
                       <div className="text-amber-400 text-xl font-bold">{formatCurrency(nutRemaining)}</div>
                     </div>
                     
-                    {/* Footer - Explicit explanation */}
+                    {/* Footer */}
                     <div className="px-3 py-2 bg-zinc-800/30 border-t border-zinc-800">
-                      <div className="text-[9px] text-zinc-400 mb-1.5 leading-relaxed">
-                        You must sell <span className="text-white font-medium">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400 font-medium">{marginPct}%</span> after COGS & fees.
-                      </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-zinc-500">Still need</span>
                         <span className="text-cyan-400">{formatCurrency(Math.max(0, data.survivalGoal - data.mtdNetSales))}</span>
+                      </div>
+                      <div className="text-[9px] text-zinc-500 mt-2 leading-relaxed border-t border-zinc-700/50 pt-1.5">
+                        <span className="text-zinc-300">{formatCurrency(data.survivalGoal)}</span> because you only keep <span className="text-cyan-400">{marginPct}%</span> after COGS & fees.
                       </div>
                     </div>
                   </div>
