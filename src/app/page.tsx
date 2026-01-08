@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
 import { Button } from '@/components/ui/button';
-import { Settings, RefreshCw, Plus, CalendarDays, Play } from 'lucide-react';
+import { Settings, RefreshCw, Plus, CalendarDays } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
 import { OwnerMenu } from '@/components/OwnerMenu';
@@ -747,18 +747,10 @@ export default function Dashboard() {
 
       {/* Footer - subtle */}
       <footer className="relative z-10 py-6 px-6">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
-          <button
-            onClick={() => setShowAnimation(true)}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700/50 bg-zinc-900/50 text-zinc-500 transition-all hover:border-cyan-500/30 hover:text-cyan-500"
-            title="Play startup animation (A)"
-          >
-            <Play className="h-4 w-4" />
-          </button>
+        <div className="flex items-center justify-center max-w-6xl mx-auto">
           <span className="text-sm tracking-widest text-zinc-700">
             <span className="font-bold">TRUE</span><span className="font-light">GAUGE</span> • LOCAL-FIRST
           </span>
-          <div className="w-8" /> {/* Spacer for balance */}
         </div>
       </footer>
 
