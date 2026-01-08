@@ -949,7 +949,7 @@ export default function SettingsPage() {
               )}
               
               <p className="text-xs text-zinc-600">
-                Manual snapshot. Auto-saves on change.
+                Steer the ship by feel, not forensic accounting. A quick cash check-in — no bank login needed — just a snapshot that moves the needle over time.
               </p>
             </div>
           )}
