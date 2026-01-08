@@ -50,6 +50,7 @@ export default function SettingsPage() {
   
   // Year start anchors state
   const [yearAnchors, setYearAnchors] = useState<Array<{ id: string; year: number; amount: number; date: string; note: string | null }>>([]);
+  const [yearAnchorsHistoryExpanded, setYearAnchorsHistoryExpanded] = useState(false);
   
   // Cash injections state
   const [injectionsExpanded, setInjectionsExpanded] = useState(false);
@@ -1414,33 +1415,41 @@ export default function SettingsPage() {
                 Set your opening cash balance for the year. This anchors the Liquidity dial — showing how far you've come since day one of the fiscal year.
               </p>
               
-              {/* Year Anchors History */}
+              {/* Year Anchors History - Collapsible */}
               {yearAnchors.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-zinc-800/50">
-                  <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">All Years</div>
-                  <div className="space-y-1">
-                    {yearAnchors.map((anchor, idx) => {
-                      const prev = yearAnchors[idx + 1];
-                      const diff = prev ? anchor.amount - prev.amount : 0;
-                      return (
-                        <div key={anchor.id} className="py-2 px-3 rounded bg-violet-950/30 border border-violet-900/30">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <span className="text-violet-400 font-bold">{anchor.year}</span>
-                              <span className="text-violet-300 font-medium">${anchor.amount.toLocaleString()}</span>
-                              <span className="text-zinc-600 text-xs">{anchor.date}</span>
-                              {prev && diff !== 0 && (
-                                <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                  {diff > 0 ? '+' : ''}${diff.toLocaleString()}
-                                </span>
-                              )}
+                  <button
+                    onClick={() => setYearAnchorsHistoryExpanded(!yearAnchorsHistoryExpanded)}
+                    className="flex items-center justify-between w-full text-left"
+                  >
+                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Year History ({yearAnchors.length})</div>
+                    {yearAnchorsHistoryExpanded ? <ChevronUp className="h-3 w-3 text-zinc-500" /> : <ChevronDown className="h-3 w-3 text-zinc-500" />}
+                  </button>
+                  {yearAnchorsHistoryExpanded && (
+                    <div className="space-y-1 mt-2">
+                      {yearAnchors.map((anchor, idx) => {
+                        const prev = yearAnchors[idx + 1];
+                        const diff = prev ? anchor.amount - prev.amount : 0;
+                        return (
+                          <div key={anchor.id} className="py-2 px-3 rounded bg-zinc-800/40 border border-zinc-700/30 backdrop-blur-sm">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="text-zinc-300 font-bold">{anchor.year}</span>
+                                <span className="text-zinc-400 font-medium">${anchor.amount.toLocaleString()}</span>
+                                <span className="text-zinc-600 text-xs">{anchor.date}</span>
+                                {prev && diff !== 0 && (
+                                  <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
                             </div>
+                            {anchor.note && <p className="text-zinc-500 text-xs mt-1 italic">{anchor.note}</p>}
                           </div>
-                          {anchor.note && <p className="text-zinc-500 text-xs mt-1">{anchor.note}</p>}
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
               
