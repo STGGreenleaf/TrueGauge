@@ -174,7 +174,7 @@ export default function Dashboard() {
             </div>
             {data.liquidityReceiver?.daysInBusiness && (
               <span className="text-xs text-zinc-600">
-                Day <span className="text-cyan-400 font-medium">{data.liquidityReceiver.daysInBusiness.toLocaleString()}</span> in business
+                <span className="text-cyan-400 font-medium">{data.liquidityReceiver.daysInBusiness.toLocaleString()}</span> Days in Business
               </span>
             )}
           </div>
