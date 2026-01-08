@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2 } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 
@@ -1359,9 +1359,10 @@ export default function SettingsPage() {
                           body: JSON.stringify({ cashSnapshotAmount: null, cashSnapshotAsOf: null }),
                         });
                       }}
-                      className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10"
+                      className="text-red-400/60 hover:text-red-400 p-1 rounded hover:bg-red-500/10"
+                      title="Clear snapshot"
                     >
-                      Clear
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
