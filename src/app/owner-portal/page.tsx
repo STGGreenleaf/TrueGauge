@@ -579,23 +579,23 @@ export default function OwnerPortal() {
             {/* Three Column Layout - Pages, Actions, Retention */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Page Popularity */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 min-h-[180px]">
                 <Tooltip text="Most visited pages in last 30 days">
-                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
-                    <Eye className="w-3 h-3 text-violet-500" />
+                  <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
+                    <Eye className="w-4 h-4 text-violet-500" />
                     Pages
                   </h3>
                 </Tooltip>
-                <div className="space-y-1">
-                  {analytics.pagePopularity.slice(0, 5).map((page, i) => {
+                <div className="space-y-2">
+                  {analytics.pagePopularity.slice(0, 6).map((page, i) => {
                     const maxCount = analytics.pagePopularity[0]?.count || 1;
                     const width = (page.count / maxCount) * 100;
                     return (
                       <div key={i} className="relative">
                         <div className="absolute inset-0 bg-violet-500/10 rounded" style={{ width: `${width}%` }} />
-                        <div className="relative flex justify-between py-1 px-2">
-                          <span className="text-[10px] text-zinc-300 capitalize truncate">{page.page.replace(/_/g, ' ')}</span>
-                          <span className="text-[10px] text-zinc-500 ml-1">{page.count}</span>
+                        <div className="relative flex justify-between py-1.5 px-2">
+                          <span className="text-xs text-zinc-300 capitalize truncate">{page.page.replace(/_/g, ' ')}</span>
+                          <span className="text-xs text-zinc-500 ml-2">{page.count}</span>
                         </div>
                       </div>
                     );
@@ -604,23 +604,23 @@ export default function OwnerPortal() {
               </div>
 
               {/* Action Frequency */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 min-h-[180px]">
                 <Tooltip text="Most common user actions in last 30 days">
-                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
-                    <MousePointer className="w-3 h-3 text-cyan-500" />
+                  <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
+                    <MousePointer className="w-4 h-4 text-cyan-500" />
                     Actions
                   </h3>
                 </Tooltip>
-                <div className="space-y-1">
-                  {analytics.actionFrequency.slice(0, 5).map((action, i) => {
+                <div className="space-y-2">
+                  {analytics.actionFrequency.slice(0, 6).map((action, i) => {
                     const maxCount = analytics.actionFrequency[0]?.count || 1;
                     const width = (action.count / maxCount) * 100;
                     return (
                       <div key={i} className="relative">
                         <div className="absolute inset-0 bg-cyan-500/10 rounded" style={{ width: `${width}%` }} />
-                        <div className="relative flex justify-between py-1 px-2">
-                          <span className="text-[10px] text-zinc-300 truncate">{action.action.replace(/_/g, ' ')}</span>
-                          <span className="text-[10px] text-zinc-500 ml-1">{action.count}</span>
+                        <div className="relative flex justify-between py-1.5 px-2">
+                          <span className="text-xs text-zinc-300 truncate">{action.action.replace(/_/g, ' ')}</span>
+                          <span className="text-xs text-zinc-500 ml-2">{action.count}</span>
                         </div>
                       </div>
                     );
@@ -629,27 +629,27 @@ export default function OwnerPortal() {
               </div>
 
               {/* Weekly Retention */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 min-h-[180px]">
                 <Tooltip text="Week-over-week user retention rates">
-                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
-                    <TrendingUp className="w-3 h-3 text-cyan-500" />
+                  <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
+                    <TrendingUp className="w-4 h-4 text-cyan-500" />
                     Retention
                   </h3>
                 </Tooltip>
-                <div className="flex items-end gap-2 h-20">
+                <div className="flex items-end gap-3 h-32">
                   {analytics.weeklyRetention.map((week, i) => {
                     const retentionRate = week.users > 0 ? (week.retained / week.users) * 100 : 0;
                     return (
                       <Tooltip key={i} text={`${week.users} users → ${week.retained} retained (${retentionRate.toFixed(0)}%)`}>
-                        <div className="flex-1 flex flex-col items-center gap-0.5">
-                          <div className="w-full bg-zinc-800 rounded-t relative" style={{ height: '50px' }}>
+                        <div className="flex-1 flex flex-col items-center gap-1">
+                          <div className="w-full bg-zinc-800 rounded-t relative h-20">
                             <div 
                               className="absolute bottom-0 w-full bg-cyan-500 rounded-t transition-all"
                               style={{ height: `${retentionRate}%` }}
                             />
                           </div>
-                          <div className="text-[8px] text-zinc-500">W{4 - i}</div>
-                          <div className="text-[9px] font-medium text-cyan-400">{retentionRate.toFixed(0)}%</div>
+                          <div className="text-[10px] text-zinc-500">W{4 - i}</div>
+                          <div className="text-xs font-medium text-cyan-400">{retentionRate.toFixed(0)}%</div>
                         </div>
                       </Tooltip>
                     );
