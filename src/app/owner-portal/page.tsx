@@ -517,23 +517,23 @@ export default function OwnerPortal() {
                     Activity Heatmap
                   </h3>
                 </Tooltip>
-                <div className="grid gap-0.5 overflow-x-auto">
-                  <div className="flex gap-0.5 text-[7px] text-zinc-600 ml-6">
+                <div className="grid gap-1">
+                  <div className="flex gap-px text-[8px] text-zinc-600 pl-8">
                     {Array.from({ length: 24 }, (_, i) => (
-                      <div key={i} className="w-2.5 text-center">{i % 6 === 0 ? i : ''}</div>
+                      <div key={i} className="flex-1 text-center">{i % 4 === 0 ? i : ''}</div>
                     ))}
                   </div>
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIdx) => (
-                    <div key={day} className="flex items-center gap-0.5">
-                      <div className="w-5 text-[8px] text-zinc-500">{day}</div>
-                      <div className="flex gap-px">
+                    <div key={day} className="flex items-center gap-1">
+                      <div className="w-7 text-[9px] text-zinc-500 shrink-0">{day}</div>
+                      <div className="flex-1 flex gap-px">
                         {analytics.heatmapData[dayIdx]?.map((count, hourIdx) => {
                           const maxCount = Math.max(...analytics.heatmapData.flat());
                           const intensity = maxCount > 0 ? count / maxCount : 0;
                           return (
                             <Tooltip key={hourIdx} text={`${day} ${hourIdx}:00 - ${count} actions`}>
                               <div
-                                className="w-2.5 h-2.5 rounded-sm cursor-pointer transition-all hover:scale-150"
+                                className="flex-1 aspect-square min-h-[12px] max-h-[20px] rounded-sm cursor-pointer transition-all hover:scale-125 hover:z-10"
                                 style={{
                                   backgroundColor: intensity > 0 
                                     ? `rgba(34, 211, 238, ${0.15 + intensity * 0.85})` 
