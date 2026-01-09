@@ -374,9 +374,9 @@ export default function OwnerPortal() {
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && analytics && (
-          <div className="space-y-4">
-            {/* Top Metrics Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="space-y-3">
+            {/* Top Metrics Row - 2 on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               <Tooltip text="Total registered stores on platform">
                 <button
                   onClick={() => setExpandedWidget(expandedWidget === 'stores' ? null : 'stores')}
@@ -507,66 +507,96 @@ export default function OwnerPortal() {
               </div>
             )}
 
-            {/* Activity Heatmap */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-              <Tooltip text="User activity patterns by day and hour (last 7 days)">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  Activity Heatmap
-                </h3>
-              </Tooltip>
-              <div className="grid gap-1">
-                <div className="flex gap-1 text-[8px] text-zinc-600 ml-8">
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <div key={i} className="w-3 text-center">{i}</div>
+            {/* Three Column Layout - Heatmap + Page + Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+              {/* Activity Heatmap */}
+              <div className="lg:col-span-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <Tooltip text="User activity patterns by day and hour (last 7 days)">
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <Flame className="w-3 h-3 text-orange-500" />
+                    Activity Heatmap
+                  </h3>
+                </Tooltip>
+                <div className="grid gap-0.5 overflow-x-auto">
+                  <div className="flex gap-0.5 text-[7px] text-zinc-600 ml-6">
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <div key={i} className="w-2.5 text-center">{i % 6 === 0 ? i : ''}</div>
+                    ))}
+                  </div>
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIdx) => (
+                    <div key={day} className="flex items-center gap-0.5">
+                      <div className="w-5 text-[8px] text-zinc-500">{day}</div>
+                      <div className="flex gap-px">
+                        {analytics.heatmapData[dayIdx]?.map((count, hourIdx) => {
+                          const maxCount = Math.max(...analytics.heatmapData.flat());
+                          const intensity = maxCount > 0 ? count / maxCount : 0;
+                          return (
+                            <Tooltip key={hourIdx} text={`${day} ${hourIdx}:00 - ${count} actions`}>
+                              <div
+                                className="w-2.5 h-2.5 rounded-sm cursor-pointer transition-all hover:scale-150"
+                                style={{
+                                  backgroundColor: intensity > 0 
+                                    ? `rgba(34, 211, 238, ${0.15 + intensity * 0.85})` 
+                                    : 'rgba(63, 63, 70, 0.3)'
+                                }}
+                              />
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    </div>
                   ))}
                 </div>
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIdx) => (
-                  <div key={day} className="flex items-center gap-1">
-                    <div className="w-7 text-[9px] text-zinc-500">{day}</div>
-                    <div className="flex gap-0.5">
-                      {analytics.heatmapData[dayIdx]?.map((count, hourIdx) => {
-                        const maxCount = Math.max(...analytics.heatmapData.flat());
-                        const intensity = maxCount > 0 ? count / maxCount : 0;
-                        return (
-                          <Tooltip key={hourIdx} text={`${day} ${hourIdx}:00 - ${count} actions`}>
-                            <div
-                              className="w-3 h-3 rounded-sm cursor-pointer transition-all hover:scale-125"
-                              style={{
-                                backgroundColor: intensity > 0 
-                                  ? `rgba(34, 211, 238, ${0.1 + intensity * 0.8})` 
-                                  : 'rgba(63, 63, 70, 0.3)'
-                              }}
-                            />
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+              </div>
+
+              {/* Feature Adoption - compact */}
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <Tooltip text="Feature usage breakdown in last 30 days">
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <Zap className="w-3 h-3 text-yellow-500" />
+                    Features
+                  </h3>
+                </Tooltip>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {analytics.featureAdoption.map(feature => {
+                    const maxCount = Math.max(...analytics.featureAdoption.map(f => f.count), 1);
+                    const intensity = feature.count / maxCount;
+                    return (
+                      <Tooltip key={feature.feature} text={`${feature.count} uses in 30 days`}>
+                        <div 
+                          className="rounded p-2 border border-white/5 cursor-pointer hover:border-white/20 transition-all"
+                          style={{ backgroundColor: `rgba(234, 179, 8, ${0.05 + intensity * 0.15})` }}
+                        >
+                          <div className="text-sm font-bold text-yellow-400">{feature.count}</div>
+                          <div className="text-[9px] text-zinc-500 capitalize truncate">{feature.feature.replace(/_/g, ' ')}</div>
+                        </div>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Two Column Layout */}
-            <div className="grid md:grid-cols-2 gap-4">
+            {/* Three Column Layout - Pages, Actions, Retention */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Page Popularity */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
                 <Tooltip text="Most visited pages in last 30 days">
-                  <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                    <Eye className="w-4 h-4 text-violet-500" />
-                    Page Popularity
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <Eye className="w-3 h-3 text-violet-500" />
+                    Pages
                   </h3>
                 </Tooltip>
-                <div className="space-y-2">
-                  {analytics.pagePopularity.slice(0, 6).map((page, i) => {
+                <div className="space-y-1">
+                  {analytics.pagePopularity.slice(0, 5).map((page, i) => {
                     const maxCount = analytics.pagePopularity[0]?.count || 1;
                     const width = (page.count / maxCount) * 100;
                     return (
                       <div key={i} className="relative">
                         <div className="absolute inset-0 bg-violet-500/10 rounded" style={{ width: `${width}%` }} />
-                        <div className="relative flex justify-between py-1.5 px-2">
-                          <span className="text-xs text-zinc-300 capitalize">{page.page.replace(/_/g, ' ')}</span>
-                          <span className="text-xs text-zinc-500">{page.count}</span>
+                        <div className="relative flex justify-between py-1 px-2">
+                          <span className="text-[10px] text-zinc-300 capitalize truncate">{page.page.replace(/_/g, ' ')}</span>
+                          <span className="text-[10px] text-zinc-500 ml-1">{page.count}</span>
                         </div>
                       </div>
                     );
@@ -575,164 +605,140 @@ export default function OwnerPortal() {
               </div>
 
               {/* Action Frequency */}
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
                 <Tooltip text="Most common user actions in last 30 days">
-                  <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                    <MousePointer className="w-4 h-4 text-cyan-500" />
-                    Top Actions
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <MousePointer className="w-3 h-3 text-cyan-500" />
+                    Actions
                   </h3>
                 </Tooltip>
-                <div className="space-y-2">
-                  {analytics.actionFrequency.slice(0, 6).map((action, i) => {
+                <div className="space-y-1">
+                  {analytics.actionFrequency.slice(0, 5).map((action, i) => {
                     const maxCount = analytics.actionFrequency[0]?.count || 1;
                     const width = (action.count / maxCount) * 100;
                     return (
                       <div key={i} className="relative">
                         <div className="absolute inset-0 bg-cyan-500/10 rounded" style={{ width: `${width}%` }} />
-                        <div className="relative flex justify-between py-1.5 px-2">
-                          <span className="text-xs text-zinc-300">{action.action.replace(/_/g, ' ')}</span>
-                          <span className="text-xs text-zinc-500">{action.count}</span>
+                        <div className="relative flex justify-between py-1 px-2">
+                          <span className="text-[10px] text-zinc-300 truncate">{action.action.replace(/_/g, ' ')}</span>
+                          <span className="text-[10px] text-zinc-500 ml-1">{action.count}</span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-            </div>
 
-            {/* User Engagement Scores */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-              <Tooltip text="User health scores based on activity frequency and recency">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                  <UserCheck className="w-4 h-4 text-emerald-500" />
-                  User Engagement Scores
-                </h3>
-              </Tooltip>
-              <div className="grid gap-2 max-h-64 overflow-y-auto">
-                {analytics.userEngagement.slice(0, 10).map(user => (
-                  <div key={user.id} className="flex items-center gap-3 py-2 px-3 rounded bg-zinc-800/30">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                      style={{
-                        background: `conic-gradient(${
-                          user.status === 'active' ? '#10b981' :
-                          user.status === 'moderate' ? '#f59e0b' :
-                          user.status === 'dormant' ? '#f97316' : '#52525b'
-                        } ${user.score}%, transparent 0)`,
-                      }}
-                    >
-                      <div className="w-8 h-8 rounded-full bg-zinc-900 flex items-center justify-center text-xs">
-                        {user.score}
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-zinc-200 truncate">{user.name || user.email}</div>
-                      <div className="text-xs text-zinc-500">{user.orgName}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-zinc-400">{user.activityCount} actions</div>
-                      <div className="text-[10px] text-zinc-600">
-                        {user.lastSeen ? `${user.daysSinceActive}d ago` : 'Never'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              {/* Weekly Retention */}
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <Tooltip text="Week-over-week user retention rates">
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <TrendingUp className="w-3 h-3 text-cyan-500" />
+                    Retention
+                  </h3>
+                </Tooltip>
+                <div className="flex items-end gap-2 h-20">
+                  {analytics.weeklyRetention.map((week, i) => {
+                    const retentionRate = week.users > 0 ? (week.retained / week.users) * 100 : 0;
+                    return (
+                      <Tooltip key={i} text={`${week.users} users → ${week.retained} retained (${retentionRate.toFixed(0)}%)`}>
+                        <div className="flex-1 flex flex-col items-center gap-0.5">
+                          <div className="w-full bg-zinc-800 rounded-t relative" style={{ height: '50px' }}>
+                            <div 
+                              className="absolute bottom-0 w-full bg-cyan-500 rounded-t transition-all"
+                              style={{ height: `${retentionRate}%` }}
+                            />
+                          </div>
+                          <div className="text-[8px] text-zinc-500">W{4 - i}</div>
+                          <div className="text-[9px] font-medium text-cyan-400">{retentionRate.toFixed(0)}%</div>
+                        </div>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            {/* Weekly Retention */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-              <Tooltip text="Week-over-week user retention rates">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                  <TrendingUp className="w-4 h-4 text-cyan-500" />
-                  Weekly Retention
-                </h3>
-              </Tooltip>
-              <div className="flex items-end gap-4 h-32">
-                {analytics.weeklyRetention.map((week, i) => {
-                  const retentionRate = week.users > 0 ? (week.retained / week.users) * 100 : 0;
-                  return (
-                    <Tooltip key={i} text={`${week.users} users → ${week.retained} retained (${retentionRate.toFixed(0)}%)`}>
-                      <div className="flex-1 flex flex-col items-center gap-1">
-                        <div className="w-full bg-zinc-800 rounded-t relative" style={{ height: '80px' }}>
+            {/* Two Column Layout - Engagement + Store Health */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {/* User Engagement Scores */}
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <Tooltip text="User health scores based on activity frequency and recency">
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <UserCheck className="w-3 h-3 text-emerald-500" />
+                    User Engagement
+                  </h3>
+                </Tooltip>
+                <div className="grid gap-1.5 max-h-48 overflow-y-auto">
+                  {analytics.userEngagement.slice(0, 8).map(user => (
+                    <div key={user.id} className="flex items-center gap-2 py-1.5 px-2 rounded bg-zinc-800/30">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                        style={{
+                          background: `conic-gradient(${
+                            user.status === 'active' ? '#10b981' :
+                            user.status === 'moderate' ? '#f59e0b' :
+                            user.status === 'dormant' ? '#f97316' : '#52525b'
+                          } ${user.score}%, transparent 0)`,
+                        }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-zinc-900 flex items-center justify-center text-[10px]">
+                          {user.score}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-zinc-200 truncate">{user.name || user.email}</div>
+                        <div className="text-[10px] text-zinc-500 truncate">{user.orgName}</div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className={`text-[9px] px-1.5 py-0.5 rounded ${
+                          user.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
+                          user.status === 'moderate' ? 'bg-amber-500/20 text-amber-400' :
+                          user.status === 'dormant' ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-zinc-700 text-zinc-500'
+                        }`}>
+                          {user.daysSinceActive}d
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Store Data Health */}
+              <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+                <Tooltip text="Data entry consistency and streaks per store">
+                  <h3 className="text-xs font-medium text-zinc-300 mb-2 flex items-center gap-2 cursor-help">
+                    <Calendar className="w-3 h-3 text-amber-500" />
+                    Store Health
+                  </h3>
+                </Tooltip>
+                <div className="grid gap-1.5 max-h-48 overflow-y-auto">
+                  {analytics.storeHealth.map(store => (
+                    <div key={store.id} className="flex items-center gap-2 py-1.5 px-2 rounded bg-zinc-800/30">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-zinc-200 truncate">{store.name}</div>
+                        <div className="text-[10px] text-zinc-500">{store.totalEntries} entries</div>
+                      </div>
+                      <Tooltip text={`${store.consistency}% consistency`}>
+                        <div className="w-16 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
                           <div 
-                            className="absolute bottom-0 w-full bg-cyan-500/30 rounded-t transition-all"
-                            style={{ height: `${retentionRate}%` }}
-                          />
-                          <div 
-                            className="absolute bottom-0 w-full bg-cyan-500 rounded-t transition-all"
-                            style={{ height: `${(week.retained / Math.max(...analytics.weeklyRetention.map(w => w.users), 1)) * 100}%` }}
+                            className={`h-full rounded-full ${
+                              store.consistency >= 80 ? 'bg-emerald-500' :
+                              store.consistency >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${store.consistency}%` }}
                           />
                         </div>
-                        <div className="text-[10px] text-zinc-500">{week.week}</div>
-                        <div className="text-xs font-medium text-cyan-400">{retentionRate.toFixed(0)}%</div>
-                      </div>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Store Data Health */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-              <Tooltip text="Data entry consistency and streaks per store">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                  <Calendar className="w-4 h-4 text-amber-500" />
-                  Store Data Health
-                </h3>
-              </Tooltip>
-              <div className="grid gap-2">
-                {analytics.storeHealth.map(store => (
-                  <div key={store.id} className="flex items-center gap-3 py-2 px-3 rounded bg-zinc-800/30">
-                    <div className="flex-1">
-                      <div className="text-sm text-zinc-200">{store.name}</div>
-                      <div className="text-xs text-zinc-500">{store.totalEntries} entries · {store.totalExpenses} expenses</div>
+                      </Tooltip>
+                      <Tooltip text={`${store.streak} day streak`}>
+                        <div className="flex items-center gap-0.5 text-[10px] w-8">
+                          <Flame className={`w-2.5 h-2.5 ${store.streak > 0 ? 'text-orange-500' : 'text-zinc-600'}`} />
+                          <span className={store.streak > 0 ? 'text-orange-400' : 'text-zinc-600'}>{store.streak}</span>
+                        </div>
+                      </Tooltip>
                     </div>
-                    <Tooltip text={`${store.consistency}% of last 30 days have entries`}>
-                      <div className="w-24 h-2 bg-zinc-700 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${
-                            store.consistency >= 80 ? 'bg-emerald-500' :
-                            store.consistency >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${store.consistency}%` }}
-                        />
-                      </div>
-                    </Tooltip>
-                    <Tooltip text={`${store.streak} day streak`}>
-                      <div className="flex items-center gap-1 text-xs">
-                        <Flame className={`w-3 h-3 ${store.streak > 0 ? 'text-orange-500' : 'text-zinc-600'}`} />
-                        <span className={store.streak > 0 ? 'text-orange-400' : 'text-zinc-600'}>{store.streak}</span>
-                      </div>
-                    </Tooltip>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Feature Adoption */}
-            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4">
-              <Tooltip text="Feature usage breakdown in last 30 days">
-                <h3 className="text-sm font-medium text-zinc-300 mb-3 flex items-center gap-2 cursor-help">
-                  <Zap className="w-4 h-4 text-yellow-500" />
-                  Feature Adoption
-                </h3>
-              </Tooltip>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {analytics.featureAdoption.map(feature => {
-                  const maxCount = Math.max(...analytics.featureAdoption.map(f => f.count), 1);
-                  const intensity = feature.count / maxCount;
-                  return (
-                    <Tooltip key={feature.feature} text={`${feature.count} uses in 30 days`}>
-                      <div 
-                        className="relative overflow-hidden rounded-lg p-3 border border-white/5 cursor-pointer hover:border-white/20 transition-all"
-                        style={{ backgroundColor: `rgba(234, 179, 8, ${0.05 + intensity * 0.15})` }}
-                      >
-                        <div className="text-lg font-bold text-yellow-400">{feature.count}</div>
-                        <div className="text-xs text-zinc-400 capitalize">{feature.feature.replace(/_/g, ' ')}</div>
-                      </div>
-                    </Tooltip>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
