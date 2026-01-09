@@ -517,33 +517,32 @@ export default function OwnerPortal() {
                     Activity Heatmap
                   </h3>
                 </Tooltip>
-                <div className="grid gap-1">
-                  <div className="flex gap-px text-[8px] text-zinc-600 pl-8">
+                <div className="space-y-1">
+                  <div className="grid grid-cols-[2rem_repeat(24,1fr)] gap-px text-[8px] text-zinc-600">
+                    <div></div>
                     {Array.from({ length: 24 }, (_, i) => (
-                      <div key={i} className="flex-1 text-center">{i % 4 === 0 ? i : ''}</div>
+                      <div key={i} className="text-center">{i % 4 === 0 ? i : ''}</div>
                     ))}
                   </div>
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIdx) => (
-                    <div key={day} className="flex items-center gap-1">
-                      <div className="w-7 text-[9px] text-zinc-500 shrink-0">{day}</div>
-                      <div className="flex-1 flex gap-px">
-                        {analytics.heatmapData[dayIdx]?.map((count, hourIdx) => {
-                          const maxCount = Math.max(...analytics.heatmapData.flat());
-                          const intensity = maxCount > 0 ? count / maxCount : 0;
-                          return (
-                            <Tooltip key={hourIdx} text={`${day} ${hourIdx}:00 - ${count} actions`}>
-                              <div
-                                className="flex-1 aspect-square min-h-[12px] max-h-[20px] rounded-sm cursor-pointer transition-all hover:scale-125 hover:z-10"
-                                style={{
-                                  backgroundColor: intensity > 0 
-                                    ? `rgba(34, 211, 238, ${0.15 + intensity * 0.85})` 
-                                    : 'rgba(63, 63, 70, 0.3)'
-                                }}
-                              />
-                            </Tooltip>
-                          );
-                        })}
-                      </div>
+                    <div key={day} className="grid grid-cols-[2rem_repeat(24,1fr)] gap-px items-center">
+                      <div className="text-[9px] text-zinc-500">{day}</div>
+                      {analytics.heatmapData[dayIdx]?.map((count, hourIdx) => {
+                        const maxCount = Math.max(...analytics.heatmapData.flat());
+                        const intensity = maxCount > 0 ? count / maxCount : 0;
+                        return (
+                          <Tooltip key={hourIdx} text={`${day} ${hourIdx}:00 - ${count} actions`}>
+                            <div
+                              className="h-4 rounded-sm cursor-pointer transition-all hover:scale-110 hover:z-10"
+                              style={{
+                                backgroundColor: intensity > 0 
+                                  ? `rgba(34, 211, 238, ${0.15 + intensity * 0.85})` 
+                                  : 'rgba(63, 63, 70, 0.3)'
+                              }}
+                            />
+                          </Tooltip>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>
