@@ -73,19 +73,34 @@ export default function BrandGuidelinesPage() {
   // Export preview as image
   const exportPreview = async () => {
     const previewEl = document.getElementById('og-preview');
-    if (!previewEl) return;
+    if (!previewEl) {
+      alert('Preview element not found');
+      return;
+    }
     
-    // Use html2canvas dynamically imported
-    const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(previewEl, {
-      backgroundColor: '#000',
-      scale: 2, // Higher quality
-    });
-    
-    const link = document.createElement('a');
-    link.download = 'truegauge-social-preview.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+    try {
+      // Use html2canvas dynamically imported
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(previewEl, {
+        backgroundColor: '#000',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+      });
+      
+      // Create download link
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'truegauge-social-preview.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed - check console for details');
+    }
   };
   
   // Load brand config on mount
