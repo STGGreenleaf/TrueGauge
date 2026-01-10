@@ -36,11 +36,16 @@ export function PWAInstallPrompt({ preview = false }: PWAInstallPromptProps) {
     const shouldShow = !lastPrompt || (Date.now() - parseInt(lastPrompt)) > oneWeek;
     
     if (shouldShow) {
-      // Delay showing prompt to not interrupt initial experience
+      // Wait for animation to complete before showing (animation ~6s + buffer)
+      // Only show after user has been on dashboard for a bit
       const timer = setTimeout(() => {
-        setShowPrompt(true);
-        localStorage.setItem('pwaPromptLastShown', Date.now().toString());
-      }, 5000);
+        // Double-check animation is done by checking sessionStorage
+        const animationShown = sessionStorage.getItem('splashShown');
+        if (animationShown) {
+          setShowPrompt(true);
+          localStorage.setItem('pwaPromptLastShown', Date.now().toString());
+        }
+      }, 10000); // 10 seconds after page load (animation is ~6s)
       return () => clearTimeout(timer);
     }
 
