@@ -287,9 +287,17 @@ export default function ManualPage() {
 
         {/* Footer */}
         <footer className="text-center border-t border-zinc-800/50 pt-8">
-          <p className="text-zinc-600 text-xs uppercase tracking-[0.2em]">
+          <p className="text-zinc-600 text-xs uppercase tracking-[0.2em] mb-4">
             TrueGauge • Operator&apos;s Manual • v1.0
           </p>
+          <div className="flex justify-center gap-6 text-xs">
+            <a href="/privacy" className="text-zinc-500 hover:text-cyan-400 transition-colors">
+              Privacy Policy
+            </a>
+            <a href="/terms" className="text-zinc-500 hover:text-cyan-400 transition-colors">
+              Terms of Service
+            </a>
+          </div>
         </footer>
 
       </main>
