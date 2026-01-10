@@ -156,48 +156,64 @@ export default function BrandGuidelinesPage() {
   const [seoSaving, setSeoSaving] = useState(false);
   const [seoSaved, setSeoSaved] = useState(false);
   
-  // Export preview - capture the actual preview element
+  // Export preview - render to canvas manually for perfect output
   const exportPreview = async () => {
-    const previewEl = document.getElementById('og-preview');
-    if (!previewEl) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200;
+    canvas.height = 630;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
-    try {
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(previewEl, {
-        backgroundColor: '#000',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        width: 600,
-        height: 315,
-      });
-      
-      // Create a properly sized canvas (1200x630)
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = 1200;
-      finalCanvas.height = 630;
-      const ctx = finalCanvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(canvas, 0, 0, 1200, 630);
-      }
-      
-      const dataUrl = finalCanvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = 'truegauge-social-preview.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Export failed:', error);
-      // Fallback to static image
-      const link = document.createElement('a');
-      link.href = '/og-image.png';
-      link.download = 'truegauge-social-preview.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    // Draw gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+    gradient.addColorStop(0, '#18181b');
+    gradient.addColorStop(0.5, '#000000');
+    gradient.addColorStop(1, '#18181b');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 1200, 630);
+    
+    // Load and draw icon
+    const icon = new window.Image();
+    icon.crossOrigin = 'anonymous';
+    icon.src = '/truegauge_icon.png';
+    
+    await new Promise((resolve) => {
+      icon.onload = resolve;
+      icon.onerror = resolve;
+    });
+    
+    // Draw icon centered, slightly above middle
+    const iconSize = 240;
+    const iconX = (1200 - iconSize) / 2;
+    const iconY = 120;
+    ctx.drawImage(icon, iconX, iconY, iconSize, iconSize);
+    
+    // Draw text
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 96px system-ui, -apple-system, sans-serif';
+    
+    // "TRUE" in cyan
+    ctx.fillStyle = '#22d3ee';
+    ctx.shadowColor = 'rgba(34, 211, 238, 0.5)';
+    ctx.shadowBlur = 40;
+    ctx.fillText('TRUE', 480, 480);
+    
+    // "GAUGE" in light gray
+    ctx.fillStyle = '#d4d4d8';
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.font = '300 96px system-ui, -apple-system, sans-serif';
+    ctx.fillText('GAUGE', 780, 480);
+    
+    // Download
+    const dataUrl = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = 'truegauge-social-preview.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   // Load brand config on mount
