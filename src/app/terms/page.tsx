@@ -1,9 +1,22 @@
+import { FileText } from 'lucide-react';
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-black text-zinc-300">
       <div className="max-w-3xl mx-auto px-6 py-16">
-        <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-        <p className="text-zinc-500 mb-8">Last updated: January 9, 2026</p>
+        {/* Header with TrueGauge branding */}
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-white mb-4">
+            <span className="text-cyan-400" style={{ textShadow: '0 0 20px #22d3ee50' }}>TRUE</span>
+            <span className="font-light text-zinc-300">GAUGE</span>
+          </h1>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-zinc-700 bg-zinc-800/50">
+            <FileText className="h-4 w-4 text-zinc-400" />
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-zinc-400">Terms of Service</span>
+          </div>
+        </div>
+        
+        <p className="text-zinc-500 mb-8 text-center">Last updated: January 9, 2026</p>
         
         <div className="space-y-8 text-sm leading-relaxed">
           <section>
