@@ -40,8 +40,12 @@ export async function updateSession(request: NextRequest) {
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
   const isPublicPage = ['/privacy', '/terms', '/manual', '/splash'].includes(request.nextUrl.pathname)
+  const isStaticFile = request.nextUrl.pathname.startsWith('/manifest') || 
+                       request.nextUrl.pathname.endsWith('.json') ||
+                       request.nextUrl.pathname.endsWith('.png') ||
+                       request.nextUrl.pathname.endsWith('.ico')
 
-  if (!bypassAuth && !user && !isAuthPage && !isApiRoute && !isAuthCallback && !isPublicPage) {
+  if (!bypassAuth && !user && !isAuthPage && !isApiRoute && !isAuthCallback && !isPublicPage && !isStaticFile) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
