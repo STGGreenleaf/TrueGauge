@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
         url: 'https://truegauge.app',
         images: [
           {
-            url: 'https://truegauge.app/og-image.png',
+            url: 'https://truegauge.app/og-image.png?v=2',
             width: 1200,
             height: 630,
             alt: 'TrueGauge - Precision Business Health',
