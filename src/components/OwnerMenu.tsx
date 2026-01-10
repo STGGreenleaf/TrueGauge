@@ -100,7 +100,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
                 </div>
               </button>
 
-              {/* Splash Page */}
+              {/* PWA Intro */}
               <button
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('show-splash'));
@@ -110,7 +110,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
               >
                 <Sparkles className="h-4 w-4" />
                 <div className="text-left">
-                  <div className="text-sm font-medium">Splash Page</div>
+                  <div className="text-sm font-medium">PWA Intro</div>
                   <div className="text-xs text-zinc-500">Preview animation</div>
                 </div>
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
