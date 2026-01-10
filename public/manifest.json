@@ -3,9 +3,16 @@
   "short_name": "TrueGauge",
   "description": "Business health dashboard for smart operators",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "categories": ["business", "finance", "productivity"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "/truegauge_icon.png",
