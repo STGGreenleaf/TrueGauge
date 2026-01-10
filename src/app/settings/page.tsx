@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2 } from 'lucide-react';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
+import { PulseIndicator } from '@/components/PulseIndicator';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function SettingsPage() {
   const [financialsExpanded, setFinancialsExpanded] = useState(false);
   const [yearStartExpanded, setYearStartExpanded] = useState(false);
   const [businessInfoExpanded, setBusinessInfoExpanded] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
     const [refYear, setRefYear] = useState(new Date().getFullYear() - 1);
   const [refMonths, setRefMonths] = useState<Record<number, number>>({});
   const [refSaving, setRefSaving] = useState(false);
@@ -36,6 +38,13 @@ export default function SettingsPage() {
   
   // Backup state
   const [backupExpanded, setBackupExpanded] = useState(false);
+  const [backupClicked, setBackupClicked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('backupDrawerClicked') === 'true';
+    }
+    return false;
+  });
+  const [hasVendors, setHasVendors] = useState(true); // Assume vendors exist until checked
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [exporting, setExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -63,7 +72,7 @@ export default function SettingsPage() {
   const [expandedYearsIn, setExpandedYearsIn] = useState<Set<string>>(new Set());
   const [expandedYearsOut, setExpandedYearsOut] = useState<Set<string>>(new Set());
   const [injections, setInjections] = useState<Array<{ id: number; date: string; amount: number; type: string; note: string | null }>>([]);
-  const [newInjectionDate, setNewInjectionDate] = useState('');
+  const [newInjectionDate, setNewInjectionDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [newInjectionAmount, setNewInjectionAmount] = useState('');
   const [newInjectionNote, setNewInjectionNote] = useState('');
   const [newInjectionType, setNewInjectionType] = useState<'injection' | 'withdrawal' | 'owner_draw'>('injection');
@@ -120,25 +129,49 @@ export default function SettingsPage() {
     }
   };
 
+  // Check if in dev mode with demo OFF (simulate new user)
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  const [demoModeEnabled, setDemoModeEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('demoModeEnabled') === 'true';
+    }
+    return false;
+  });
+  const isNewUserMode = isDevMode && !demoModeEnabled;
+
   useEffect(() => {
-    fetchSettings(userViewEnabled);
-    fetchReferenceMonths(refYear, userViewEnabled);
-    fetchInjections(userViewEnabled);
-    fetchSnapshots(userViewEnabled);
-    fetchYearAnchors(userViewEnabled);
-  }, [userViewEnabled]);
+    // Listen for demo mode changes
+    const handleStorage = () => {
+      setDemoModeEnabled(localStorage.getItem('demoModeEnabled') === 'true');
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  useEffect(() => {
+    // Mark settings as visited for tiered COG indicator
+    localStorage.setItem('settingsVisited', 'true');
+    
+    fetchSettings(userViewEnabled, isNewUserMode);
+    fetchReferenceMonths(refYear, userViewEnabled, isNewUserMode);
+    fetchInjections(userViewEnabled, isNewUserMode);
+    fetchSnapshots(userViewEnabled, isNewUserMode);
+    fetchYearAnchors(userViewEnabled, isNewUserMode);
+    fetchVendorsCount(isNewUserMode);
+  }, [userViewEnabled, isNewUserMode]);
   
   // Fetch users and invites when drawer expands
   useEffect(() => {
     if (usersExpanded) {
-      if (orgUsers.length === 0) fetchUsers();
-      fetchInvites();
+      if (orgUsers.length === 0) fetchUsers(isNewUserMode);
+      fetchInvites(isNewUserMode);
     }
-  }, [usersExpanded]);
+  }, [usersExpanded, isNewUserMode]);
   
-  const fetchUsers = async () => {
+  const fetchUsers = async (newUserMode = false) => {
     try {
-      const res = await fetch('/api/users');
+      const url = newUserMode ? '/api/users?newUser=true' : '/api/users';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setOrgUsers(data.users || []);
@@ -177,7 +210,12 @@ export default function SettingsPage() {
     }
   };
   
-  const fetchInvites = async () => {
+  const fetchInvites = async (newUserMode = false) => {
+    // New user mode - no pending invites
+    if (newUserMode) {
+      setPendingInvites([]);
+      return;
+    }
     try {
       const res = await fetch('/api/invites');
       if (res.ok) {
@@ -186,6 +224,19 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error fetching invites:', error);
+    }
+  };
+  
+  const fetchVendorsCount = async (newUserMode = false) => {
+    try {
+      const url = newUserMode ? '/api/vendors?newUser=true' : '/api/vendors';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setHasVendors(data.length > 0);
+      }
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
     }
   };
   
@@ -233,9 +284,14 @@ export default function SettingsPage() {
   };
   
   // Fetch cash snapshots history
-  const fetchSnapshots = async (useShowcase = false) => {
+  const fetchSnapshots = async (useShowcase = false, newUserMode = false) => {
     try {
-      const url = useShowcase ? '/api/cash-snapshots?showcase=true' : '/api/cash-snapshots';
+      let url = '/api/cash-snapshots';
+      if (newUserMode) {
+        url = '/api/cash-snapshots?newUser=true';
+      } else if (useShowcase) {
+        url = '/api/cash-snapshots?showcase=true';
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -247,9 +303,14 @@ export default function SettingsPage() {
   };
   
   // Fetch year start anchors
-  const fetchYearAnchors = async (useShowcase = false) => {
+  const fetchYearAnchors = async (useShowcase = false, newUserMode = false) => {
     try {
-      const url = useShowcase ? '/api/year-start-anchors?showcase=true' : '/api/year-start-anchors';
+      let url = '/api/year-start-anchors';
+      if (newUserMode) {
+        url = '/api/year-start-anchors?newUser=true';
+      } else if (useShowcase) {
+        url = '/api/year-start-anchors?showcase=true';
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -261,9 +322,14 @@ export default function SettingsPage() {
   };
   
   // Fetch cash injections
-  const fetchInjections = async (useShowcase = false) => {
+  const fetchInjections = async (useShowcase = false, newUserMode = false) => {
     try {
-      const url = useShowcase ? '/api/cash-injections?showcase=true' : '/api/cash-injections';
+      let url = '/api/cash-injections';
+      if (newUserMode) {
+        url = '/api/cash-injections?newUser=true';
+      } else if (useShowcase) {
+        url = '/api/cash-injections?showcase=true';
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -314,11 +380,14 @@ export default function SettingsPage() {
     }
   };
 
-  const fetchReferenceMonths = async (year: number, useShowcase = false) => {
+  const fetchReferenceMonths = async (year: number, useShowcase = false, newUserMode = false) => {
     try {
-      const url = useShowcase 
-        ? `/api/reference-months?year=${year}&showcase=true` 
-        : `/api/reference-months?year=${year}`;
+      let url = `/api/reference-months?year=${year}`;
+      if (newUserMode) {
+        url = `/api/reference-months?year=${year}&newUser=true`;
+      } else if (useShowcase) {
+        url = `/api/reference-months?year=${year}&showcase=true`;
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -353,13 +422,31 @@ export default function SettingsPage() {
     }
   };
 
-  const fetchSettings = async (useShowcase = false) => {
+  const fetchSettings = async (useShowcase = false, newUserMode = false) => {
     try {
-      const url = useShowcase ? '/api/settings?showcase=true' : '/api/settings';
+      let url = '/api/settings';
+      if (newUserMode) {
+        url = '/api/settings?newUser=true';
+      } else if (useShowcase) {
+        url = '/api/settings?showcase=true';
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setSettings(data);
+        
+        // Check if store needs setup (no name or no NUT set)
+        const isNewStore = !data.businessName || data.monthlyFixedNut === 0;
+        setNeedsSetup(isNewStore);
+        
+        // Auto-expand ALL drawers for new stores
+        if (isNewStore && !useShowcase) {
+          setBusinessInfoExpanded(true);
+          setNutExpanded(true);
+          setFinancialsExpanded(true);
+          setCashSnapshotExpanded(true);
+          setYearStartExpanded(true);
+        }
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -512,9 +599,9 @@ export default function SettingsPage() {
         <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-violet-600/10 blur-[100px]" />
       </div>
 
-      <Nav showRefresh={false} />
+      <Nav showRefresh={false} showDashboard={true} needsSetup={needsSetup} />
 
-      <div className="relative z-10 mx-auto max-w-2xl px-6 py-8">
+      <div className="relative z-10 mx-auto max-w-2xl px-6 pt-14 pb-8">
 
         {/* Business Info Card */}
         <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
@@ -522,7 +609,10 @@ export default function SettingsPage() {
             onClick={() => setBusinessInfoExpanded(!businessInfoExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><Building2 className="h-4 w-4" />Business Information</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500 relative">
+              <Building2 className="h-4 w-4" />Business Information
+              <PulseIndicator show={!settings.businessName} size="sm" className="ml-2" />
+            </h2>
             {businessInfoExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {businessInfoExpanded && (
@@ -610,10 +700,11 @@ export default function SettingsPage() {
                       </Label>
                       <select
                         id="storeCloseHour"
-                        value={settings.storeCloseHour ?? 16}
-                        onChange={(e) => updateSetting('storeCloseHour', parseInt(e.target.value))}
+                        value={settings.storeCloseHour ?? ''}
+                        onChange={(e) => updateSetting('storeCloseHour', e.target.value ? parseInt(e.target.value) : undefined)}
                         className="mt-1 w-full h-9 rounded-md border border-zinc-700 bg-zinc-800 px-2 text-sm text-white"
                       >
+                        <option value="">Pick Closing Hour</option>
                         {Array.from({ length: 24 }, (_, i) => (
                           <option key={i} value={i}>
                             {i === 0 ? '12 AM' : i < 12 ? `${i} AM` : i === 12 ? '12 PM' : `${i - 12} PM`}
@@ -631,6 +722,7 @@ export default function SettingsPage() {
                         onChange={(e) => updateSetting('timezone', e.target.value)}
                         className="mt-1 h-9 w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 text-sm text-white"
                       >
+                        <option value="">Pick Time-Zone</option>
                         <option value="America/New_York">Eastern (ET)</option>
                         <option value="America/Chicago">Central (CT)</option>
                         <option value="America/Denver">Mountain (MT)</option>
@@ -846,7 +938,10 @@ export default function SettingsPage() {
             onClick={() => setFinancialsExpanded(!financialsExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><ChartCandlestick className="h-4 w-4 text-emerald-500" />Financial Targets</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <ChartCandlestick className="h-4 w-4 text-emerald-500" />Financial Targets
+              <PulseIndicator show={!settings.monthlyFixedNut || settings.monthlyFixedNut === 0} size="sm" className="ml-2" />
+            </h2>
             {financialsExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {financialsExpanded && (
@@ -1104,15 +1199,15 @@ export default function SettingsPage() {
                   <Input
                     id="targetCogsPct"
                     type="number"
-                    step="0.01"
+                    step="1"
                     min="0"
-                    max="1"
-                    value={settings.targetCogsPct}
-                    onChange={(e) => updateSetting('targetCogsPct', parseFloat(e.target.value) || 0)}
+                    max="100"
+                    value={Math.round(settings.targetCogsPct * 100)}
+                    onChange={(e) => updateSetting('targetCogsPct', (parseFloat(e.target.value) || 0) / 100)}
                     className="border-zinc-700 bg-zinc-800 pr-8 text-white"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500">
-                    {Math.round(settings.targetCogsPct * 100)}%
+                    %
                   </span>
                 </div>
               </div>
@@ -1193,6 +1288,62 @@ export default function SettingsPage() {
                 <p className="mt-1 text-xs text-zinc-600">Included in survival goal</p>
               </div>
             </div>
+
+            {/* Financial Goals - Cash Thresholds Card */}
+            <div className="mt-4 rounded-lg border border-amber-500/30 bg-zinc-900/30 backdrop-blur-sm">
+              <div className="px-4 py-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-amber-500">⚡</span>
+                  <h3 className="text-[10px] font-medium uppercase tracking-[0.2em] text-amber-500">Financial Goals</h3>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Emergency Floor */}
+                  <div>
+                    <Label htmlFor="operatingFloorCash" className="text-zinc-300 text-xs">
+                      Emergency Floor ($)
+                    </Label>
+                    <Input
+                      id="operatingFloorCash"
+                      type="number"
+                      value={settings.operatingFloorCash ?? ''}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                        updateSetting('operatingFloorCash', val);
+                      }}
+                      placeholder="e.g. 5000"
+                      className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                    />
+                    <p className="text-xs text-zinc-600 mt-1">Safety net for exit strategy</p>
+                  </div>
+
+                  {/* Target Reserve */}
+                  <div>
+                    <Label htmlFor="targetReserveCash" className="text-zinc-300 text-xs">
+                      Target Reserve ($)
+                    </Label>
+                    <Input
+                      id="targetReserveCash"
+                      type="number"
+                      value={settings.targetReserveCash ?? ''}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? 100000 : parseFloat(e.target.value);
+                        updateSetting('targetReserveCash', val);
+                      }}
+                      placeholder="e.g. 100000"
+                      className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                    />
+                    <p className="text-xs text-zinc-600 mt-1">Comfort zone ceiling</p>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-zinc-500 mt-4 pt-3 border-t border-zinc-800/50">
+                  The liquidity chart scales between Floor and Target — showing your position within your comfort zone.
+                </p>
+              </div>
+            </div>
           </div>
           )}</div>
 
@@ -1202,7 +1353,10 @@ export default function SettingsPage() {
             onClick={() => setRefYearExpanded(!refYearExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500"><CalendarRange className="h-4 w-4 text-amber-500" />Reference Year</h2>
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <CalendarRange className="h-4 w-4 text-amber-500" />Reference Year
+              <PulseIndicator show={Object.values(refMonths).every(v => v === 0) || Object.keys(refMonths).length === 0} size="sm" />
+            </h2>
             {refYearExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
           {refYearExpanded && (
@@ -1284,6 +1438,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <Aperture className="h-4 w-4 text-cyan-300" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Cash Snapshot</h2>
+              <PulseIndicator show={!settings.cashSnapshotAmount} size="sm" />
             </div>
             {cashSnapshotExpanded ? (
               <ChevronUp className="h-4 w-4 text-zinc-500" />
@@ -1473,6 +1628,7 @@ export default function SettingsPage() {
             <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
               <ChartColumnStacked className="h-4 w-4 text-cyan-500" />
               Capital Flow
+              <PulseIndicator show={injections.length === 0} size="sm" />
             </h2>
             {injectionsExpanded ? (
               <ChevronUp className="h-4 w-4 text-zinc-500" />
@@ -1715,6 +1871,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <Ruler className="h-4 w-4 text-violet-500" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Starting Cash (Year Anchor)</h2>
+              <PulseIndicator show={!settings.yearStartCashAmount} size="sm" />
             </div>
             {yearStartExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
           </button>
@@ -1809,41 +1966,27 @@ export default function SettingsPage() {
                   )}
                 </div>
               )}
-              
-              {/* Emergency Floor */}
-              <div className="mt-6 pt-4 border-t border-zinc-700/50">
-                <Label htmlFor="operatingFloorCash" className="text-zinc-300">
-                  Emergency Floor ($)
-                </Label>
-                <Input
-                  id="operatingFloorCash"
-                  type="number"
-                  value={settings.operatingFloorCash ?? ''}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                    updateSetting('operatingFloorCash', val);
-                  }}
-                  placeholder="e.g. 20000"
-                  className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-                />
-                <p className="text-xs text-zinc-600 mt-2">
-                  The safety net — enough to cover exit strategy. e.g. moving costs, storage, and a graceful transition if needed. Burn analysis shows days until hitting this floor.
-                </p>
-              </div>
             </div>
           </div>
-          )}</div>
+          )}
+        </div>
 
         {/* Backup Section */}
         <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
           <button
-            onClick={() => setBackupExpanded(!backupExpanded)}
+            onClick={() => {
+              setBackupExpanded(!backupExpanded);
+              if (!backupClicked) {
+                setBackupClicked(true);
+                localStorage.setItem('backupDrawerClicked', 'true');
+              }
+            }}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
             <div className="flex items-center gap-3">
               <Download className="h-4 w-4 text-zinc-500" />
               <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Backup</h2>
+              <PulseIndicator show={!backupClicked} size="sm" />
             </div>
             {backupExpanded ? (
               <ChevronUp className="h-4 w-4 text-zinc-500" />
@@ -2039,6 +2182,7 @@ export default function SettingsPage() {
         >
           <Landmark className="h-4 w-4" />
           Manage Vendors
+          <PulseIndicator show={!hasVendors} size="sm" />
         </button>
       </div>
     </div>

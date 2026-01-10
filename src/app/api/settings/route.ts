@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { SettingsSchema } from '@/lib/types';
+import { SettingsSchema, DEFAULT_SETTINGS } from '@/lib/types';
 import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
 const SHOWCASE_ORG_ID = 'showcase-template';
@@ -10,6 +10,15 @@ export async function GET(request: Request) {
     // Check for showcase mode (User View toggle)
     const { searchParams } = new URL(request.url);
     const isShowcase = searchParams.get('showcase') === 'true';
+    const isNewUser = searchParams.get('newUser') === 'true';
+    
+    // New user simulation - return empty defaults
+    if (isNewUser) {
+      return NextResponse.json({
+        id: 0,
+        ...DEFAULT_SETTINGS,
+      });
+    }
     
     const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const settings = await getOrCreateSettings(orgId);

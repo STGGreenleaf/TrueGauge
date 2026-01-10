@@ -4,8 +4,29 @@ import { getCurrentOrgId } from '@/lib/org';
 import { getGravatarUrl } from '@/lib/gravatar';
 import { createClient } from '@/lib/supabase/server';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const isNewUser = searchParams.get('newUser') === 'true';
+    
+    // New user simulation - return placeholder user
+    if (isNewUser) {
+      const placeholderUser = {
+        id: 'placeholder-user',
+        visibleId: 'placeholder-ou',
+        email: 'you@yourstore.com',
+        name: 'Store Owner',
+        role: 'admin',
+        joinedAt: new Date().toISOString(),
+        avatarUrl: getGravatarUrl('placeholder@example.com', 80),
+      };
+      return NextResponse.json({ 
+        users: [placeholderUser], 
+        currentUserId: 'placeholder-user', 
+        isAdmin: true 
+      });
+    }
+    
     const orgId = await getCurrentOrgId();
     const supabase = await createClient();
     const { data: { user: authUser } } = await supabase.auth.getUser();

@@ -5,6 +5,12 @@ import { getCurrentOrgId } from '@/lib/org';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const showcase = searchParams.get('showcase') === 'true';
+  const isNewUser = searchParams.get('newUser') === 'true';
+  
+  // New user simulation - return empty array
+  if (isNewUser) {
+    return NextResponse.json([]);
+  }
   
   const orgId = showcase ? 'showcase-template' : await getCurrentOrgId();
   if (!orgId) {

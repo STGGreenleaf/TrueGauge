@@ -9,6 +9,13 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const isShowcase = searchParams.get('showcase') === 'true';
+    const isNewUser = searchParams.get('newUser') === 'true';
+    
+    // New user simulation - return empty array
+    if (isNewUser) {
+      return NextResponse.json([]);
+    }
+    
     const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const year = searchParams.get('year');
     

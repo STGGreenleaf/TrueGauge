@@ -54,6 +54,9 @@ interface LiquidityCardProps {
     capitalSeries?: Array<{ weekEnd: string; capital: number }>;
     totalCapitalInvested?: number;
     cashInjections?: Array<{ date: string; amount: number; note: string | null }>;
+    // NUT history series
+    nutSeries?: Array<{ weekEnd: string; nut: number }>;
+    nutSnapshots?: Array<{ effectiveDate: string; amount: number; note: string | null }>;
   };
   onSetSnapshot?: () => void;
   timezone?: string;
@@ -75,6 +78,7 @@ export function LiquidityCard({
   timezone,
 }: LiquidityCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showRunwayTip, setShowRunwayTip] = useState(false);
   const [activeBurnTip, setActiveBurnTip] = useState<string | null>(null);
   const [activeCashTip, setActiveCashTip] = useState<string | null>(null);
   const [activeFooterTip, setActiveFooterTip] = useState<string | null>(null);
@@ -202,16 +206,39 @@ export function LiquidityCard({
               )}
             </div>
           </div>
-          {/* Runway indicator - top right */}
-          <div className="text-right">
+          {/* Runway indicator - top right with tooltip */}
+          <div className="text-right relative">
             {runwayPct !== null && monthlyFixedNut > 0 ? (
-              <span className="text-xs">
-                <span className="text-zinc-500">Runway: </span>
-                <span className={runwayPct >= 1 ? 'text-cyan-400' : runwayPct >= 0.5 ? 'text-amber-400' : 'text-red-400'}>
-                  {Math.round(runwayPct * 100)}%
+              <>
+                <span 
+                  className="text-xs cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => setShowRunwayTip(!showRunwayTip)}
+                >
+                  <span className="text-zinc-500">Runway: </span>
+                  <span className={runwayPct >= 1 ? 'text-cyan-400' : runwayPct >= 0.5 ? 'text-amber-400' : 'text-red-400'}>
+                    {Math.round(runwayPct * 100)}%
+                  </span>
+                  {isEstimate && <span className="ml-1 text-amber-500">(est)</span>}
                 </span>
-                {isEstimate && <span className="ml-1 text-amber-500">(est)</span>}
-              </span>
+                {showRunwayTip && (
+                  <div className="absolute right-0 top-6 z-10 w-56 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
+                    <div className="font-medium text-zinc-300 mb-2">Runway Coverage: {Math.round(runwayPct * 100)}%</div>
+                    <div className="space-y-1">
+                      <div>Cash on Hand: <span className="text-zinc-300">${cashNow.toLocaleString()}</span></div>
+                      <div>Monthly NUT: <span className="text-zinc-300">${monthlyFixedNut.toLocaleString()}</span></div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-zinc-800 text-[10px]">
+                      {runwayPct >= 1 ? '✓ Can cover 1+ month of fixed costs' : runwayPct >= 0.5 ? '⚠ Can cover ~2 weeks of fixed costs' : '⚠ Low coverage - needs attention'}
+                    </div>
+                    <button
+                      onClick={() => setShowRunwayTip(false)}
+                      className="absolute top-1 right-1 text-zinc-500 hover:text-zinc-300"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <span className="text-[9px] text-zinc-600">
                 {snapshotAsOf && `snapshot: ${snapshotAsOf}`}
@@ -565,6 +592,7 @@ export function LiquidityCard({
           timezone={timezone}
           capitalSeries={liquidityReceiver.capitalSeries}
           totalCapitalInvested={liquidityReceiver.totalCapitalInvested}
+          nutSeries={liquidityReceiver.nutSeries}
         />
 
         {/* Footer: Best/Worst left, Capital Invested right */}

@@ -3,6 +3,8 @@ import prisma from '@/lib/db';
 import * as calc from '@/lib/calc';
 import { getCurrentOrgId, getOrCreateSettings } from '@/lib/org';
 
+const SHOWCASE_ORG_ID = 'showcase-template';
+
 interface DayEntryRecord {
   id: string;
   date: string;
@@ -18,6 +20,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const monthStr = searchParams.get('month'); // Format: YYYY-MM
+    const isShowcase = searchParams.get('showcase') === 'true';
     
     if (!monthStr || !/^\d{4}-\d{2}$/.test(monthStr)) {
       return NextResponse.json(
@@ -30,8 +33,8 @@ export async function GET(request: NextRequest) {
     const year = parseInt(yearStr);
     const month = parseInt(monthNumStr);
     
-    // Get current org and settings
-    const orgId = await getCurrentOrgId();
+    // Get current org and settings (use showcase if in demo mode)
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const settings = await getOrCreateSettings(orgId);
     
     // Get day entries for the month

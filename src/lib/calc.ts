@@ -404,8 +404,8 @@ export function dailyNeededFromHere(
   const { year, month, day } = parseISODate(asOfDate);
   const daysInMonth = daysInMonthUTC(year, month);
   
-  // Remaining to goal
-  const remaining = Math.max(0, monthGoal - mtdNetSales);
+  // Remaining to goal (can be negative if exceeded)
+  const remaining = Math.round(monthGoal - mtdNetSales);
   
   // Count open days AFTER asOfDate (not including asOfDate)
   let remainingOpenDays = 0;

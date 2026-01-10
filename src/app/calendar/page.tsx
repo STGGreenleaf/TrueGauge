@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -39,7 +39,27 @@ type ViewMode = 'month' | 'week';
 
 export default function CalendarPage() {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const searchParams = useSearchParams();
+  const isShowcase = searchParams.get('showcase') === 'true';
+  const dateParam = searchParams.get('date');
+  
+  // Determine initial date based on params
+  const getInitialDate = () => {
+    if (dateParam) {
+      return new Date(dateParam + 'T12:00:00');
+    }
+    if (isShowcase) {
+      return new Date('2025-08-15T12:00:00');
+    }
+    return new Date();
+  };
+  
+  const [currentDate, setCurrentDate] = useState(getInitialDate);
+  
+  // Update date when URL params change
+  useEffect(() => {
+    setCurrentDate(getInitialDate());
+  }, [dateParam, isShowcase]);
   const [monthData, setMonthData] = useState<MonthData | null>(null);
   const [lyMonthData, setLyMonthData] = useState<MonthData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,12 +84,16 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchMonthData();
-  }, [monthStr]);
+    // Auto-refresh every 30 seconds for "live" calendar
+    const interval = setInterval(fetchMonthData, 30000);
+    return () => clearInterval(interval);
+  }, [monthStr, isShowcase]);
 
   const fetchMonthData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/calendar?month=${monthStr}`);
+      const showcaseParam = isShowcase ? '&showcase=true' : '';
+      const res = await fetch(`/api/calendar?month=${monthStr}${showcaseParam}`);
       if (res.ok) {
         const data = await res.json();
         setMonthData(data);
@@ -90,7 +114,8 @@ export default function CalendarPage() {
 
   const fetchLYData = async () => {
     try {
-      const res = await fetch(`/api/calendar?month=${lyMonthStr}`);
+      const showcaseParam = isShowcase ? '&showcase=true' : '';
+      const res = await fetch(`/api/calendar?month=${lyMonthStr}${showcaseParam}`);
       if (res.ok) {
         const data = await res.json();
         setLyMonthData(data);

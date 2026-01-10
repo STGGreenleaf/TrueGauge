@@ -23,6 +23,7 @@ model Organization {
   settings        Settings?
   vendors         VendorTemplate[]
   yearStartAnchors YearStartAnchor[]
+  nutSnapshots    NutSnapshot[]
   feedback        Feedback[]
   activities      UserActivity[]
   sessions        UserSession[]
@@ -52,6 +53,19 @@ model YearStartAnchor {
 
   @@unique([organizationId, year])
   @@index([organizationId])
+}
+
+model NutSnapshot {
+  id             String       @id @default(cuid())
+  organizationId String
+  amount         Float
+  effectiveDate  String       // YYYY-MM-DD when this NUT became effective
+  note           String?      // "Roof repair", "New hire", "Rent increase", etc.
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([effectiveDate])
 }
 
 model User {

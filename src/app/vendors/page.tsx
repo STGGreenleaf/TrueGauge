@@ -68,6 +68,15 @@ export default function VendorsPage() {
     }
     return false;
   });
+  const [demoModeEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('demoModeEnabled');
+      return stored === null ? true : stored === 'true';
+    }
+    return true;
+  });
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  const isNewUserMode = isDevMode && !demoModeEnabled;
   const [formData, setFormData] = useState({
     name: '',
     defaultCategory: '',
@@ -84,7 +93,12 @@ export default function VendorsPage() {
 
   const fetchVendors = async () => {
     try {
-      const url = userViewEnabled ? '/api/vendors?showcase=true' : '/api/vendors';
+      let url = '/api/vendors';
+      if (isNewUserMode) {
+        url = '/api/vendors?newUser=true';
+      } else if (userViewEnabled) {
+        url = '/api/vendors?showcase=true';
+      }
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();

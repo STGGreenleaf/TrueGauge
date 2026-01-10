@@ -22,6 +22,10 @@ interface ExpenseRecord {
 
 const SHOWCASE_ORG_ID = 'showcase-template';
 
+// Frozen date for showcase mode - a "time capsule" that never goes stale
+// Mid-month shows survival >100%, positioned at ~55% between floor and target
+const SHOWCASE_FROZEN_DATE = '2025-08-20';
+
 export async function GET(request: Request) {
   try {
     // Check for showcase mode (User View toggle)
@@ -33,8 +37,11 @@ export async function GET(request: Request) {
     const settings = await getOrCreateSettings(orgId);
     
     // Get current date in user's configured timezone
+    // For showcase mode, use frozen date to create a "time capsule" demo
     const now = new Date();
-    const localTime = new Date(now.toLocaleString('en-US', { timeZone: settings.timezone }));
+    const localTime = isShowcase
+      ? new Date(SHOWCASE_FROZEN_DATE + 'T12:00:00')
+      : new Date(now.toLocaleString('en-US', { timeZone: settings.timezone }));
     
     const year = localTime.getFullYear();
     const month = localTime.getMonth() + 1; // 1-12
@@ -273,6 +280,12 @@ export async function GET(request: Request) {
       orderBy: { date: 'asc' },
     });
     
+    // Fetch NUT history for stepped NUT line
+    const nutSnapshots = await prisma.nutSnapshot.findMany({
+      where: { organizationId: orgId },
+      orderBy: { effectiveDate: 'asc' },
+    });
+    
     // Calculate date range for liquidity receiver
     // Start from business start (earliest reference data)
     const receiverEndDate = asOfDate;
@@ -348,9 +361,28 @@ export async function GET(request: Request) {
       .reduce((sum: number, inj: { amount: number }) => sum + inj.amount, 0);
     const totalCapitalInvested = totalIn - totalOut;
     
+    // ═══ NUT SERIES: Weekly NUT values based on historical snapshots ═══
+    // Build stepped series showing NUT at each week based on effective dates
+    const nutSeries = lyEstimates.map(week => {
+      const weekEnd = week.weekEnd || week.weekStart;
+      // Find the most recent NUT snapshot effective on or before this week
+      const applicableSnapshots = nutSnapshots.filter(
+        (snap: { effectiveDate: string }) => snap.effectiveDate <= weekEnd
+      );
+      // Use the most recent one, or fall back to settings.monthlyFixedNut
+      const currentNut = applicableSnapshots.length > 0
+        ? applicableSnapshots[applicableSnapshots.length - 1].amount
+        : settings.monthlyFixedNut;
+      return {
+        weekEnd,
+        nut: currentNut,
+      };
+    });
+    
     // ═══ CONTINUITY V2: Build series aligned with receiver timeline ═══
-    // Use receiverStartDate to align with the liquidity timeline
-    const yearStartDate = receiverStartDate;
+    // Use rolling 52-week window for balance series (not full business history)
+    // This ensures organic variation is visible, not compressed over years
+    const yearStartDate = calc.addDays(asOfDate, -364);
     
     // Filter day entries to only those with non-null sales (for continuity series)
     const validDayEntries = allDayEntries
@@ -481,6 +513,7 @@ export async function GET(request: Request) {
       asOfDate,
       asOfDay,
       salesNotEntered,
+      avgDailySales,
       lastYearReference: lastYearRef ? {
         year: lastYearRef.year,
         month: lastYearRef.month,
@@ -542,6 +575,13 @@ export async function GET(request: Request) {
         // Capital tracking
         capitalSeries,
         totalCapitalInvested,
+        // NUT history series
+        nutSeries,
+        nutSnapshots: nutSnapshots.map((snap: { effectiveDate: string; amount: number; note: string | null }) => ({
+          effectiveDate: snap.effectiveDate,
+          amount: snap.amount,
+          note: snap.note,
+        })),
         cashInjections: cashInjections.map((inj: { date: string; amount: number; note: string | null }) => ({
           date: inj.date,
           amount: inj.amount,

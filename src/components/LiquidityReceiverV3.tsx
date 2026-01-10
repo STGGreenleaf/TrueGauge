@@ -34,6 +34,8 @@ export interface LiquidityReceiverProps {
   // Capital tracking
   capitalSeries?: Array<{ weekEnd: string; capital: number }>;
   totalCapitalInvested?: number;
+  // NUT history series
+  nutSeries?: Array<{ weekEnd: string; nut: number }>;
 }
 
 type PresetKey = '2M' | '3M' | '6M' | 'YTD' | 'ALL' | 'TODAY';
@@ -117,6 +119,7 @@ export function LiquidityReceiverV3({
   timezone = 'America/Denver',
   capitalSeries,
   totalCapitalInvested,
+  nutSeries,
 }: LiquidityReceiverProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -229,6 +232,12 @@ export function LiquidityReceiverV3({
     return capitalSeries.slice(windowStart, windowEnd + 1);
   }, [capitalSeries, windowStart, windowEnd]);
   
+  // NUT series for stepped NUT line
+  const visibleNut = useMemo(() => {
+    if (!nutSeries || nutSeries.length === 0) return [];
+    return nutSeries.slice(windowStart, windowEnd + 1);
+  }, [nutSeries, windowStart, windowEnd]);
+  
   // Calculate visible-slice scaling for Balance lane
   const balanceScale = useMemo(() => {
     const values: number[] = [];
@@ -268,8 +277,8 @@ export function LiquidityReceiverV3({
     setLensWidth(newLensWidth);
     
     if (preset === 'ALL') {
-      // ALL: center to show full history
-      setCenterIndex(Math.floor(totalWeeks / 2));
+      // ALL: justify right so most recent activity shows first
+      setCenterIndex(totalWeeks - 1);
       setScrubIndex(null);
     } else if (preset === 'YTD') {
       // YTD: rolling 52 weeks with NOW at end
@@ -351,11 +360,19 @@ export function LiquidityReceiverV3({
     setLensWidth(lensWidths[activePreset]);
   }, [isMobile, activePreset, lensWidths]);
   
-  // Weighted Y-scale: compress upper range (50K-100K), expand working range (0-50K)
-  // This makes movements in operating range more visually dramatic
-  const WEIGHT_THRESHOLD = 50000; // Below this gets 70% of visual space
-  const LOWER_WEIGHT = 0.7; // 0-50K gets 70% of height
-  const UPPER_WEIGHT = 0.3; // 50K-100K gets 30% of height
+  // Weighted Y-scale: compress upper range (above midpoint), expand working range (floor to midpoint)
+  // The threshold is dynamically set to midpoint between floor and target for each store
+  // This makes movements in the danger zone (near floor) more visually dramatic
+  const LOWER_WEIGHT = 0.7; // Floor to midpoint gets 70% of visual space
+  const UPPER_WEIGHT = 0.3; // Midpoint to target gets 30% of visual space
+  
+  // Dynamic threshold: midpoint between floor and target (or 50% of target if no floor)
+  const weightThreshold = useMemo(() => {
+    const floor = operatingFloor || 0;
+    const target = targetReserve || 100000;
+    // Midpoint between floor and target
+    return floor + (target - floor) * 0.5;
+  }, [operatingFloor, targetReserve]);
   
   const normalizeBalance = (value: number, laneHeight: number): number => {
     const { min, max } = balanceScale;
@@ -364,20 +381,20 @@ export function LiquidityReceiverV3({
     // Clamp value to scale bounds
     const clampedVal = Math.max(min, Math.min(max, value));
     
-    // Weighted scale: if max > 50K, compress upper range
-    if (max > WEIGHT_THRESHOLD && min < WEIGHT_THRESHOLD) {
-      const lowerRange = WEIGHT_THRESHOLD - min;
-      const upperRange = max - WEIGHT_THRESHOLD;
+    // Weighted scale: if scale spans the threshold, use weighted zones
+    if (max > weightThreshold && min < weightThreshold) {
+      const lowerRange = weightThreshold - min;
+      const upperRange = max - weightThreshold;
       const lowerHeight = laneHeight * LOWER_WEIGHT;
       const upperHeight = laneHeight * UPPER_WEIGHT;
       
-      if (clampedVal <= WEIGHT_THRESHOLD) {
-        // In lower range (0-50K) - expanded
+      if (clampedVal <= weightThreshold) {
+        // In lower range (floor to midpoint) - expanded for visibility
         const pct = (clampedVal - min) / lowerRange;
         return laneHeight - (pct * lowerHeight);
       } else {
-        // In upper range (50K-100K) - compressed
-        const pct = (clampedVal - WEIGHT_THRESHOLD) / upperRange;
+        // In upper range (midpoint to target) - compressed
+        const pct = (clampedVal - weightThreshold) / upperRange;
         return upperHeight - (pct * upperHeight);
       }
     }
@@ -414,12 +431,13 @@ export function LiquidityReceiverV3({
   const panOffset = defaultCenterIdx - centerIndex; // 0 = at today, positive = panned back
   
   // Calculate needle/today X position
-  // At rest: center. Panned back: slides right.
+  // Mobile: 50% centered. Desktop: 75% right. Responsive between.
   const getTodayX = (): number => {
     if (!isTodayMode || scrubIndex !== null) {
       return DATA_WIDTH + DATA_PAD_L; // Right edge in non-TODAY modes
     }
-    const centerX = SVG_W / 2;
+    const needlePercent = isMobile ? 0.50 : 0.75; // 50% mobile, 75% desktop
+    const centerX = SVG_W * needlePercent;
     const pixelsPerWeek = DATA_WIDTH / Math.max(1, lensWidth);
     return centerX + (panOffset * pixelsPerWeek);
   };
@@ -518,7 +536,7 @@ export function LiquidityReceiverV3({
   }, [velocity, isWideLens]);
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       {/* Readouts Row - above dial */}
       <div className="flex items-center justify-between mb-2 px-1">
         {/* Primary: Balance */}
@@ -610,9 +628,14 @@ export function LiquidityReceiverV3({
             const svgToContainer = (svgY: number) => (svgY / SVG_H) * containerHeight;
             // Get Y position matching the threshold lines in SVG
             const getY = (val: number) => svgToContainer(ROW_C.y + normalizeBalance(val, ROW_C.h));
-            const labelHeight = 14; // Height of each label for collision detection
+            const labelHeight = 16; // Height of each label for collision detection
+            const labelOffset = 5; // Center labels vertically on their line
             
-            // Build labels array with raw positions
+            // ROW_C boundaries in container pixels
+            const rowCTop = svgToContainer(ROW_C.y);
+            const rowCBottom = svgToContainer(ROW_C.y + ROW_C.h);
+            
+            // Build labels array with raw positions (positioned at their actual line Y)
             const labels: { name: string; color: string; rawY: number; value: number }[] = [];
             if (targetReserve > 0) labels.push({ name: 'TARGET', color: '#8b5cf6', rawY: getY(targetReserve), value: targetReserve });
             // Use starting balance from estBalanceSeries for CAPITAL label position
@@ -620,20 +643,26 @@ export function LiquidityReceiverV3({
             if (startingCapital > 0) labels.push({ name: 'CAPITAL', color: '#10b981', rawY: getY(startingCapital), value: startingCapital });
             if (cashNow > 0) labels.push({ name: 'NOW', color: '#22d3ee', rawY: getY(cashNow), value: cashNow });
             if (monthlyNut > 0) labels.push({ name: `NUT [~${Math.round(monthlyNut / 1000)}k]`, color: '#f59e0b', rawY: getY(monthlyNut), value: monthlyNut });
-            // FLOOR label is on right-side scale only (not in dynamic labels)
+            
+            // Clamp raw positions to ROW_C bounds (so labels stay in chart area)
+            labels.forEach(l => {
+              l.rawY = Math.max(rowCTop, Math.min(rowCBottom - 10, l.rawY));
+            });
             
             // Sort by Y position (top to bottom)
             labels.sort((a, b) => a.rawY - b.rawY);
             
-            // Adjust positions to prevent overlap using reduce
+            // Collision avoidance: push labels down if they overlap, keeping them close to their line
             const adjustedLabels = labels.reduce<Array<{ name: string; color: string; rawY: number; value: number; adjustedY: number }>>((acc, label) => {
               let adjustedY = label.rawY;
               if (acc.length > 0) {
-                const prevAdjustedY = acc[acc.length - 1].adjustedY;
-                if (adjustedY - prevAdjustedY < labelHeight) {
-                  adjustedY = prevAdjustedY + labelHeight;
+                const prevBottom = acc[acc.length - 1].adjustedY + labelHeight;
+                if (adjustedY < prevBottom) {
+                  adjustedY = prevBottom;
                 }
               }
+              // Keep within bounds
+              adjustedY = Math.min(adjustedY, rowCBottom - 10);
               acc.push({ ...label, adjustedY });
               return acc;
             }, []);
@@ -646,8 +675,8 @@ export function LiquidityReceiverV3({
                 {adjustedLabels.map((label) => (
                   <div 
                     key={label.name}
-                    className="absolute right-2 text-[9px] font-semibold text-right"
-                    style={{ top: label.adjustedY - (label.name.startsWith('NUT') ? 16 : label.name === 'NOW' ? 8 : 6), color: label.color }}
+                    className="absolute right-2 text-[9px] font-semibold text-right transition-all duration-500 ease-out"
+                    style={{ top: label.adjustedY - labelOffset, color: label.color }}
                   >
                     {label.name}
                   </div>
@@ -655,7 +684,7 @@ export function LiquidityReceiverV3({
                 {/* WEEK label adjacent to week squares */}
                 <div 
                   className="absolute right-2 text-[9px] font-semibold text-right"
-                  style={{ top: weekY - 11, color: '#71717a' }}
+                  style={{ top: weekY - 6, color: '#71717a' }}
                 >
                   WEEK
                 </div>
@@ -925,18 +954,38 @@ export function LiquidityReceiverV3({
               />
             )}
             
-            {/* NUT threshold line (amber) - clips at needle in TODAY mode */}
+            {/* NUT threshold line (amber) - stepped line if history exists, flat otherwise */}
             {monthlyNut > 0 && (
-              <line
-                x1={8}
-                y1={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
-                x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
-                y2={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
-                stroke="#f59e0b"
-                strokeWidth={1}
-                strokeDasharray="6,4"
-                opacity={0.6}
-              />
+              visibleNut.length > 1 ? (
+                // Stepped NUT line based on historical snapshots
+                <path
+                  d={visibleNut.map((n, i) => {
+                    const x = getDataX(i, visibleNut.length);
+                    const y = ROW_C.y + safeNum(normalizeBalance(n.nut, ROW_C.h), ROW_C.h / 2);
+                    // Use step pattern: horizontal then vertical
+                    if (i === 0) return `M ${x} ${y}`;
+                    const prevY = ROW_C.y + safeNum(normalizeBalance(visibleNut[i-1].nut, ROW_C.h), ROW_C.h / 2);
+                    return `H ${x} V ${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth={1}
+                  strokeDasharray="6,4"
+                  opacity={0.6}
+                />
+              ) : (
+                // Flat line fallback
+                <line
+                  x1={8}
+                  y1={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
+                  x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
+                  y2={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
+                  stroke="#f59e0b"
+                  strokeWidth={1}
+                  strokeDasharray="6,4"
+                  opacity={0.6}
+                />
+              )
             )}
             
             {/* FLOOR threshold line (red) - clips at needle in TODAY mode */}
@@ -952,7 +1001,7 @@ export function LiquidityReceiverV3({
               />
             )}
 
-            {/* Estimated Balance Reference line (BEHIND balance, emerald dashed) - actual data */}
+            {/* Estimated Balance Reference line (BEHIND balance, gray dashed) - actual data */}
             {visibleEstBalance.length > 1 && (
               <>
                 <path
@@ -962,19 +1011,19 @@ export function LiquidityReceiverV3({
                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                   }).join(' ')}
                   fill="none"
-                  stroke="#10b981"
-                  strokeWidth={1.5}
-                  strokeDasharray="3,4"
-                  opacity={0.5}
+                  stroke="#71717a"
+                  strokeWidth={1}
+                  strokeDasharray="2,3"
+                  opacity={0.4}
                 />
                 {/* $ marker at end of reference line */}
                 <text
                   x={getDataX(visibleEstBalance.length - 1, visibleEstBalance.length) + 4}
                   y={ROW_C.y + safeNum(normalizeBalance(visibleEstBalance[visibleEstBalance.length - 1].balance, ROW_C.h), ROW_C.h / 2) + 3}
-                  fill="#10b981"
+                  fill="#71717a"
                   fontSize={8}
                   fontWeight="bold"
-                  opacity={0.7}
+                  opacity={0.5}
                 >$</text>
               </>
             )}
@@ -991,6 +1040,22 @@ export function LiquidityReceiverV3({
                 stroke="#22d3ee"
                 strokeWidth={1}
                 opacity={0.8}
+              />
+            )}
+
+            {/* Capital line (green dashed) - tracks capital invested over time */}
+            {visibleCapital.length > 1 && (
+              <path
+                d={visibleCapital.map((c, i) => {
+                  const x = getDataX(i, visibleCapital.length);
+                  const y = ROW_C.y + safeNum(normalizeBalance(c.capital, ROW_C.h), ROW_C.h / 2);
+                  return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                }).join(' ')}
+                fill="none"
+                stroke="#10b981"
+                strokeWidth={1}
+                strokeDasharray="4,3"
+                opacity={0.7}
               />
             )}
 
@@ -1118,32 +1183,7 @@ export function LiquidityReceiverV3({
                     opacity={isHovered ? 1 : (d.hasData ? 0.75 : 0.2)}
                     rx={1}
                   />
-                  {/* Hover tooltip - positioned to the right */}
-                  {isHovered && (
-                    <g>
-                      <rect
-                        x={x + 8}
-                        y={y - 2}
-                        width={100}
-                        height={18}
-                        fill="#18181b"
-                        stroke="#3f3f46"
-                        strokeWidth={0.5}
-                        rx={4}
-                      />
-                      <text
-                        x={x + 12}
-                        y={y + 10}
-                        fill="#a1a1aa"
-                        fontSize={8}
-                        textAnchor="start"
-                      >
-                        <tspan fill="#71717a">Δ WoW </tspan>
-                        <tspan fill={color}>{d.delta >= 0 ? '+' : ''}${Math.round(d.delta / 1000)}k</tspan>
-                        <tspan fill="#52525b"> ({month}/{day})</tspan>
-                      </text>
-                    </g>
-                  )}
+                  {/* Tooltip moved to end of SVG for z-index */}
                 </g>
               );
             })}
@@ -1206,11 +1246,23 @@ export function LiquidityReceiverV3({
                 const tyPct = valRange > 0 ? (tyVal - minVal) / valRange : 0;
                 const tyH = tyVal > 0 ? minH + (tyPct * (maxH - minH)) : 0;
                 
-                // Date label
+                // Date label - adaptive based on zoom level
                 const dateStr = lyItem ? getDateStr(lyItem) : (tyDeltaItem ? tyDeltaItem.weekEnd : '');
-                const [, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
-                const labelFreq = dataLen <= 12 ? 2 : dataLen <= 26 ? 3 : 4;
-                const showLabel = i === 0 || i === dataLen - 1 || i % labelFreq === 0;
+                const [year, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
+                
+                // For ALL view with lots of data, show year labels; otherwise month|day
+                const isAllView = activePreset === 'ALL' && dataLen > 60;
+                const labelFreq = isAllView 
+                  ? Math.ceil(dataLen / 8) // ~8 labels for ALL view
+                  : dataLen <= 12 ? 2 : dataLen <= 26 ? 3 : 4;
+                
+                // For ALL view, show label at year boundaries or spread evenly
+                const prevDateStr = i > 0 ? (visibleLY[i-1] ? getDateStr(visibleLY[i-1]) : '') : '';
+                const prevYear = prevDateStr ? parseInt(prevDateStr.split('-')[0]) : 0;
+                const isYearStart = year !== prevYear && prevYear > 0;
+                const showLabel = isAllView 
+                  ? (isYearStart || i === 0 || i === dataLen - 1)
+                  : (i === 0 || i === dataLen - 1 || i % labelFreq === 0);
                 
                 // In TODAY mode, clip at "today" position
                 let lyBarWClipped = barW;
@@ -1239,31 +1291,41 @@ export function LiquidityReceiverV3({
                     onMouseLeave={() => setHoveredWeekIdx(null)}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Hover highlight background */}
+                    {/* Invisible hit area for easier hover detection */}
+                    <rect
+                      x={lyBarX - 4}
+                      y={blockBottom - maxH - 4}
+                      width={pairW + 8}
+                      height={maxH + ROW_B.h + 8}
+                      fill="transparent"
+                    />
+                    {/* Hover highlight background - nav header style */}
                     {isHovered && (
                       <rect
-                        x={lyBarX - 2}
-                        y={blockBottom - maxH - 4}
-                        width={pairW + 4}
-                        height={maxH + 6}
-                        fill="#22d3ee"
-                        opacity={0.1}
-                        rx={2}
+                        x={lyBarX - 3}
+                        y={blockBottom - maxH - 2}
+                        width={pairW + 6}
+                        height={maxH + 4}
+                        fill="#27272a"
+                        opacity={0.9}
+                        rx={3}
+                        stroke="#3f3f46"
+                        strokeWidth={0.5}
                       />
                     )}
-                    {/* LY bar (gray, left) */}
+                    {/* PY bar (zinc, left) - more opaque */}
                     {!skipLY && lyVal > 0 && (
                       <rect
                         x={lyBarX}
                         y={blockBottom - lyH}
                         width={lyBarWClipped}
                         height={lyH}
-                        fill="#52525b"
-                        opacity={isHovered ? 0.9 : 0.7}
+                        fill="#71717a"
+                        opacity={isHovered ? 1 : 0.85}
                         rx={1}
                       />
                     )}
-                    {/* TY bar (cyan, right) - or placeholder outline if no data */}
+                    {/* TY bar (cyan, right) - more opaque */}
                     {!skipTY && (
                       tyVal > 0 ? (
                         <rect
@@ -1272,7 +1334,7 @@ export function LiquidityReceiverV3({
                           width={tyBarWClipped}
                           height={tyH}
                           fill="#22d3ee"
-                          opacity={isHovered ? 1 : 0.8}
+                          opacity={isHovered ? 1 : 0.9}
                           rx={1}
                         />
                       ) : (
@@ -1281,62 +1343,44 @@ export function LiquidityReceiverV3({
                           y={blockBottom - lyH}
                           width={tyBarWClipped}
                           height={lyH}
-                          fill="none"
+                          fill="#27272a"
                           stroke="#22d3ee"
                           strokeWidth={0.5}
                           strokeDasharray="2,2"
-                          opacity={0.3}
+                          opacity={0.6}
                           rx={1}
                         />
                       )
                     )}
-                    {/* Hover tooltip */}
-                    {isHovered && (
-                      <g>
-                        <rect
-                          x={x - 50}
-                          y={blockBottom - maxH - 28}
-                          width={100}
-                          height={22}
-                          fill="#18181b"
-                          stroke="#3f3f46"
-                          strokeWidth={0.5}
-                          rx={4}
-                        />
-                        <text
-                          x={x}
-                          y={blockBottom - maxH - 14}
-                          fill="#a1a1aa"
-                          fontSize={9}
-                          textAnchor="middle"
-                        >
-                          <tspan fill="#71717a">LY:</tspan>
-                          <tspan fill="#a1a1aa"> ${Math.round(lyVal / 1000)}k</tspan>
-                          <tspan fill="#3f3f46"> │ </tspan>
-                          <tspan fill="#22d3ee">TY:</tspan>
-                          <tspan fill="#67e8f9"> ${Math.round(tyVal / 1000)}k</tspan>
-                        </text>
-                      </g>
-                    )}
-                    {/* Date label */}
+                    {/* Hover tooltip - rendered separately at end for z-index */}
+                    {/* Date label - year for ALL view, month|day otherwise */}
                     {showLabel && month > 0 && (
                       <text
                         x={x}
                         y={ROW_B.y + 16}
                         fill={isHovered ? '#22d3ee' : '#71717a'}
-                        fontSize={9}
-                        fontWeight={isHovered ? 'bold' : 'normal'}
+                        fontSize={isAllView ? 10 : 9}
+                        fontWeight={isHovered || isAllView ? 'bold' : 'normal'}
                         textAnchor="middle"
                       >
-                        <tspan>{month}</tspan>
-                        <tspan fontSize={11} dy={-2}>|</tspan>
-                        <tspan dy={2}>{day}</tspan>
+                        {isAllView ? (
+                          // Year label for ALL view
+                          <tspan>{year}</tspan>
+                        ) : (
+                          // Month|day for zoomed views
+                          <>
+                            <tspan>{month}</tspan>
+                            <tspan fontSize={11} dy={-2}>|</tspan>
+                            <tspan dy={2}>{day}</tspan>
+                          </>
+                        )}
                       </text>
                     )}
                   </g>
                 );
               });
             })()}
+            {/* Week bar tooltip moved to end of SVG for z-index */}
           </g>
 
           {/* TODAY needle - vertical line at actual calendar date (radio style) */}
@@ -1380,10 +1424,8 @@ export function LiquidityReceiverV3({
               const scrubItem = dataSource[needleIdx];
               needleDate = scrubItem ? getDateStr(scrubItem) : asOfDate;
             } else {
-              // Current date in user's configured timezone
-              const now = new Date();
-              const local = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-              needleDate = `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(local.getDate()).padStart(2, '0')}`;
+              // Use asOfDate from API (frozen for showcase) instead of current date
+              needleDate = asOfDate;
             }
             
             return (
@@ -1429,7 +1471,10 @@ export function LiquidityReceiverV3({
               </g>
             );
           })()}
+
         </svg>
+        
+        {/* Tooltip state passed to portal below */}
 
 
         {/* TODAY Mode Info Overlay - positioned to the RIGHT of needle, compact for mobile */}
@@ -1519,8 +1564,8 @@ export function LiquidityReceiverV3({
         
         {/* 5% FINANCIAL SCALE - right side (left-justified, weighted positions) */}
         <div 
-          className="relative pl-2"
-          style={{ width: '5%', minWidth: '40px', borderLeft: '1px solid rgba(245, 158, 11, 0.1)' }}
+          className="relative pl-1"
+          style={{ width: '5%', minWidth: '44px', borderLeft: '1px solid rgba(245, 158, 11, 0.1)' }}
         >
           {(() => {
             // Map SVG coordinates to container pixels (container=300px, SVG_H=180)
@@ -1530,14 +1575,14 @@ export function LiquidityReceiverV3({
             
             return (
               <>
-                <div className="absolute text-[10px] font-medium text-zinc-400 left-2" style={{ top: getY(100000) - 6 }}>100K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-2" style={{ top: getY(60000) - 6 }}>60K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-2" style={{ top: getY(40000) - 6 }}>40K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-0" style={{ top: getY(100000) - 6 }}>100K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(60000) - 6 }}>60K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(40000) - 6 }}>40K</div>
                 {operatingFloor > 0 && (
-                  <div className="absolute text-[10px] font-medium text-red-400 left-2 z-10" style={{ top: getY(operatingFloor) - 6 }}>FLOOR [~{Math.round(operatingFloor / 1000)}k]</div>
+                  <div className="absolute text-[10px] font-medium text-red-400 left-0 z-10" style={{ top: getY(operatingFloor) - 6 }}>FLOOR [~{Math.round(operatingFloor / 1000)}k]</div>
                 )}
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-2" style={{ top: getY(20000) - 6 }}>20K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-600 left-2" style={{ top: getY(0) - 6 }}>0K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(20000) - 6 }}>20K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-600 left-0" style={{ top: getY(0) - 6 }}>0K</div>
               </>
             );
           })()}
@@ -1583,6 +1628,76 @@ export function LiquidityReceiverV3({
           </button>
         ))}
       </div>
+
+      {/* ═══ UNIFIED TOOLTIP - Absolute under week bars, high z-index ═══ */}
+      {(hoveredDeltaIdx !== null || hoveredWeekIdx !== null) && (() => {
+        const idx = hoveredWeekIdx ?? hoveredDeltaIdx;
+        if (idx === null) return null;
+        
+        const dataLen = Math.max(visibleBalances.length, visibleLY.length, visibleDeltas.length);
+        // Use same positioning logic as the bars - getDataX returns SVG x coordinate
+        const barX = getDataX(idx, dataLen);
+        // Convert SVG x to percentage of container (SVG_W = 600, but we're in 95% data area)
+        const xPct = (barX / SVG_W) * 100;
+        
+        const lyItem = visibleLY[idx];
+        const lyVal = lyItem ? lyItem.value : 0;
+        const deltaItem = visibleDeltas[idx];
+        const tyVal = deltaItem && deltaItem.delta > 0 ? deltaItem.delta : 0;
+        const dateStr = lyItem ? getDateStr(lyItem) : (deltaItem ? deltaItem.weekEnd : '');
+        const [, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
+        const vsLY = tyVal - lyVal;
+        
+        const prevDeltaItem = idx > 0 ? visibleDeltas[idx - 1] : null;
+        const prevTyVal = prevDeltaItem && prevDeltaItem.delta > 0 ? prevDeltaItem.delta : 0;
+        const wow = tyVal - prevTyVal;
+        
+        return (
+          <div 
+            className="absolute pointer-events-none"
+            style={{ 
+              left: `${Math.max(10, Math.min(xPct, 90))}%`,
+              top: 'calc(100% - 48px)',
+              transform: 'translateX(-50%)',
+              zIndex: 9999,
+            }}
+          >
+            <div className="bg-zinc-950 border border-cyan-500/40 rounded-lg px-4 py-2.5 shadow-2xl">
+              <div className="text-zinc-400 text-[11px] text-center mb-1.5 font-medium tracking-wide">
+                WEEK {month}/{day}
+              </div>
+              <div className="flex gap-5 text-center">
+                <div>
+                  <div className="text-zinc-500 text-[9px]">PY</div>
+                  <div className="text-zinc-300 text-sm font-semibold">${Math.round(lyVal / 1000)}k</div>
+                </div>
+                <div>
+                  <div className="text-cyan-500 text-[9px]">TY</div>
+                  <div className="text-cyan-400 text-sm font-semibold">${Math.round(tyVal / 1000)}k</div>
+                </div>
+                <div>
+                  <div className={`text-[9px] ${vsLY >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>vs LY</div>
+                  <div className={`text-sm font-semibold ${vsLY >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {vsLY >= 0 ? '+' : ''}{Math.round(vsLY / 1000)}k
+                  </div>
+                </div>
+                <div>
+                  <div className={`text-[9px] ${wow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>WoW</div>
+                  <div className={`text-sm font-semibold ${wow >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {wow >= 0 ? '+' : ''}{Math.round(wow / 1000)}k
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-zinc-800 mt-2 pt-2 text-[10px] text-zinc-500 grid grid-cols-2 gap-x-3 gap-y-0.5">
+                <div><span className="text-zinc-400">PY</span> Prior Year</div>
+                <div><span className="text-cyan-500">TY</span> This Year</div>
+                <div><span className="text-zinc-400">vs LY</span> vs Last Year</div>
+                <div><span className="text-zinc-400">WoW</span> Week over Week</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

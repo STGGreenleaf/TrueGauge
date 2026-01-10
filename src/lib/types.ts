@@ -134,12 +134,12 @@ export type ReferenceMonth = z.infer<typeof ReferenceMonthSchema>;
 // ============================================
 
 export const DEFAULT_SETTINGS: Omit<Settings, 'id'> = {
-  businessName: 'My Business',
-  timezone: 'America/Denver',
+  businessName: '',
+  timezone: '', // Blank - user picks
   salesInputMode: 'NET_SALES_EX_TAX',
-  targetCogsPct: 0.35,
+  targetCogsPct: 0.30,
   targetFeesPct: 0.03,
-  monthlyFixedNut: 15500,
+  monthlyFixedNut: 0,
   // NUT breakdown defaults
   nutRent: 0,
   nutUtilities: 0,
@@ -159,22 +159,22 @@ export const DEFAULT_SETTINGS: Omit<Settings, 'id'> = {
   monthlyOwnerDrawGoal: 0,
   openHoursTemplate: {
     mon: 0,
-    tue: 8,
-    wed: 8,
-    thu: 8,
-    fri: 8,
-    sat: 8,
-    sun: 5,
+    tue: 0,
+    wed: 0,
+    thu: 0,
+    fri: 0,
+    sat: 0,
+    sun: 0,
   },
-  storeCloseHour: 16, // 4 PM default
+  storeCloseHour: undefined, // Blank - user picks
   enableTrueHealth: true,
   enableSpreading: true,
   // Cash snapshot - null by default (not set)
   cashSnapshotAmount: null,
   cashSnapshotAsOf: null,
-  // Year start cash - default to Jan 1 of current year
+  // Year start cash - default to today
   yearStartCashAmount: null,
-  yearStartCashDate: `${new Date().getFullYear()}-01-01`,
+  yearStartCashDate: new Date().toISOString().split('T')[0], // Today
   // Reserve thresholds
   operatingFloorCash: 0,
   targetReserveCash: 100000,
@@ -213,6 +213,7 @@ export interface DashboardData {
   asOfDate: string;
   asOfDay: number;
   salesNotEntered: boolean;
+  avgDailySales: number | null;
   // Pit-board data
   pitBoard: {
     dailyNeeded: number;
