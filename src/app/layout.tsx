@@ -30,6 +30,14 @@ export async function generateMetadata(): Promise<Metadata> {
         siteName: 'TrueGauge',
         type: 'website',
         url: 'https://truegauge.app',
+        images: [
+          {
+            url: 'https://truegauge.app/og-image.png',
+            width: 1200,
+            height: 630,
+            alt: 'TrueGauge - Precision Business Health',
+          },
+        ],
       },
       twitter: {
         card: 'summary_large_image',
