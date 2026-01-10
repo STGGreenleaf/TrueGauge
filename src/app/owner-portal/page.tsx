@@ -111,9 +111,15 @@ export default function OwnerPortal() {
   const [expandedWidget, setExpandedWidget] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
+  const [animationDuration, setAnimationDuration] = useState(3000);
 
   useEffect(() => {
     fetchData();
+    // Fetch animation duration
+    fetch('/api/settings/splash-duration')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => data && setAnimationDuration(data.duration))
+      .catch(() => {});
   }, []);
 
   const fetchData = async () => {
@@ -202,9 +208,40 @@ export default function OwnerPortal() {
       
       <div className="max-w-6xl mx-auto px-4 py-8 pt-20">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">Owner Portal</h1>
-          <p className="text-zinc-500 text-sm mt-1">Platform analytics and user feedback</p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Owner Portal</h1>
+            <p className="text-zinc-500 text-sm mt-1">Platform analytics and user feedback</p>
+          </div>
+          
+          {/* Animation Duration Control */}
+          <div className="flex flex-col items-end gap-1 p-3 rounded-lg border border-zinc-800 bg-zinc-900/50">
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] tracking-widest text-zinc-500 uppercase">Animation Duration</span>
+              <span className="text-sm font-medium text-cyan-400">{(animationDuration / 1000).toFixed(1)}s</span>
+            </div>
+            <input
+              type="range"
+              min="1000"
+              max="8000"
+              step="500"
+              value={animationDuration}
+              onChange={(e) => {
+                const newDuration = parseInt(e.target.value);
+                setAnimationDuration(newDuration);
+                fetch('/api/settings/splash-duration', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ duration: newDuration }),
+                });
+              }}
+              className="w-32 h-1 bg-zinc-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-500"
+            />
+            <div className="flex justify-between w-32 text-[9px] text-zinc-600">
+              <span>1s</span>
+              <span>8s</span>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
