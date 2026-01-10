@@ -147,10 +147,14 @@ export async function GET(request: Request) {
         console.error('Auth callback DB error:', dbError);
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      // Force redirect to dashboard, not the 'next' param
+      const redirectUrl = new URL('/', origin);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+  const errorUrl = new URL('/login', origin);
+  errorUrl.searchParams.set('error', 'auth_failed');
+  return NextResponse.redirect(errorUrl)
 }
