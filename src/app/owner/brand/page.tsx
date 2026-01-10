@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Nav } from '@/components/Nav';
 import { Button } from '@/components/ui/button';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { 
   Palette, 
   Type, 
@@ -810,6 +811,17 @@ export default function BrandGuidelinesPage() {
               <div className="mt-6 pt-4 border-t border-zinc-800">
                 <p className="text-xs text-green-400 mb-2">✓ Icons updated</p>
                 <p className="text-xs text-zinc-500">Gauge at 85% coverage with glossy glass effect. All sizes generated.</p>
+              </div>
+            </div>
+
+            {/* PWA Install Prompt Preview */}
+            <div className="p-6 rounded-xl bg-zinc-800/50 border border-cyan-500/20">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full">Download App Prompt</span>
+              </div>
+              <p className="text-xs text-zinc-500 mb-4">This popup reminds users weekly to install the app until dismissed</p>
+              <div className="flex justify-center">
+                <PWAInstallPrompt preview={true} />
               </div>
             </div>
 

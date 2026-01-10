@@ -9,6 +9,7 @@ import { Plus, CalendarDays } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
 import { Nav } from '@/components/Nav';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -1092,6 +1093,9 @@ export default function Dashboard() {
           onComplete={() => setShowAnimation(false)}
         />
       )}
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }
