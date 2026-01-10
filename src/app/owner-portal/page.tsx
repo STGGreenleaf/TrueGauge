@@ -24,7 +24,10 @@ import {
   Flame,
   Calendar,
   MousePointer,
-  Eye
+  Eye,
+  Mail,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
 interface FeedbackItem {
@@ -104,7 +107,7 @@ const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }
 export default function OwnerPortal() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'inbox' | 'analytics' | 'stores'>('analytics');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'analytics' | 'stores' | 'emails'>('analytics');
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [expandedFeedback, setExpandedFeedback] = useState<string | null>(null);
@@ -283,6 +286,17 @@ export default function OwnerPortal() {
                 {unreadCount}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setActiveTab('emails')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'emails' 
+                ? 'bg-cyan-500/20 text-cyan-400' 
+                : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            Emails
           </button>
         </div>
 
@@ -816,6 +830,138 @@ export default function OwnerPortal() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Emails Tab */}
+        {activeTab === 'emails' && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Email Templates</h3>
+                  <p className="text-sm text-zinc-500 mt-1">Customize authentication emails sent to users</p>
+                </div>
+                <a
+                  href="https://supabase.com/dashboard/project/rkrlbnztlzlovfcakawc/auth/templates"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Edit in Supabase
+                </a>
+              </div>
+
+              <div className="grid gap-4">
+                {/* Confirm Signup */}
+                <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-zinc-200">Confirm Signup</h4>
+                        <p className="text-xs text-zinc-500">Sent when a new user signs up with email</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 rounded-lg p-4 text-sm">
+                    <p className="text-zinc-400 mb-2">Subject: <span className="text-zinc-300">Confirm your TrueGauge account</span></p>
+                    <div className="border-t border-zinc-700 pt-3 mt-2">
+                      <p className="text-zinc-500 text-xs mb-2">Preview:</p>
+                      <div className="text-zinc-300 space-y-2">
+                        <p>Welcome to <span className="text-cyan-400 font-bold">TRUE</span><span className="text-zinc-400">GAUGE</span></p>
+                        <p className="text-zinc-400">Click the link below to confirm your account and start tracking your business health.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Magic Link */}
+                <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                        <Zap className="w-5 h-5 text-violet-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-zinc-200">Magic Link</h4>
+                        <p className="text-xs text-zinc-500">Sent for passwordless sign-in</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 rounded-lg p-4 text-sm">
+                    <p className="text-zinc-400 mb-2">Subject: <span className="text-zinc-300">Your TrueGauge login link</span></p>
+                    <div className="border-t border-zinc-700 pt-3 mt-2">
+                      <p className="text-zinc-500 text-xs mb-2">Preview:</p>
+                      <div className="text-zinc-300 space-y-2">
+                        <p><span className="text-cyan-400 font-bold">TRUE</span><span className="text-zinc-400">GAUGE</span></p>
+                        <p className="text-zinc-400">Click the magic link below to sign in instantly. No password needed.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password Reset */}
+                <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                        <Mail className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-zinc-200">Password Reset</h4>
+                        <p className="text-xs text-zinc-500">Sent when user requests password reset</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 rounded-lg p-4 text-sm">
+                    <p className="text-zinc-400 mb-2">Subject: <span className="text-zinc-300">Reset your TrueGauge password</span></p>
+                    <div className="border-t border-zinc-700 pt-3 mt-2">
+                      <p className="text-zinc-500 text-xs mb-2">Preview:</p>
+                      <div className="text-zinc-300 space-y-2">
+                        <p><span className="text-cyan-400 font-bold">TRUE</span><span className="text-zinc-400">GAUGE</span></p>
+                        <p className="text-zinc-400">Click the link below to reset your password. This link expires in 24 hours.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Invite User */}
+                <div className="rounded-lg border border-zinc-700 bg-zinc-800/50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-zinc-200">Invite User</h4>
+                        <p className="text-xs text-zinc-500">Sent when inviting team members</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-900 rounded-lg p-4 text-sm">
+                    <p className="text-zinc-400 mb-2">Subject: <span className="text-zinc-300">You&apos;ve been invited to TrueGauge</span></p>
+                    <div className="border-t border-zinc-700 pt-3 mt-2">
+                      <p className="text-zinc-500 text-xs mb-2">Preview:</p>
+                      <div className="text-zinc-300 space-y-2">
+                        <p><span className="text-cyan-400 font-bold">TRUE</span><span className="text-zinc-400">GAUGE</span></p>
+                        <p className="text-zinc-400">You&apos;ve been invited to join a team on TrueGauge. Click below to accept.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 rounded-lg bg-cyan-500/5 border border-cyan-500/20">
+                <p className="text-sm text-cyan-400 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  To fully customize email templates with HTML, edit them directly in Supabase Dashboard.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>
