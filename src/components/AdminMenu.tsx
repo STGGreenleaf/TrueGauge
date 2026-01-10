@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, X, Eye, FileText } from 'lucide-react';
+import { Menu, X, Eye, FileText, Palette } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PulseIndicator } from '@/components/PulseIndicator';
 
@@ -104,6 +104,15 @@ export function AdminMenu({
               >
                 <FileText className="h-4 w-4" />
                 <div className="text-sm font-medium">Operator&apos;s Manual</div>
+              </a>
+
+              {/* Brand Guidelines */}
+              <a
+                href="/owner/brand"
+                className="w-full flex items-center gap-3 p-3 rounded-md transition-colors hover:bg-zinc-800 text-zinc-300"
+              >
+                <Palette className="h-4 w-4" />
+                <div className="text-sm font-medium">Brand Guidelines</div>
               </a>
             </div>
 

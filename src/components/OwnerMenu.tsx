@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, X, Eye, Sparkles, LayoutDashboard, Users, ChevronRight } from 'lucide-react';
+import { Menu, X, Eye, Sparkles, LayoutDashboard, Palette, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OwnerMenuProps {
@@ -128,6 +128,22 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
                 <div className="text-left">
                   <div className="text-sm font-medium">Owner Portal</div>
                   <div className="text-xs text-zinc-500">Analytics & Feedback</div>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
+              </button>
+
+              {/* Brand Guidelines */}
+              <button
+                onClick={() => {
+                  window.location.href = '/owner/brand';
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
+              >
+                <Palette className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Brand Guidelines</div>
+                  <div className="text-xs text-zinc-500">Colors, logos, social cards</div>
                 </div>
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
               </button>

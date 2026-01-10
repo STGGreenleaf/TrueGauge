@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import brandConfig from "@/lib/brand-config.json";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TrueGauge",
-  description: "Business health dashboard for smart operators",
+  title: brandConfig.seoTitle,
+  description: brandConfig.seoDescription,
+  keywords: brandConfig.seoKeywords,
+  openGraph: {
+    title: brandConfig.ogTitle,
+    description: brandConfig.ogDescription,
+    siteName: 'TrueGauge',
+    type: 'website',
+    url: 'https://truegauge.app',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: brandConfig.ogTitle,
+    description: brandConfig.ogDescription,
+  },
+  robots: {
+    index: brandConfig.robotsIndex,
+    follow: brandConfig.robotsFollow,
+  },
   icons: {
     icon: [
       { url: "/favicon.png", sizes: "32x32", type: "image/png" },
