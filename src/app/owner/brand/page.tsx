@@ -93,22 +93,51 @@ export default function BrandGuidelinesPage() {
       return;
     }
     
-    // Capture thumbnail
+    // Capture thumbnail using canvas (same approach as export)
     let thumbnail: string | null = null;
-    const previewEl = document.getElementById('og-preview');
-    if (previewEl) {
-      try {
-        const html2canvas = (await import('html2canvas')).default;
-        const canvas = await html2canvas(previewEl, {
-          backgroundColor: '#000',
-          scale: 0.5,
-          useCORS: true,
-          allowTaint: true,
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 157;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // Draw gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 300, 157);
+        gradient.addColorStop(0, '#18181b');
+        gradient.addColorStop(0.5, '#000000');
+        gradient.addColorStop(1, '#18181b');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 300, 157);
+        
+        // Load and draw icon
+        const icon = new window.Image();
+        icon.crossOrigin = 'anonymous';
+        icon.src = '/truegauge_icon.png';
+        
+        await new Promise((resolve) => {
+          icon.onload = resolve;
+          icon.onerror = resolve;
         });
+        
+        // Draw icon centered
+        const iconSize = 60;
+        const iconX = (300 - iconSize) / 2;
+        const iconY = 25;
+        ctx.drawImage(icon, iconX, iconY, iconSize, iconSize);
+        
+        // Draw text
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+        ctx.fillStyle = '#22d3ee';
+        ctx.fillText('TRUE', 120, 115);
+        ctx.fillStyle = '#d4d4d8';
+        ctx.font = '300 24px system-ui, -apple-system, sans-serif';
+        ctx.fillText('GAUGE', 195, 115);
+        
         thumbnail = canvas.toDataURL('image/png');
-      } catch (e) {
-        console.error('Failed to capture thumbnail:', e);
       }
+    } catch (e) {
+      console.error('Failed to capture thumbnail:', e);
     }
     
     const newVariation: SavedVariation = {
