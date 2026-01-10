@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Mail, Lock, Loader2 } from 'lucide-react'
+import { Mail, Lock, Loader2, Github } from 'lucide-react'
 
 type AuthMode = 'signin' | 'signup' | 'magic'
 
@@ -17,6 +17,15 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+  }
+
+  const handleGitHubLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -114,6 +123,15 @@ export default function LoginPage() {
                 />
               </svg>
               Continue with Google
+            </button>
+
+            {/* GitHub OAuth */}
+            <button
+              onClick={handleGitHubLogin}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-medium transition-colors border border-zinc-700"
+            >
+              <Github className="w-5 h-5" />
+              Continue with GitHub
             </button>
 
             {/* Divider */}
