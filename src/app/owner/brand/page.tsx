@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
-  Search
+  Search,
+  Download
 } from 'lucide-react';
 
 const OWNER_EMAIL = 'collingreenleaf@gmail.com';
@@ -68,6 +69,24 @@ export default function BrandGuidelinesPage() {
   const [robotsFollow, setRobotsFollow] = useState(true);
   const [seoSaving, setSeoSaving] = useState(false);
   const [seoSaved, setSeoSaved] = useState(false);
+  
+  // Export preview as image
+  const exportPreview = async () => {
+    const previewEl = document.getElementById('og-preview');
+    if (!previewEl) return;
+    
+    // Use html2canvas dynamically imported
+    const html2canvas = (await import('html2canvas')).default;
+    const canvas = await html2canvas(previewEl, {
+      backgroundColor: '#000',
+      scale: 2, // Higher quality
+    });
+    
+    const link = document.createElement('a');
+    link.download = 'truegauge-social-preview.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
   
   // Load brand config on mount
   useEffect(() => {
@@ -405,8 +424,17 @@ export default function BrandGuidelinesPage() {
           <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 mt-4 space-y-6">
             {/* Top - Preview */}
             <div>
-              <p className="text-xs text-zinc-500 mb-3 uppercase tracking-wider">Preview <span className="text-zinc-600">(1200×630 @ 50%)</span></p>
-              <div className="w-[600px] h-[315px] rounded-t-xl overflow-hidden border border-zinc-700">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Preview <span className="text-zinc-600">(1200×630 @ 50%)</span></p>
+                <button
+                  onClick={exportPreview}
+                  className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-xs text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors"
+                >
+                  <Download className="h-3 w-3" />
+                  Export
+                </button>
+              </div>
+              <div id="og-preview" className="w-[600px] h-[315px] rounded-t-xl overflow-hidden border border-zinc-700">
                 {ogImage ? (
                   <img src={ogImage} alt="OG Preview" className="w-full h-full object-cover" />
                 ) : (
