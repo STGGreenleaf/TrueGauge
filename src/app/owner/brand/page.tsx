@@ -51,8 +51,14 @@ export default function BrandGuidelinesPage() {
   const [loading, setLoading] = useState(true);
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
   
-  // Collapsible sections - all closed by default
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  // Collapsible sections - persist state in localStorage
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('brandDrawerState');
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   
   // Social card editable text
   const [ogTitle, setOgTitle] = useState('TrueGauge - Precision Business Health');
@@ -70,37 +76,14 @@ export default function BrandGuidelinesPage() {
   const [seoSaving, setSeoSaving] = useState(false);
   const [seoSaved, setSeoSaved] = useState(false);
   
-  // Export preview as image
-  const exportPreview = async () => {
-    const previewEl = document.getElementById('og-preview');
-    if (!previewEl) {
-      alert('Preview element not found');
-      return;
-    }
-    
-    try {
-      // Use html2canvas dynamically imported
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(previewEl, {
-        backgroundColor: '#000',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-      });
-      
-      // Create download link
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = 'truegauge-social-preview.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('Export failed - check console for details');
-    }
+  // Export preview - just download the og-image.png we already have
+  const exportPreview = () => {
+    const link = document.createElement('a');
+    link.href = '/og-image.png';
+    link.download = 'truegauge-social-preview.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   // Load brand config on mount
@@ -138,7 +121,11 @@ export default function BrandGuidelinesPage() {
   };
   
   const toggleSection = (section: string) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setOpenSections(prev => {
+      const newState = { ...prev, [section]: !prev[section] };
+      localStorage.setItem('brandDrawerState', JSON.stringify(newState));
+      return newState;
+    });
   };
   
   const saveSocialSettings = async () => {
