@@ -66,7 +66,9 @@ export default function LoginPage() {
         window.location.href = '/'
       }
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'An error occurred' })
+      console.error('Auth error:', error)
+      const errorText = error?.message || error?.error_description || JSON.stringify(error) || 'An error occurred'
+      setMessage({ type: 'error', text: errorText })
     } finally {
       setLoading(false)
     }
