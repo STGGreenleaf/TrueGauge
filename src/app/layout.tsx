@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import brandConfig from "@/lib/brand-config.json";
+import prisma from "@/lib/db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,35 +13,57 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: brandConfig.seoTitle,
-  description: brandConfig.seoDescription,
-  keywords: brandConfig.seoKeywords,
-  openGraph: {
-    title: brandConfig.ogTitle,
-    description: brandConfig.ogDescription,
-    siteName: 'TrueGauge',
-    type: 'website',
-    url: 'https://truegauge.app',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: brandConfig.ogTitle,
-    description: brandConfig.ogDescription,
-  },
-  robots: {
-    index: brandConfig.robotsIndex,
-    follow: brandConfig.robotsFollow,
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-  },
-};
+// Dynamic metadata from Supabase
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await prisma.settings.findUnique({
+      where: { organizationId: 'showcase-template' },
+    });
+    
+    return {
+      title: settings?.seoTitle || 'TrueGauge',
+      description: settings?.seoDescription || 'Business health dashboard for smart operators',
+      keywords: settings?.seoKeywords?.split(', ') || ['business dashboard'],
+      openGraph: {
+        title: settings?.ogTitle || 'TrueGauge - Precision Business Health',
+        description: settings?.ogDescription || 'Your instrument panel for business clarity',
+        siteName: 'TrueGauge',
+        type: 'website',
+        url: 'https://truegauge.app',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: settings?.ogTitle || 'TrueGauge - Precision Business Health',
+        description: settings?.ogDescription || 'Your instrument panel for business clarity',
+      },
+      robots: {
+        index: settings?.robotsIndex ?? true,
+        follow: settings?.robotsFollow ?? true,
+      },
+      icons: {
+        icon: [
+          { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+          { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+          { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+        apple: "/apple-touch-icon.png",
+      },
+    };
+  } catch {
+    return {
+      title: 'TrueGauge',
+      description: 'Business health dashboard for smart operators',
+      icons: {
+        icon: [
+          { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+          { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+          { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+        apple: "/apple-touch-icon.png",
+      },
+    };
+  }
+}
 
 export default function RootLayout({
   children,
