@@ -558,12 +558,12 @@ export default function BrandGuidelinesPage() {
                     className="w-full h-full flex flex-col items-center justify-center gap-4"
                     style={{ background: 'linear-gradient(135deg, #18181b 0%, #000000 50%, #18181b 100%)' }}
                   >
-                    <Image 
+                    <img 
                       src="/truegauge_icon.png" 
                       alt="TrueGauge" 
                       width={120} 
                       height={120}
-                      className="drop-shadow-[0_0_30px_rgba(34,211,238,0.3)]"
+                      style={{ filter: 'drop-shadow(0 0 30px rgba(34,211,238,0.3))' }}
                     />
                     <span className="text-5xl font-bold tracking-tight">
                       <span className="text-cyan-400" style={{ textShadow: '0 0 40px #22d3ee50' }}>TRUE</span>
