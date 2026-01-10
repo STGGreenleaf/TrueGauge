@@ -66,8 +66,8 @@ export default function TermsPage() {
             <h2 className="text-lg font-semibold text-white mb-3">8. Contact</h2>
             <p>
               For questions about these Terms, please contact us at{' '}
-              <a href="mailto:collingreenleaf@gmail.com" className="text-cyan-400 hover:underline">
-                collingreenleaf@gmail.com
+              <a href="mailto:hello@colsha.co" className="text-cyan-400 hover:underline">
+                hello@colsha.co
               </a>
             </p>
           </section>
