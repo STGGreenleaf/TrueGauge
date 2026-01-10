@@ -18,7 +18,10 @@ import {
   ChevronRight,
   ExternalLink,
   Search,
-  Download
+  Download,
+  Trash2,
+  Star,
+  Plus
 } from 'lucide-react';
 
 const OWNER_EMAIL = 'collingreenleaf@gmail.com';
@@ -66,6 +69,62 @@ export default function BrandGuidelinesPage() {
   const [ogImage, setOgImage] = useState<string | null>(null);
   const [socialSaving, setSocialSaving] = useState(false);
   const [socialSaved, setSocialSaved] = useState(false);
+  
+  // Saved variations (up to 3)
+  interface SavedVariation {
+    id: string;
+    title: string;
+    description: string;
+    image: string | null;
+    isMain: boolean;
+  }
+  const [savedVariations, setSavedVariations] = useState<SavedVariation[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ogVariations');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  
+  const saveCurrentAsVariation = () => {
+    if (savedVariations.length >= 3) {
+      alert('Maximum 3 variations. Delete one to add more.');
+      return;
+    }
+    const newVariation: SavedVariation = {
+      id: Date.now().toString(),
+      title: ogTitle,
+      description: ogDescription,
+      image: ogImage,
+      isMain: savedVariations.length === 0,
+    };
+    const updated = [...savedVariations, newVariation];
+    setSavedVariations(updated);
+    localStorage.setItem('ogVariations', JSON.stringify(updated));
+  };
+  
+  const setAsMain = (id: string) => {
+    const updated = savedVariations.map(v => ({ ...v, isMain: v.id === id }));
+    setSavedVariations(updated);
+    localStorage.setItem('ogVariations', JSON.stringify(updated));
+    // Load this variation into the editor
+    const variation = savedVariations.find(v => v.id === id);
+    if (variation) {
+      setOgTitle(variation.title);
+      setOgDescription(variation.description);
+      setOgImage(variation.image);
+    }
+  };
+  
+  const deleteVariation = (id: string) => {
+    const updated = savedVariations.filter(v => v.id !== id);
+    // If we deleted the main one, make the first remaining one main
+    if (updated.length > 0 && !updated.some(v => v.isMain)) {
+      updated[0].isMain = true;
+    }
+    setSavedVariations(updated);
+    localStorage.setItem('ogVariations', JSON.stringify(updated));
+  };
   
   // SEO settings
   const [seoTitle, setSeoTitle] = useState('TrueGauge');
@@ -524,15 +583,64 @@ export default function BrandGuidelinesPage() {
                   />
                 </div>
                 
-                <Button 
-                  onClick={saveSocialSettings}
-                  disabled={socialSaving}
-                  className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium"
-                >
-                  {socialSaving ? 'Saving...' : socialSaved ? '✓ Saved' : 'Save Changes'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={saveSocialSettings}
+                    disabled={socialSaving}
+                    className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-black font-medium"
+                  >
+                    {socialSaving ? 'Saving...' : socialSaved ? '✓ Saved' : 'Save Changes'}
+                  </Button>
+                  <button
+                    onClick={saveCurrentAsVariation}
+                    disabled={savedVariations.length >= 3}
+                    className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Save as variation"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
+            
+            {/* Saved Variations */}
+            {savedVariations.length > 0 && (
+            <div>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Saved Variations ({savedVariations.length}/3)</p>
+              <div className="grid grid-cols-3 gap-3">
+                {savedVariations.map((variation) => (
+                  <div 
+                    key={variation.id}
+                    className={`relative p-2 rounded-lg border ${variation.isMain ? 'border-cyan-500 bg-cyan-500/10' : 'border-zinc-700 bg-zinc-800/50'}`}
+                  >
+                    {variation.isMain && (
+                      <div className="absolute -top-2 -right-2 bg-cyan-500 rounded-full p-1">
+                        <Star className="h-2.5 w-2.5 text-black" />
+                      </div>
+                    )}
+                    <p className="text-xs text-white truncate mb-1">{variation.title}</p>
+                    <p className="text-[10px] text-zinc-500 truncate mb-2">{variation.description}</p>
+                    <div className="flex gap-1">
+                      {!variation.isMain && (
+                        <button
+                          onClick={() => setAsMain(variation.id)}
+                          className="flex-1 py-1 px-2 bg-zinc-700 rounded text-[10px] text-zinc-300 hover:bg-zinc-600 transition-colors"
+                        >
+                          Set Main
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteVariation(variation.id)}
+                        className="py-1 px-2 bg-red-500/20 rounded text-red-400 hover:bg-red-500/30 transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            )}
           </div>
           )}
         </section>
