@@ -2187,6 +2187,7 @@ export default function SettingsPage() {
         </button>
 
         {/* Sign Out */}
+        <div className="pt-8" />
         <button
           onClick={async () => {
             const supabase = createClient();
