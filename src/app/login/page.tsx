@@ -148,7 +148,7 @@ export default function LoginPage() {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      required={mode !== 'magic'}
+                      required
                       minLength={6}
                       className="w-full pl-10 pr-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                     />
