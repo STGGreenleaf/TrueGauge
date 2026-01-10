@@ -149,6 +149,15 @@ See `CHECKLIST.md` for current priorities.
 See `ROADMAP.md` for phase status and AI collaboration rules.
 
 ## Changelog
+- 2026-01-09: **Milestone 3: Brand & Polish** complete
+  - Brand Guidelines page with social preview editor, canvas-based export, saved variations (up to 3) with thumbnails
+  - Favicon updated to transparent PNG (16, 32, 48, 192, 512px + Apple Touch)
+  - og-image.png for social sharing (1200×630) with cache-busting
+  - Privacy Policy page (/privacy) and Terms of Service page (/terms)
+  - Google OAuth consent screen branded (TrueGauge logo, hello@colsha.co contact)
+  - Operator's Manual added to Owner Menu
+  - Splash duration configurable via Owner Portal (persists to Supabase)
+  - Drawer state persistence in localStorage
 - 2026-01-04: **Milestone 2: Burn Analysis & Runway Clarity** complete
   - Burn Analysis panel in Liquidity Card header (Monthly burn, Annual gap, Floor|Zero date, Gap to BE)
   - Speech bubble tooltips with detailed explanations on click
