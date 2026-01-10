@@ -1,9 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Mail, Lock, Loader2 } from 'lucide-react'
+
+type AuthMode = 'signin' | 'signup' | 'magic'
 
 export default function LoginPage() {
   const supabase = createClient()
+  const [mode, setMode] = useState<AuthMode>('signin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -12,6 +21,46 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     })
+  }
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      if (mode === 'magic') {
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+        if (error) throw error
+        setMessage({ type: 'success', text: 'Check your email for the magic link!' })
+      } else if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        })
+        if (error) throw error
+        setMessage({ type: 'success', text: 'Check your email to confirm your account!' })
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (error) throw error
+        window.location.href = '/'
+      }
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || 'An error occurred' })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -41,6 +90,7 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {/* Google OAuth */}
             <button
               onClick={handleGoogleLogin}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-white hover:bg-zinc-100 text-black font-medium transition-colors"
@@ -65,6 +115,102 @@ export default function LoginPage() {
               </svg>
               Continue with Google
             </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="text-xs text-zinc-500 uppercase">or</span>
+              <div className="flex-1 h-px bg-zinc-800" />
+            </div>
+
+            {/* Email Form */}
+            <form onSubmit={handleEmailAuth} className="space-y-4">
+              <div>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                  <input
+                    type="email"
+                    placeholder="Email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                  />
+                </div>
+              </div>
+
+              {mode !== 'magic' && (
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required={mode !== 'magic'}
+                      minLength={6}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {message && (
+                <div className={`p-3 rounded-lg text-sm ${
+                  message.type === 'success' 
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}>
+                  {message.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-black font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {mode === 'magic' ? 'Send Magic Link' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+              </button>
+            </form>
+
+            {/* Mode Toggles */}
+            <div className="flex flex-col items-center gap-2 text-sm">
+              {mode === 'signin' && (
+                <>
+                  <button
+                    onClick={() => setMode('magic')}
+                    className="text-zinc-400 hover:text-cyan-400 transition-colors"
+                  >
+                    Sign in with magic link instead
+                  </button>
+                  <button
+                    onClick={() => setMode('signup')}
+                    className="text-zinc-400 hover:text-cyan-400 transition-colors"
+                  >
+                    Don&apos;t have an account? <span className="text-cyan-400">Sign up</span>
+                  </button>
+                </>
+              )}
+              {mode === 'signup' && (
+                <button
+                  onClick={() => setMode('signin')}
+                  className="text-zinc-400 hover:text-cyan-400 transition-colors"
+                >
+                  Already have an account? <span className="text-cyan-400">Sign in</span>
+                </button>
+              )}
+              {mode === 'magic' && (
+                <button
+                  onClick={() => setMode('signin')}
+                  className="text-zinc-400 hover:text-cyan-400 transition-colors"
+                >
+                  Sign in with password instead
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
