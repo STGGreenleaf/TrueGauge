@@ -151,7 +151,9 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
               {/* Animation */}
               <button
                 onClick={() => {
-                  window.dispatchEvent(new CustomEvent('show-splash'));
+                  // Navigate to dashboard with animation trigger
+                  sessionStorage.removeItem('splashShown');
+                  window.location.href = '/?showAnimation=true';
                   setIsOpen(false);
                 }}
                 className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
