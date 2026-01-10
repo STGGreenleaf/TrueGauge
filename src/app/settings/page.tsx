@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2 } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2, LogOut } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
 import { PulseIndicator } from '@/components/PulseIndicator';
@@ -2183,6 +2184,19 @@ export default function SettingsPage() {
           <Landmark className="h-4 w-4" />
           Manage Vendors
           <PulseIndicator show={!hasVendors} size="sm" />
+        </button>
+
+        {/* Sign Out */}
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            router.push('/login');
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-900/30 bg-red-950/20 py-4 font-light tracking-wide text-red-400 transition-all hover:border-red-800/50 hover:bg-red-950/30 hover:text-red-300"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
         </button>
       </div>
     </div>
