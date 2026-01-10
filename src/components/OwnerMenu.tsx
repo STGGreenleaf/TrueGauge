@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Menu, X, Eye, Sparkles, LayoutDashboard, Palette, ChevronRight, FileText } from 'lucide-react';
+import { Menu, X, Eye, Sparkles, LayoutDashboard, Palette, ChevronRight, FileText, Play, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface OwnerMenuProps {
@@ -100,22 +100,6 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
                 </div>
               </button>
 
-              {/* PWA Intro */}
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('show-splash'));
-                  setIsOpen(false);
-                }}
-                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
-              >
-                <Sparkles className="h-4 w-4" />
-                <div className="text-left">
-                  <div className="text-sm font-medium">PWA Intro</div>
-                  <div className="text-xs text-zinc-500">Preview animation</div>
-                </div>
-                <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
-              </button>
-
               {/* Owner Portal */}
               <button
                 onClick={() => {
@@ -160,6 +144,38 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
                 <div className="text-left">
                   <div className="text-sm font-medium">Operator&apos;s Manual</div>
                   <div className="text-xs text-zinc-500">Documentation & help</div>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
+              </button>
+
+              {/* Animation */}
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('show-splash'));
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
+              >
+                <Play className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">Animation</div>
+                  <div className="text-xs text-zinc-500">Play startup sequence</div>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
+              </button>
+
+              {/* PWA Intro */}
+              <button
+                onClick={() => {
+                  window.location.href = '/splash';
+                  setIsOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-md hover:bg-zinc-800 text-zinc-300 transition-colors"
+              >
+                <Smartphone className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="text-sm font-medium">PWA Intro</div>
+                  <div className="text-xs text-zinc-500">Static splash screen</div>
                 </div>
                 <ChevronRight className="h-4 w-4 ml-auto text-zinc-600" />
               </button>
