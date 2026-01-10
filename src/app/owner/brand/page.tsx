@@ -554,7 +554,10 @@ export default function BrandGuidelinesPage() {
                 {ogImage ? (
                   <img src={ogImage} alt="OG Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-zinc-900 via-black to-zinc-900 flex flex-col items-center justify-center gap-4">
+                  <div 
+                    className="w-full h-full flex flex-col items-center justify-center gap-4"
+                    style={{ background: 'linear-gradient(135deg, #18181b 0%, #000000 50%, #18181b 100%)' }}
+                  >
                     <Image 
                       src="/truegauge_icon.png" 
                       alt="TrueGauge" 
