@@ -21,23 +21,14 @@ export default function LoginPage() {
     }
   }, [])
 
-  // Listen for auth state changes - redirect to dashboard when logged in
+  // Check auth once on mount - redirect if already logged in
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        router.replace('/')
-      }
-    })
-    
-    // Also check on mount
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        router.replace('/')
+        window.location.href = '/'
       }
     })
-    
-    return () => subscription.unsubscribe()
-  }, [supabase, router])
+  }, [])
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
