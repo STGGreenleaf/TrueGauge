@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -21,17 +24,20 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (user) {
+      // Compute isOwner server-side - never expose email to client for comparison
+      const isOwner = OWNER_USER_ID ? user.id === OWNER_USER_ID : false;
+      
       return NextResponse.json({
         id: user.id,
-        email: user.email,
-        name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        name: user.user_metadata?.full_name || 'User',
         avatarUrl: user.user_metadata?.avatar_url,
+        isOwner,
       });
     }
     
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   } catch (error) {
-    console.error('Error getting user:', error);
+    console.error('Auth check failed');
     return NextResponse.json({ error: 'Failed to get user' }, { status: 500 });
   }
 }

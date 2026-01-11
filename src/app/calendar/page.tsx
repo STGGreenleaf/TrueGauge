@@ -49,7 +49,7 @@ function CalendarContent() {
       return new Date(dateParam + 'T12:00:00');
     }
     if (isShowcase) {
-      return new Date('2025-08-15T12:00:00');
+      return new Date('2025-08-08T12:00:00');
     }
     return new Date();
   };

@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
 
 // GET - Fetch feedback (owner gets all, users get their own with replies)
 export async function GET(request: Request) {
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
 
     // Owner sees all feedback
-    if (user.email === OWNER_EMAIL) {
+    if (OWNER_USER_ID && user.id === OWNER_USER_ID) {
       const feedback = await prisma.feedback.findMany({
         where: status ? { status } : undefined,
         include: {
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const user = await getSession();
-    if (!user || user.email !== OWNER_EMAIL) {
+    if (!user || !OWNER_USER_ID || user.id !== OWNER_USER_ID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -126,7 +127,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const user = await getSession();
-    if (!user || user.email !== OWNER_EMAIL) {
+    if (!user || !OWNER_USER_ID || user.id !== OWNER_USER_ID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
 
 // GET - Owner-only platform analytics
 export async function GET() {
   try {
     const user = await getSession();
-    if (!user || user.email !== OWNER_EMAIL) {
+    if (!user || !OWNER_USER_ID || user.id !== OWNER_USER_ID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -11,6 +11,7 @@ export interface LiquidityReceiverProps {
   balances: WeeklyBalance[];
   deltas: WeeklyDelta[];
   lyEstimates: WeeklyEstimate[];
+  weeklyActualSales?: Array<{ weekEnd: string; value: number; hasData: boolean }>;
   estBalanceSeries: DailyBalancePoint[];
   mergedBalanceSeries: DailyBalancePoint[];
   actualBalanceSeries: DailyBalancePoint[];
@@ -103,6 +104,7 @@ export function LiquidityReceiverV3({
   balances,
   deltas,
   lyEstimates,
+  weeklyActualSales,
   estBalanceSeries,
   mergedBalanceSeries,
   actualBalanceSeries,
@@ -186,8 +188,10 @@ export function LiquidityReceiverV3({
     windowEnd = Math.min(totalWeeks - 1, windowStart + lensWidth - 1);
   }
   
-  // Slice visible data
-  const visibleBalances = balances.slice(windowStart, windowEnd + 1);
+  // Slice visible data - clamp to actual array lengths to avoid empty slices
+  const balanceStart = Math.max(0, windowStart - (lyEstimates.length - balances.length));
+  const balanceEnd = Math.min(balances.length - 1, windowEnd - (lyEstimates.length - balances.length));
+  const visibleBalances = balances.slice(Math.max(0, balanceStart), balanceEnd + 1);
   const visibleDeltas = deltas.slice(windowStart, windowEnd + 1);
   const visibleLY = lyEstimates.slice(windowStart, windowEnd + 1);
   
@@ -239,6 +243,7 @@ export function LiquidityReceiverV3({
   }, [nutSeries, windowStart, windowEnd]);
   
   // Calculate visible-slice scaling for Balance lane
+  // Always include FLOOR, NUT, TARGET so all threshold lines are visible
   const balanceScale = useMemo(() => {
     const values: number[] = [];
     visibleBalances.forEach(b => values.push(b.balance));
@@ -247,21 +252,25 @@ export function LiquidityReceiverV3({
     }
     if (values.length === 0) return { min: 0, max: 100000, range: 100000 };
     
-    let min = Math.min(...values);
-    let max = Math.max(...values);
+    const dataMin = Math.min(...values);
+    const dataMax = Math.max(...values);
     
-    // Include floor and target in scale (with padding)
+    // Include FLOOR, NUT and TARGET in scale so all lines are visible
+    let min = dataMin;
+    let max = dataMax;
+    
     if (operatingFloor > 0) min = Math.min(min, operatingFloor);
+    if (monthlyNut > 0) min = Math.min(min, monthlyNut);
     if (targetReserve > 0) max = Math.max(max, targetReserve);
     
-    // Add 15% padding to top only, keep min at 0 or floor
+    // 5% padding top and bottom
     const range = max - min || 10000;
-    const padding = range * 0.15;
-    min = Math.max(0, min); // Ensure 0 is at bottom
-    max += padding;
+    const padding = range * 0.05;
+    min = Math.max(0, min - padding);
+    max = max + padding;
     
     return { min, max, range: max - min };
-  }, [visibleBalances, visibleLY, operatingFloor, targetReserve]);
+  }, [visibleBalances, visibleLY, operatingFloor, targetReserve, monthlyNut]);
   
   // Calculate visible-slice scaling for Delta lane (symmetric around zero)
   const deltaScale = useMemo(() => {
@@ -360,47 +369,43 @@ export function LiquidityReceiverV3({
     setLensWidth(lensWidths[activePreset]);
   }, [isMobile, activePreset, lensWidths]);
   
-  // Weighted Y-scale: compress upper range (above midpoint), expand working range (floor to midpoint)
-  // The threshold is dynamically set to midpoint between floor and target for each store
-  // This makes movements in the danger zone (near floor) more visually dramatic
-  const LOWER_WEIGHT = 0.7; // Floor to midpoint gets 70% of visual space
-  const UPPER_WEIGHT = 0.3; // Midpoint to target gets 30% of visual space
-  
-  // Dynamic threshold: midpoint between floor and target (or 50% of target if no floor)
-  const weightThreshold = useMemo(() => {
-    const floor = operatingFloor || 0;
-    const target = targetReserve || 100000;
-    // Midpoint between floor and target
-    return floor + (target - floor) * 0.5;
-  }, [operatingFloor, targetReserve]);
-  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NOW-CENTERED SCALE - Expand middle zone around NOW, compress extremes
+  // ═══════════════════════════════════════════════════════════════════════════
   const normalizeBalance = (value: number, laneHeight: number): number => {
     const { min, max } = balanceScale;
     if (max <= min) return laneHeight / 2;
     
-    // Clamp value to scale bounds
-    const clampedVal = Math.max(min, Math.min(max, value));
+    const pct = (value - min) / (max - min);
     
-    // Weighted scale: if scale spans the threshold, use weighted zones
-    if (max > weightThreshold && min < weightThreshold) {
-      const lowerRange = weightThreshold - min;
-      const upperRange = max - weightThreshold;
-      const lowerHeight = laneHeight * LOWER_WEIGHT;
-      const upperHeight = laneHeight * UPPER_WEIGHT;
-      
-      if (clampedVal <= weightThreshold) {
-        // In lower range (floor to midpoint) - expanded for visibility
-        const pct = (clampedVal - min) / lowerRange;
-        return laneHeight - (pct * lowerHeight);
-      } else {
-        // In upper range (midpoint to target) - compressed
-        const pct = (clampedVal - weightThreshold) / upperRange;
-        return upperHeight - (pct * upperHeight);
-      }
+    // Calculate where NOW sits in the value range (use as center point)
+    const nowPct = (cashNow - min) / (max - min);
+    
+    // Define middle zone: ±20% around NOW (but clamped to valid range)
+    const zoneRadius = 0.20;
+    const middleStart = Math.max(0.05, nowPct - zoneRadius);
+    const middleEnd = Math.min(0.95, nowPct + zoneRadius);
+    
+    // Screen allocation: middle zone gets 60% of screen, centered at 50%
+    const middleScreenStart = 0.20; // Bottom edge of middle zone on screen
+    const middleScreenEnd = 0.80;   // Top edge of middle zone on screen
+    
+    let screenPct: number;
+    if (pct <= middleStart) {
+      // Below middle zone: compress into bottom 20% of screen
+      screenPct = (pct / middleStart) * middleScreenStart;
+    } else if (pct <= middleEnd) {
+      // Middle zone: expand to 60% of screen (20% to 80%)
+      const middleProgress = (pct - middleStart) / (middleEnd - middleStart);
+      screenPct = middleScreenStart + middleProgress * (middleScreenEnd - middleScreenStart);
+    } else {
+      // Above middle zone: compress into top 20% of screen
+      const topProgress = (pct - middleEnd) / (1 - middleEnd);
+      screenPct = middleScreenEnd + topProgress * (1 - middleScreenEnd);
     }
     
-    // Linear fallback if scale doesn't span threshold
-    return laneHeight - ((clampedVal - min) / (max - min)) * laneHeight;
+    // Higher values = lower Y (top of chart)
+    return laneHeight * (1 - screenPct);
   };
   
   const normalizeDelta = (value: number, laneHeight: number): number => {
@@ -617,7 +622,7 @@ export function LiquidityReceiverV3({
           boxShadow: 'inset 0 2px 20px rgba(0,0,0,0.8), 0 0 30px rgba(245, 158, 11, 0.05)',
         }}
       >
-        {/* 5% LEFT - Line Labels (right-justified, dynamic positioning, collision-aware) */}
+        {/* 5% LEFT - Line Labels (each tracks its line, with collision stacking) */}
         <div 
           className="relative pr-2"
           style={{ width: '5%', minWidth: '55px', borderRight: '1px solid rgba(245, 158, 11, 0.1)' }}
@@ -626,62 +631,65 @@ export function LiquidityReceiverV3({
             // Map SVG coordinates to container pixels (container=300px, SVG_H=180)
             const containerHeight = 300;
             const svgToContainer = (svgY: number) => (svgY / SVG_H) * containerHeight;
-            // Get Y position matching the threshold lines in SVG
             const getY = (val: number) => svgToContainer(ROW_C.y + normalizeBalance(val, ROW_C.h));
-            const labelHeight = 16; // Height of each label for collision detection
-            const labelOffset = 5; // Center labels vertically on their line
+            const labelHeight = 11; // Height of label for collision
+            const MIN_SEP = 2; // Minimum pixel separation between labels
             
-            // ROW_C boundaries in container pixels
-            const rowCTop = svgToContainer(ROW_C.y);
-            const rowCBottom = svgToContainer(ROW_C.y + ROW_C.h);
+            // Full column bounds (no dates above, no months below - use full height)
+            const columnTop = 10; // Small padding from top
+            const columnBottom = containerHeight - 20; // Leave room for WEEK label
             
-            // Build labels array with raw positions (positioned at their actual line Y)
+            // Get values (same sources as lines)
+            const nutValue = monthlyNut > 0 ? monthlyNut : (visibleNut.length > 0 ? visibleNut[0].nut : 0);
+            const firstBalance = visibleBalances.length > 0 ? visibleBalances[0].balance : cashNow;
+            const firstCapital = visibleCapital.length > 0 ? visibleCapital[0].capital : 0;
+            const firstEst = visibleEstBalance.length > 0 ? visibleEstBalance[0].balance : 0;
+            
+            // Build labels with raw Y positions, sorted by value (highest first = top)
             const labels: { name: string; color: string; rawY: number; value: number }[] = [];
             if (targetReserve > 0) labels.push({ name: 'TARGET', color: '#8b5cf6', rawY: getY(targetReserve), value: targetReserve });
-            // Use starting balance from estBalanceSeries for CAPITAL label position
-            const startingCapital = estBalanceSeries.length > 0 ? estBalanceSeries[0].balance : 0;
-            if (startingCapital > 0) labels.push({ name: 'CAPITAL', color: '#10b981', rawY: getY(startingCapital), value: startingCapital });
-            if (cashNow > 0) labels.push({ name: 'NOW', color: '#22d3ee', rawY: getY(cashNow), value: cashNow });
-            if (monthlyNut > 0) labels.push({ name: `NUT [~${Math.round(monthlyNut / 1000)}k]`, color: '#f59e0b', rawY: getY(monthlyNut), value: monthlyNut });
+            if (firstCapital > 0) labels.push({ name: 'CAPITAL', color: '#10b981', rawY: getY(firstCapital), value: firstCapital });
+            if (firstEst > 0) labels.push({ name: 'EST', color: '#a1a1aa', rawY: getY(firstEst), value: firstEst });
+            if (firstBalance > 0) labels.push({ name: 'NOW', color: '#22d3ee', rawY: getY(firstBalance), value: firstBalance });
+            if (nutValue > 0) labels.push({ name: 'NUT', color: '#f59e0b', rawY: getY(nutValue), value: nutValue });
+            if (operatingFloor > 0) labels.push({ name: 'FLOOR', color: '#ef4444', rawY: getY(operatingFloor), value: operatingFloor });
             
-            // Clamp raw positions to ROW_C bounds (so labels stay in chart area)
-            labels.forEach(l => {
-              l.rawY = Math.max(rowCTop, Math.min(rowCBottom - 10, l.rawY));
-            });
+            // Sort by value descending (highest value = top of chart)
+            labels.sort((a, b) => b.value - a.value);
             
-            // Sort by Y position (top to bottom)
-            labels.sort((a, b) => a.rawY - b.rawY);
-            
-            // Collision avoidance: push labels down if they overlap, keeping them close to their line
-            const adjustedLabels = labels.reduce<Array<{ name: string; color: string; rawY: number; value: number; adjustedY: number }>>((acc, label) => {
-              let adjustedY = label.rawY;
-              if (acc.length > 0) {
-                const prevBottom = acc[acc.length - 1].adjustedY + labelHeight;
-                if (adjustedY < prevBottom) {
-                  adjustedY = prevBottom;
+            // Collision avoidance: push labels DOWN, use full column height
+            const placed: number[] = [];
+            const adjustedLabels = labels.map(label => {
+              // Clamp raw Y to column bounds first
+              let y = Math.max(columnTop, Math.min(label.rawY, columnBottom - labelHeight));
+              for (const prevY of placed) {
+                if (Math.abs(y - prevY) < labelHeight + MIN_SEP) {
+                  // Push this label below the previous one
+                  y = prevY + labelHeight + MIN_SEP;
                 }
               }
-              // Keep within bounds
-              adjustedY = Math.min(adjustedY, rowCBottom - 10);
-              acc.push({ ...label, adjustedY });
-              return acc;
-            }, []);
+              // Clamp final position to column bounds
+              y = Math.min(y, columnBottom - labelHeight);
+              placed.push(y);
+              return { ...label, adjustedY: y };
+            });
             
-            // Calculate WEEK label position (ROW_B is week blocks)
+            // WEEK label position
             const weekY = svgToContainer(ROW_B.y + ROW_B.h / 2);
             
             return (
               <>
-                {adjustedLabels.map((label) => (
+                {adjustedLabels.map(label => (
                   <div 
                     key={label.name}
-                    className="absolute right-2 text-[9px] font-semibold text-right transition-all duration-500 ease-out"
-                    style={{ top: label.adjustedY - labelOffset, color: label.color }}
+                    className="absolute right-2 text-[9px] font-semibold text-right transition-all duration-300"
+                    style={{ top: label.adjustedY - 3, color: label.color }}
                   >
                     {label.name}
                   </div>
                 ))}
-                {/* WEEK label adjacent to week squares */}
+                
+                {/* WEEK label */}
                 <div 
                   className="absolute right-2 text-[9px] font-semibold text-right"
                   style={{ top: weekY - 6, color: '#71717a' }}
@@ -940,66 +948,118 @@ export function LiquidityReceiverV3({
               opacity={0.5}
             />
             
-            {/* TARGET threshold line (violet) - clips at needle in TODAY mode */}
-            {targetReserve > 0 && (
-              <line
-                x1={8}
-                y1={ROW_C.y + safeNum(normalizeBalance(targetReserve, ROW_C.h), 0)}
-                x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
-                y2={ROW_C.y + safeNum(normalizeBalance(targetReserve, ROW_C.h), 0)}
-                stroke="#8b5cf6"
-                strokeWidth={1}
-                strokeDasharray="6,4"
-                opacity={0.6}
-              />
-            )}
-            
-            {/* NUT threshold line (amber) - stepped line if history exists, flat otherwise */}
-            {monthlyNut > 0 && (
-              visibleNut.length > 1 ? (
-                // Stepped NUT line based on historical snapshots
-                <path
-                  d={visibleNut.map((n, i) => {
-                    const x = getDataX(i, visibleNut.length);
-                    const y = ROW_C.y + safeNum(normalizeBalance(n.nut, ROW_C.h), ROW_C.h / 2);
-                    // Use step pattern: horizontal then vertical
-                    if (i === 0) return `M ${x} ${y}`;
-                    const prevY = ROW_C.y + safeNum(normalizeBalance(visibleNut[i-1].nut, ROW_C.h), ROW_C.h / 2);
-                    return `H ${x} V ${y}`;
-                  }).join(' ')}
-                  fill="none"
-                  stroke="#f59e0b"
-                  strokeWidth={1}
-                  strokeDasharray="6,4"
-                  opacity={0.6}
-                />
-              ) : (
-                // Flat line fallback
-                <line
-                  x1={8}
-                  y1={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
-                  x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
-                  y2={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
-                  stroke="#f59e0b"
-                  strokeWidth={1}
-                  strokeDasharray="6,4"
-                  opacity={0.6}
-                />
-              )
-            )}
-            
-            {/* FLOOR threshold line (red) - clips at needle in TODAY mode */}
-            {operatingFloor > 0 && (
-              <line
-                x1={8}
-                y1={ROW_C.y + safeNum(normalizeBalance(operatingFloor, ROW_C.h), ROW_C.h)}
-                x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
-                y2={ROW_C.y + safeNum(normalizeBalance(operatingFloor, ROW_C.h), ROW_C.h)}
-                stroke="#ef4444"
-                strokeWidth={1}
-                opacity={0.6}
-              />
-            )}
+            {/* Threshold lines with collision avoidance (2px min separation) */}
+            {(() => {
+              const MIN_SEP = 2; // Minimum pixel separation between lines
+              const nutValue = monthlyNut > 0 ? monthlyNut : (visibleNut.length > 0 ? visibleNut[0].nut : 0);
+              const firstCapital = visibleCapital.length > 0 ? visibleCapital[0].capital : 0;
+              
+              // Calculate raw Y positions for horizontal threshold lines
+              const rawTargetY = targetReserve > 0 ? ROW_C.y + safeNum(normalizeBalance(targetReserve, ROW_C.h), 0) : null;
+              const rawCapitalY = firstCapital > 0 ? ROW_C.y + safeNum(normalizeBalance(firstCapital, ROW_C.h), 0) : null;
+              const rawNutY = nutValue > 0 ? ROW_C.y + safeNum(normalizeBalance(nutValue, ROW_C.h), ROW_C.h / 2) : null;
+              const rawFloorY = operatingFloor > 0 ? ROW_C.y + safeNum(normalizeBalance(operatingFloor, ROW_C.h), ROW_C.h) : null;
+              
+              // Build list of lines sorted by value (highest first = top of chart)
+              const lines: { name: string; rawY: number; value: number }[] = [];
+              if (rawTargetY !== null) lines.push({ name: 'target', rawY: rawTargetY, value: targetReserve });
+              if (rawCapitalY !== null) lines.push({ name: 'capital', rawY: rawCapitalY, value: firstCapital });
+              if (rawNutY !== null) lines.push({ name: 'nut', rawY: rawNutY, value: nutValue });
+              if (rawFloorY !== null) lines.push({ name: 'floor', rawY: rawFloorY, value: operatingFloor });
+              
+              lines.sort((a, b) => b.value - a.value); // Highest value first (top)
+              
+              // Collision avoidance: push lines DOWN if overlapping
+              const placed: number[] = [];
+              const adjustedLines: Record<string, number> = {};
+              for (const line of lines) {
+                let y = line.rawY;
+                for (const prevY of placed) {
+                  if (Math.abs(y - prevY) < MIN_SEP) {
+                    y = prevY + MIN_SEP;
+                  }
+                }
+                placed.push(y);
+                adjustedLines[line.name] = y;
+              }
+              
+              const targetY = adjustedLines['target'];
+              const capitalY = adjustedLines['capital'];
+              const nutY = adjustedLines['nut'];
+              const floorY = adjustedLines['floor'];
+              
+              return (
+                <>
+                  {/* TARGET threshold line (violet dashed) */}
+                  {targetY !== undefined && (
+                    <line
+                      x1={8}
+                      y1={targetY}
+                      x2={SVG_W - 8}
+                      y2={targetY}
+                      stroke="#8b5cf6"
+                      strokeWidth={1}
+                      strokeDasharray="6,4"
+                      opacity={0.6}
+                    />
+                  )}
+                  
+                  {/* CAPITAL threshold line (green dashed) */}
+                  {capitalY !== undefined && visibleCapital.length > 0 && (
+                    <>
+                      <path
+                        d={visibleCapital.map((c, i) => {
+                          const x = getDataX(i, visibleCapital.length);
+                          const baseY = ROW_C.y + safeNum(normalizeBalance(c.capital, ROW_C.h), ROW_C.h / 2);
+                          const offset = capitalY - (rawCapitalY ?? 0);
+                          return `${i === 0 ? 'M' : 'L'} ${x} ${baseY + offset}`;
+                        }).join(' ')}
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth={1}
+                        strokeDasharray="4,3"
+                        opacity={0.7}
+                      />
+                      {visibleCapital.length > 1 && (
+                        <circle
+                          cx={getDataX(visibleCapital.length - 1, visibleCapital.length)}
+                          cy={ROW_C.y + safeNum(normalizeBalance(visibleCapital[visibleCapital.length - 1].capital, ROW_C.h), ROW_C.h / 2) + (capitalY - (rawCapitalY ?? 0))}
+                          r={3}
+                          fill="#10b981"
+                        />
+                      )}
+                    </>
+                  )}
+                  
+                  {/* NUT threshold line (amber dashed) - always render if monthlyNut > 0 */}
+                  {nutY !== undefined && (
+                    <line
+                      x1={8}
+                      y1={nutY}
+                      x2={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
+                      y2={nutY}
+                      stroke="#f59e0b"
+                      strokeWidth={1}
+                      strokeDasharray="6,4"
+                      opacity={0.6}
+                    />
+                  )}
+                  
+                  {/* FLOOR threshold line (red solid) */}
+                  {floorY !== undefined && (
+                    <line
+                      x1={8}
+                      y1={floorY}
+                      x2={SVG_W - 8}
+                      y2={floorY}
+                      stroke="#ef4444"
+                      strokeWidth={1}
+                      opacity={0.6}
+                    />
+                  )}
+                </>
+              );
+            })()}
 
             {/* Estimated Balance Reference line (BEHIND balance, gray dashed) - actual data */}
             {visibleEstBalance.length > 1 && (
@@ -1011,53 +1071,31 @@ export function LiquidityReceiverV3({
                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                   }).join(' ')}
                   fill="none"
-                  stroke="#71717a"
+                  stroke="#a1a1aa"
                   strokeWidth={1}
                   strokeDasharray="2,3"
-                  opacity={0.4}
+                  opacity={0.6}
                 />
-                {/* $ marker at end of reference line */}
-                <text
-                  x={getDataX(visibleEstBalance.length - 1, visibleEstBalance.length) + 4}
-                  y={ROW_C.y + safeNum(normalizeBalance(visibleEstBalance[visibleEstBalance.length - 1].balance, ROW_C.h), ROW_C.h / 2) + 3}
-                  fill="#71717a"
-                  fontSize={8}
-                  fontWeight="bold"
-                  opacity={0.5}
-                >$</text>
               </>
             )}
 
             {/* Balance line (data visualization) - actual data */}
-            {visibleBalances.length > 1 && (
-              <path
-                d={visibleBalances.map((b, i) => {
-                  const x = getDataX(i, visibleBalances.length);
-                  const y = ROW_C.y + safeNum(normalizeBalance(b.balance, ROW_C.h), ROW_C.h / 2);
-                  return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-                }).join(' ')}
-                fill="none"
-                stroke="#22d3ee"
-                strokeWidth={1}
-                opacity={0.8}
-              />
+            {visibleBalances.length >= 1 && (
+              <>
+                <path
+                  d={visibleBalances.map((b, i) => {
+                    const x = getDataX(i, visibleBalances.length);
+                    const y = ROW_C.y + safeNum(normalizeBalance(b.balance, ROW_C.h), ROW_C.h / 2);
+                    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                  }).join(' ')}
+                  fill="none"
+                  stroke="#22d3ee"
+                  strokeWidth={1}
+                  opacity={0.8}
+                />
+              </>
             )}
 
-            {/* Capital line (green dashed) - tracks capital invested over time */}
-            {visibleCapital.length > 1 && (
-              <path
-                d={visibleCapital.map((c, i) => {
-                  const x = getDataX(i, visibleCapital.length);
-                  const y = ROW_C.y + safeNum(normalizeBalance(c.capital, ROW_C.h), ROW_C.h / 2);
-                  return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-                }).join(' ')}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth={1}
-                strokeDasharray="4,3"
-                opacity={0.7}
-              />
-            )}
 
             {/* Week indicator blocks removed from balance lane - moved to ROW_B */}
 
@@ -1240,14 +1278,14 @@ export function LiquidityReceiverV3({
                 const lyPct = valRange > 0 ? (lyVal - minVal) / valRange : 0;
                 const lyH = minH + (lyPct * (maxH - minH));
                 
-                // TY bar height - use delta (weekly sales), same shared scale
-                const tyDeltaItem = visibleDeltas[i];
-                const tyVal = tyDeltaItem && tyDeltaItem.delta > 0 ? tyDeltaItem.delta : 0;
+                // TY bar height - use actual weekly sales, same shared scale
+                const tyActualItem = weeklyActualSales?.[windowStart + i];
+                const tyVal = tyActualItem?.hasData ? tyActualItem.value : 0;
                 const tyPct = valRange > 0 ? (tyVal - minVal) / valRange : 0;
                 const tyH = tyVal > 0 ? minH + (tyPct * (maxH - minH)) : 0;
                 
                 // Date label - adaptive based on zoom level
-                const dateStr = lyItem ? getDateStr(lyItem) : (tyDeltaItem ? tyDeltaItem.weekEnd : '');
+                const dateStr = lyItem ? getDateStr(lyItem) : (tyActualItem ? tyActualItem.weekEnd : '');
                 const [year, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
                 
                 // For ALL view with lots of data, show year labels; otherwise month|day
@@ -1472,6 +1510,55 @@ export function LiquidityReceiverV3({
             );
           })()}
 
+          {/* LINE ENDPOINT DOTS - rendered last to appear above needle */}
+          <g style={{ pointerEvents: 'none' }}>
+            {/* TARGET dot */}
+            {targetReserve > 0 && (
+              <circle
+                cx={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
+                cy={ROW_C.y + safeNum(normalizeBalance(targetReserve, ROW_C.h), 0)}
+                r={3}
+                fill="#8b5cf6"
+              />
+            )}
+            {/* NUT dot - render when monthlyNut > 0 */}
+            {monthlyNut > 0 && (
+              <circle
+                cx={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
+                cy={ROW_C.y + safeNum(normalizeBalance(monthlyNut, ROW_C.h), ROW_C.h / 2)}
+                r={3}
+                fill="#f59e0b"
+              />
+            )}
+            {/* FLOOR dot */}
+            {operatingFloor > 0 && (
+              <circle
+                cx={isTodayMode && scrubIndex === null ? Math.min(getTodayX(), SVG_W) : SVG_W - 8}
+                cy={ROW_C.y + safeNum(normalizeBalance(operatingFloor, ROW_C.h), ROW_C.h)}
+                r={3}
+                fill="#ef4444"
+              />
+            )}
+            {/* EST dot */}
+            {visibleEstBalance.length > 1 && (
+              <circle
+                cx={getDataX(visibleEstBalance.length - 1, visibleEstBalance.length)}
+                cy={ROW_C.y + safeNum(normalizeBalance(visibleEstBalance[visibleEstBalance.length - 1].balance, ROW_C.h), ROW_C.h / 2)}
+                r={3}
+                fill="#a1a1aa"
+              />
+            )}
+            {/* NOW dot */}
+            {visibleBalances.length >= 1 && (
+              <circle
+                cx={getDataX(visibleBalances.length - 1, visibleBalances.length)}
+                cy={ROW_C.y + safeNum(normalizeBalance(visibleBalances[visibleBalances.length - 1].balance, ROW_C.h), ROW_C.h / 2)}
+                r={3}
+                fill="#22d3ee"
+              />
+            )}
+          </g>
+
         </svg>
         
         {/* Tooltip state passed to portal below */}
@@ -1573,16 +1660,19 @@ export function LiquidityReceiverV3({
             const svgToContainer = (svgY: number) => (svgY / SVG_H) * containerHeight;
             const getY = (val: number) => svgToContainer(ROW_C.y + normalizeBalance(val, ROW_C.h));
             
+            // Show scale labels based on actual balanceScale range
+            const { min, max } = balanceScale;
+            const mid = min + (max - min) * 0.5;
+            const q1 = min + (max - min) * 0.25;
+            const q3 = min + (max - min) * 0.75;
+            
             return (
               <>
-                <div className="absolute text-[10px] font-medium text-zinc-400 left-0" style={{ top: getY(100000) - 6 }}>100K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(60000) - 6 }}>60K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(40000) - 6 }}>40K</div>
-                {operatingFloor > 0 && (
-                  <div className="absolute text-[10px] font-medium text-red-400 left-0 z-10" style={{ top: getY(operatingFloor) - 6 }}>FLOOR [~{Math.round(operatingFloor / 1000)}k]</div>
-                )}
-                <div className="absolute text-[10px] font-medium text-zinc-500 left-0" style={{ top: getY(20000) - 6 }}>20K</div>
-                <div className="absolute text-[10px] font-medium text-zinc-600 left-0" style={{ top: getY(0) - 6 }}>0K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-1" style={{ top: getY(max) - 6 }}>{Math.round(max / 1000)}K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-1" style={{ top: getY(q3) - 6 }}>{Math.round(q3 / 1000)}K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-1" style={{ top: getY(mid) - 6 }}>{Math.round(mid / 1000)}K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-1" style={{ top: getY(q1) - 6 }}>{Math.round(q1 / 1000)}K</div>
+                <div className="absolute text-[10px] font-medium text-zinc-400 left-1" style={{ top: getY(min) - 6 }}>{Math.round(min / 1000)}K</div>
               </>
             );
           })()}
@@ -1642,14 +1732,15 @@ export function LiquidityReceiverV3({
         
         const lyItem = visibleLY[idx];
         const lyVal = lyItem ? lyItem.value : 0;
-        const deltaItem = visibleDeltas[idx];
-        const tyVal = deltaItem && deltaItem.delta > 0 ? deltaItem.delta : 0;
-        const dateStr = lyItem ? getDateStr(lyItem) : (deltaItem ? deltaItem.weekEnd : '');
+        // Use weeklyActualSales for TY if available, otherwise fall back to deltas
+        const actualSalesItem = weeklyActualSales?.[windowStart + idx];
+        const tyVal = actualSalesItem?.hasData ? actualSalesItem.value : 0;
+        const dateStr = lyItem ? getDateStr(lyItem) : (actualSalesItem ? actualSalesItem.weekEnd : '');
         const [, month, day] = dateStr ? dateStr.split('-').map(Number) : [0, 0, 0];
         const vsLY = tyVal - lyVal;
         
-        const prevDeltaItem = idx > 0 ? visibleDeltas[idx - 1] : null;
-        const prevTyVal = prevDeltaItem && prevDeltaItem.delta > 0 ? prevDeltaItem.delta : 0;
+        const prevActualItem = weeklyActualSales?.[windowStart + idx - 1];
+        const prevTyVal = prevActualItem?.hasData ? prevActualItem.value : 0;
         const wow = tyVal - prevTyVal;
         
         return (

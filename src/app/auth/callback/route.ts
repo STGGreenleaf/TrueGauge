@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Owner email that gets linked to the legacy default-org
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
 const LEGACY_ORG_ID = 'default-org';
 
 export async function GET(request: Request) {
@@ -16,8 +16,9 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      const userEmail = data.user.email!;
-      console.log(`Auth callback for: ${userEmail}`);
+      const visitorId = data.user.id;
+      const userEmail = data.user.email || '';
+      console.log(`Auth callback for user: ${visitorId}`);
       
       try {
         // Check if user already exists
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
 
       if (!existingUser) {
         // Check if this is the owner email - link to legacy org
-        if (userEmail === OWNER_EMAIL) {
+        if (OWNER_USER_ID && data.user.id === OWNER_USER_ID) {
           // Create user and link to existing default-org
           const user = await prisma.user.create({
             data: {
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
                 role: 'owner',
               },
             })
-            console.log(`Linked owner ${userEmail} to legacy org ${LEGACY_ORG_ID}`)
+            console.log(`Linked owner to legacy org ${LEGACY_ORG_ID}`)
           } else {
             // Create org if it doesn't exist (shouldn't happen)
             await prisma.organization.create({
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
                 },
               },
             })
-            console.log(`Created legacy org for owner ${userEmail}`)
+            console.log(`Created legacy org for owner`)
           }
         } else {
           // New user - check for pending invites first
@@ -106,9 +107,10 @@ export async function GET(request: Request) {
               where: { id: pendingInvite.id },
             });
 
-            console.log(`Invited user ${userEmail} joined org ${pendingInvite.organizationId}`);
+            console.log(`Invited user ${visitorId} joined org ${pendingInvite.organizationId}`);
           } else {
-            // No invite - create user with new Demo org
+            // No invite - create user with their own blank store
+            // Demo mode (Brightline) is ON by default for new users
             const user = await prisma.user.create({
               data: {
                 id: data.user.id,
@@ -118,10 +120,11 @@ export async function GET(request: Request) {
               },
             });
 
-            // Create new organization with Showcase Template data
+            // Create new blank organization for the user
+            // Demo mode (Brightline) handled client-side via localStorage
             const org = await prisma.organization.create({
               data: {
-                name: 'Demo Coffee Co',
+                name: 'My Business',
                 users: {
                   create: {
                     userId: user.id,
@@ -130,16 +133,13 @@ export async function GET(request: Request) {
                 },
                 settings: {
                   create: {
-                    businessName: 'Demo Coffee Co',
-                    monthlyFixedNut: 15500,
-                    targetCogsPct: 35,
-                    targetFeesPct: 3,
+                    businessName: 'My Business',
                   },
                 },
               },
             });
 
-            console.log(`Created new user ${userEmail} with Showcase Template org ${org.id}`);
+            console.log(`Created new user ${visitorId} with blank org ${org.id}`);
           }
         }
       }

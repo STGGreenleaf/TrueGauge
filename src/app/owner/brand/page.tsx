@@ -25,7 +25,7 @@ import {
   Plus
 } from 'lucide-react';
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner check now done server-side via /api/auth/me
 
 interface ColorSwatch {
   name: string;
@@ -358,7 +358,7 @@ export default function BrandGuidelinesPage() {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setIsOwner(data.email === OWNER_EMAIL);
+          setIsOwner(data.isOwner === true);
         }
       } catch {
         setIsOwner(false);

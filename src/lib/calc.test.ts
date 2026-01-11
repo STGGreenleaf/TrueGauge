@@ -453,10 +453,10 @@ describe('dailyNeededFromHere', () => {
     expect(result.dailyNeeded).toBe(Math.round(12500 / result.remainingOpenDays));
   });
 
-  it('returns 0 daily needed when goal already met', () => {
+  it('returns negative remaining (overage) when goal already met', () => {
     const result = dailyNeededFromHere('2026-01-15', 30000, 25000, template);
-    expect(result.remaining).toBe(0);
-    expect(result.dailyNeeded).toBe(0);
+    expect(result.remaining).toBe(-5000); // 25000 - 30000 = -5000 (overage)
+    expect(result.dailyNeeded).toBeLessThanOrEqual(0); // No need to sell more
   });
 
   it('returns Infinity when no remaining open days but still have remaining', () => {

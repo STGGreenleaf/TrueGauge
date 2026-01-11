@@ -16,7 +16,16 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(true);
+  const [showAnimation, setShowAnimation] = useState(() => {
+    // Only show animation on first visit this session
+    if (typeof window !== 'undefined') {
+      const shown = sessionStorage.getItem('splashShown');
+      if (shown) return false;
+      sessionStorage.setItem('splashShown', 'true');
+      return true;
+    }
+    return true;
+  });
   const [animationDuration, setAnimationDuration] = useState(3000);
   const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
@@ -88,13 +97,13 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboard(shouldUseShowcase);
     
-    // Check if user is owner
+    // Check if user is owner (computed server-side)
     const checkOwner = async () => {
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const userData = await res.json();
-          setIsOwner(userData.email === 'collingreenleaf@gmail.com');
+          setIsOwner(userData.isOwner === true);
         }
       } catch {
         setIsOwner(false);
@@ -326,18 +335,42 @@ export default function Dashboard() {
 
       <Nav onRefresh={handleRefresh} refreshing={refreshing} showDashboard={false} setupStatus={setupStatus} />
 
-      <main className="relative z-10 mx-auto max-w-5xl px-6 py-8" onClick={() => setActiveTip(null)}>
+      <main className="relative z-10 mx-auto max-w-5xl px-3 md:px-6 pt-8 md:pt-8 pb-6 md:pb-8" onClick={() => setActiveTip(null)}>
         
-        {/* As-of Date Header */}
+        {/* As-of Date Header - 2x2 grid on mobile, single row on desktop */}
         <section className="mb-4">
-          <div className="flex items-center justify-between">
+          {/* Mobile: 2-column, 2-row grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 md:hidden">
+            <span className="text-xs uppercase tracking-widest text-zinc-500">
+              {displayData.settings?.businessName || 'TRUEGAUGE'}
+            </span>
+            <span className="text-xs text-zinc-500 text-right">
+              Day {displayData.asOfDay} of {displayData.daysInMonth}
+            </span>
+            <span className="text-xs uppercase tracking-widest text-zinc-500">
+              As of {new Date(displayData.asOfDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
+            {displayData.liquidityReceiver?.daysInBusiness ? (
+              <span className="text-xs text-zinc-600 text-right">
+                <span className="text-cyan-400 font-medium">{displayData.liquidityReceiver.daysInBusiness.toLocaleString()}</span> Days in Business
+              </span>
+            ) : <span />}
+          </div>
+          {displayData.salesNotEntered && (
+            <div className="mt-2 md:hidden">
+              <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                Sales not entered for today
+              </span>
+            </div>
+          )}
+          
+          {/* Desktop: Original single row layout */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {displayData.settings?.businessName && (
-                <span className="text-xs uppercase tracking-widest text-zinc-500">
-                  {displayData.settings.businessName}
-                </span>
-              )}
-              {displayData.settings?.businessName && <span className="text-zinc-600">•</span>}
+              <span className="text-xs uppercase tracking-widest text-zinc-500">
+                {displayData.settings?.businessName || 'TRUEGAUGE'}
+              </span>
+              <span className="text-zinc-600">•</span>
               <span className="text-xs uppercase tracking-widest text-zinc-500">
                 As of {new Date(displayData.asOfDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
@@ -396,7 +429,7 @@ export default function Dashboard() {
                 <div className="absolute left-full top-0 ml-3 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
                   <div className="font-medium text-cyan-400 text-base mb-2">Pace Delta: {displayData.paceDelta >= 0 ? '+' : ''}{formatCurrency(displayData.paceDelta)}</div>
                   <p className="text-sm text-zinc-300 mb-2"><strong>{displayData.paceDelta >= 0 ? 'Ahead' : 'Behind'}</strong> of where you need to be this month.</p>
-                  <p className="text-sm text-zinc-300 mb-2">Based on day {new Date().getDate()} of the month, you should have ~{formatCurrency(displayData.survivalGoal * (new Date().getDate() / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))} by now.</p>
+                  <p className="text-sm text-zinc-300 mb-2">Based on day {asOfDateObj.getDate()} of the month, you should have ~{formatCurrency(displayData.mtdTargetToDate)} by now.</p>
                   <p className="text-xs text-zinc-500">MTD: {formatCurrency(displayData.mtdNetSales)}</p>
                 </div>
               )}
@@ -643,7 +676,7 @@ export default function Dashboard() {
               <div className="absolute left-0 top-full mt-2 w-64 p-4 rounded-lg bg-zinc-900/95 border border-cyan-500/30 shadow-lg z-[100] whitespace-pre-line">
                 <div className="font-medium text-cyan-400 text-base mb-2">Pace Delta: {displayData.paceDelta >= 0 ? '+' : ''}{formatCurrency(displayData.paceDelta)}</div>
                 <p className="text-sm text-zinc-300 mb-2"><strong>{displayData.paceDelta >= 0 ? 'Ahead' : 'Behind'}</strong> of where you need to be this month.</p>
-                <p className="text-sm text-zinc-300 mb-2">Based on today being day {new Date().getDate()} of the month, you should have {formatCurrency(displayData.survivalGoal * (new Date().getDate() / new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()))} by now.</p>
+                <p className="text-sm text-zinc-300 mb-2">Based on day {asOfDateObj.getDate()} of the month, you should have {formatCurrency(displayData.mtdTargetToDate)} by now.</p>
                 <p className="text-xs text-zinc-500">MTD: {formatCurrency(displayData.mtdNetSales)}</p>
               </div>
             )}
@@ -654,9 +687,10 @@ export default function Dashboard() {
               onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'velocity' ? null : 'velocity'); }}
             >
               {(() => {
-                const today = new Date();
-                const dayOfMonth = today.getDate();
-                const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                // Use asOfDate from API (frozen for showcase) instead of current date
+                const asOf = displayData.asOfDate ? new Date(displayData.asOfDate + 'T12:00:00') : new Date();
+                const dayOfMonth = asOf.getDate();
+                const daysInMonth = new Date(asOf.getFullYear(), asOf.getMonth() + 1, 0).getDate();
                 const actualDailyAvg = dayOfMonth > 0 ? displayData.mtdNetSales / dayOfMonth : 0;
                 const requiredDailyAvg = displayData.survivalGoal / daysInMonth;
                 const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
@@ -695,9 +729,9 @@ export default function Dashboard() {
               })()}
             </button>
             {activeTip === 'velocity' && (() => {
-              const today = new Date();
-              const dayOfMonth = today.getDate();
-              const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+              const asOf = displayData.asOfDate ? new Date(displayData.asOfDate + 'T12:00:00') : new Date();
+              const dayOfMonth = asOf.getDate();
+              const daysInMonth = new Date(asOf.getFullYear(), asOf.getMonth() + 1, 0).getDate();
               const actualDailyAvg = dayOfMonth > 0 ? displayData.mtdNetSales / dayOfMonth : 0;
               const requiredDailyAvg = displayData.survivalGoal / daysInMonth;
               const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
@@ -733,9 +767,9 @@ export default function Dashboard() {
             
             {/* Bottom-right: Velocity value */}
             {(() => {
-              const today = new Date();
-              const dayOfMonth = today.getDate();
-              const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+              const asOf = displayData.asOfDate ? new Date(displayData.asOfDate + 'T12:00:00') : new Date();
+              const dayOfMonth = asOf.getDate();
+              const daysInMonth = new Date(asOf.getFullYear(), asOf.getMonth() + 1, 0).getDate();
               const actualDailyAvg = dayOfMonth > 0 ? displayData.mtdNetSales / dayOfMonth : 0;
               const requiredDailyAvg = displayData.survivalGoal / daysInMonth;
               const velocity = requiredDailyAvg > 0 ? actualDailyAvg / requiredDailyAvg : 0;
@@ -908,7 +942,7 @@ export default function Dashboard() {
               {activeTip === 'mtd' && (
                 <div className="absolute left-0 bottom-full mb-2 z-[100] w-64 p-4 rounded-lg border border-cyan-500/30 bg-zinc-900/95 shadow-lg text-left">
                   <div className="text-cyan-400 text-base font-medium mb-1">Month-to-Date Net Sales</div>
-                  <div className="text-sm text-zinc-300 mb-2">Sum of all daily net sales entries for {new Date().toLocaleDateString('en-US', { month: 'long' })}.</div>
+                  <div className="text-sm text-zinc-300 mb-2">Sum of all daily net sales entries for {asOfDateObj.toLocaleDateString('en-US', { month: 'long' })}.</div>
                   <div className="border-t border-zinc-700 pt-2 text-xs text-zinc-500">
                     {displayData.mtdNetSales > 0 
                       ? `${displayData.asOfDay} day${displayData.asOfDay > 1 ? 's' : ''} of data entered. Avg: ${formatCurrency(Math.round(displayData.mtdNetSales / displayData.asOfDay))}/day`

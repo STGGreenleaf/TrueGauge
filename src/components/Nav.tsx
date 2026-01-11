@@ -17,11 +17,11 @@ interface NavProps {
   setupStatus?: 'urgent' | 'normal' | 'complete'; // Tiered setup indicator
 }
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner check now done server-side via /api/auth/me
 
 export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDashboard = true, needsSetup = false, setupStatus }: NavProps) {
   const [isOwner, setIsOwner] = useState(false);
-  const [businessName, setBusinessName] = useState('My Business');
+  const [businessName, setBusinessName] = useState('');
   const [userViewEnabled, setUserViewEnabled] = useState(false);
   const [demoEnabled, setDemoEnabled] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -42,24 +42,30 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setIsOwner(data.email === OWNER_EMAIL);
+          setIsOwner(data.isOwner === true);
         }
       } catch {
         setIsOwner(false);
       }
       
       // Fetch business name from settings
-      // In dev mode with demo OFF, use newUser mode (empty/default settings)
+      // Demo ON: fetch showcase settings
+      // Demo OFF in dev mode: use newUser mode (empty/default settings)
       const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
-      const demoOff = localStorage.getItem('demoModeEnabled') === 'false';
-      const isNewUserMode = isDevMode && demoOff;
+      const storedDemo = localStorage.getItem('demoModeEnabled');
+      const demoOn = storedDemo === null ? true : storedDemo === 'true';
+      const isNewUserMode = isDevMode && !demoOn;
       
       try {
-        const settingsUrl = isNewUserMode ? '/api/settings?newUser=true' : '/api/settings';
+        let settingsUrl = '/api/settings';
+        if (isNewUserMode) {
+          settingsUrl = '/api/settings?newUser=true';
+        } else if (demoOn) {
+          settingsUrl = '/api/settings?showcase=true';
+        }
         const settingsRes = await fetch(settingsUrl);
         if (settingsRes.ok) {
           const settings = await settingsRes.json();
-          // Use businessName from settings, or default to empty for TrueGauge fallback
           setBusinessName(settings.businessName || '');
         }
       } catch {

@@ -1,6 +1,6 @@
 # TrueGauge
 
-A cockpit-style dashboard for tracking business health. Premium Porsche/Mercedes-inspired UI with an old-school speedometer gauge. Now multi-tenant with Google sign-in.
+A cockpit-style dashboard for tracking business health. Premium Porsche/Mercedes-inspired UI with an old-school speedometer gauge. Multi-tenant SaaS with Google/GitHub sign-in.
 
 ## 🏎️ Features
 
@@ -8,7 +8,7 @@ A cockpit-style dashboard for tracking business health. Premium Porsche/Mercedes
 - **Cash Health & True Health** - Two lenses visible at a glance
 - **Daily Diary** - Quick entry for Net Sales and expenses
 - **Spread Purchases** - Amortize lumpy COGS/CAPEX across months for True Health
-- **Cloud-First** - Data stored securely in Supabase with Google sign-in
+- **Cloud-First** - Data stored securely in Supabase (PostgreSQL) with OAuth
 - **Math Tested** - 54 unit tests for all core calculations
 
 ## 🚀 Quick Start
@@ -56,8 +56,7 @@ spreadExpenseMonthlyPortion(2500, 10) // => 250
 
 ```
 /prisma
-  schema.prisma       # Database models
-  dev.db              # SQLite database file
+  schema.prisma       # Database models (PostgreSQL on Supabase)
   
 /src
   /app
@@ -85,15 +84,9 @@ npm run test:run
 npm test
 ```
 
-## 💾 Backup Your Data
+## 💾 Your Data
 
-### Option 1: Copy SQLite file
-```bash
-cp prisma/dev.db ~/Dropbox/TrueGauge_Backups/
-```
-
-### Option 2: Export CSV
-Visit `/api/export` to download a CSV backup of all data.
+Data is stored securely in Supabase (PostgreSQL). To export your data, visit Settings → Export CSV.
 
 ## 🛠️ Scripts
 
@@ -125,11 +118,23 @@ See `ROADMAP.md` for full details and AI collaboration rules.
 | `CHECKLIST.md` | Current work queue |
 | `DESIGN.md` | Visual system (colors, components) |
 
-## ⚠️ Local-First Notice
+## ☁️ Cloud Architecture
 
-This app stores all data locally in `prisma/dev.db`. 
+This app uses Supabase for authentication and data storage:
+- **Auth**: Google/GitHub OAuth via Supabase Auth
+- **Database**: PostgreSQL on Supabase
+- **Multi-tenant**: Each user gets their own organization
 
-**Your data stays on your device.** Back it up regularly to Dropbox/iCloud.
+---
+
+## 📦 Archive (Deprecated Jan 2026)
+
+<details>
+<summary>Legacy local-first architecture</summary>
+
+Previously, TrueGauge used SQLite (`prisma/dev.db`) for local-only storage. This was replaced with Supabase PostgreSQL for cloud sync and multi-tenant support.
+
+</details>
 
 ---
 

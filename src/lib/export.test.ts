@@ -14,12 +14,21 @@ describe('Export Drift Prevention', () => {
   it('approved export tables list is exactly as expected', () => {
     // This test ensures any new table addition is intentional
     // If you add a new table, update this list AND the export route
-    const expectedTables = ['settings', 'dayEntries', 'expenseTransactions', 'referenceMonths'];
+    const expectedTables = [
+      'settings',
+      'dayEntries',
+      'expenseTransactions',
+      'referenceMonths',
+      'cashSnapshots',
+      'yearStartAnchors',
+      'cashInjections',
+      'vendors',
+    ];
     expect(APPROVED_EXPORT_TABLES).toEqual(expectedTables);
   });
 
   it('approved tables count matches expected', () => {
-    expect(APPROVED_EXPORT_TABLES.length).toBe(4);
+    expect(APPROVED_EXPORT_TABLES.length).toBe(8);
   });
 });
 

@@ -21,6 +21,7 @@ interface LiquidityCardProps {
     balances: WeeklyBalance[];
     deltas: WeeklyDelta[];
     lyEstimates: WeeklyEstimate[];
+    weeklyActualSales?: Array<{ weekEnd: string; value: number; hasData: boolean }>;
     // Continuity V2
     estBalanceSeries: DailyBalancePoint[];
     actualBalanceSeries: DailyBalancePoint[];
@@ -169,7 +170,7 @@ export function LiquidityCard({
             <p className="text-zinc-600 text-sm mb-3">No cash snapshot set</p>
             <button
               onClick={onSetSnapshot}
-              className="text-xs text-cyan-500 hover:text-cyan-400 transition-colors underline underline-offset-2"
+              className="text-sm font-medium text-cyan-500 hover:text-cyan-400 transition-colors underline underline-offset-2"
             >
               Set cash snapshot
             </button>
@@ -181,7 +182,7 @@ export function LiquidityCard({
 
   return (
     <section className="mb-8">
-      <div className="rounded-xl border border-zinc-800/50 bg-gradient-to-b from-zinc-900/60 to-zinc-950/60 p-5 backdrop-blur-sm">
+      <div className="rounded-xl border border-zinc-800/50 bg-gradient-to-b from-zinc-900/60 to-zinc-950/60 p-3 md:p-5 backdrop-blur-sm">
         {/* Title row with tooltip */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -354,19 +355,15 @@ export function LiquidityCard({
               if (cashNow <= floor) {
                 // Already at or below floor
                 floorDateStr = 'NOW (below)';
+              } else if (velocity >= 0) {
+                // Gaining cash or stable - floor not approaching
+                floorDateStr = '∞';
               } else {
-                // Use LY-based daily burn rate (breakEvenGap / 30.4) if velocity is positive
-                // This shows "looming date" based on historical pattern even when currently gaining
-                const effectiveBurn = velocity < 0 
-                  ? velocity 
-                  : (breakEvenGap < 0 ? breakEvenGap / 30.4 : -1); // Use LY gap or assume -$1/day minimum
-                
-                if (effectiveBurn < 0) {
-                  daysToFloor = Math.ceil((cashNow - floor) / Math.abs(effectiveBurn));
-                  const floorDate = new Date();
-                  floorDate.setDate(floorDate.getDate() + daysToFloor);
-                  floorDateStr = `${monthNames[floorDate.getMonth()]} ${floorDate.getFullYear()}`;
-                }
+                // Actually burning cash - show real ETA
+                daysToFloor = Math.ceil((cashNow - floor) / Math.abs(velocity));
+                const floorDate = new Date();
+                floorDate.setDate(floorDate.getDate() + daysToFloor);
+                floorDateStr = `${monthNames[floorDate.getMonth()]} ${floorDate.getFullYear()}`;
               }
             }
             
@@ -383,7 +380,7 @@ export function LiquidityCard({
               monthly: `Your actual current pace based on recent logged sales vs expenses. Velocity (${formatCompact(velocity)}/day) × 30.4 days = ${formatCompact(monthlyBurn)}/month. ${monthlyBurn >= 0 ? "You're currently gaining cash." : "You're currently losing cash."}`,
               annual: `Monthly projected over 12 months. ${formatCompact(monthlyBurn)} × 12 = ${formatCompact(annualGap)}/year. This is what happens if current velocity continues unchanged.`,
               floor: floor > 0 
-                ? `Emergency floor: ${formatCurrency(floor)}\nCash now: ${formatCurrency(cashNow)}\n${velocity >= 0 ? `Current velocity: ${formatCompact(velocity)}/day (gaining)\nLY-based burn: ${formatCompact(effectiveBurnRate)}/day` : `Burn rate: ${formatCompact(velocity)}/day`}\n\nBased on ${velocity >= 0 ? 'LY pattern' : 'current pace'}, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`
+                ? `Emergency floor: ${formatCurrency(floor)}\nCash now: ${formatCurrency(cashNow)}\nVelocity: ${formatCompact(velocity)}/day ${velocity >= 0 ? '(gaining)' : '(burning)'}\n\n${velocity >= 0 ? 'Floor not approaching while gaining cash.' : `At current pace, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`}`
                 : `No floor set. Go to Settings to set your emergency fund threshold.`,
               gap: `LY avg monthly: ${formatCompact(lyMonthlyAvg)}\nSurvival goal: ${formatCompact(survivalGoal)}\nGap: ${formatCompact(breakEvenGap)}/mo\n\n${breakEvenGap >= 0 ? "Your LY pattern exceeds break-even. Good!" : "Your LY pattern is below break-even. You need to outperform LY to stay profitable."}`,
             };
@@ -499,8 +496,15 @@ export function LiquidityCard({
                           onClick={() => setActiveBurnTip(activeBurnTip === 'wow' ? null : 'wow')}
                         >
                           <span className="text-zinc-500">WoW:</span>
-                          <span className={`font-medium ${(liquidityReceiver.wowChange?.amount ?? 0) >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                            {liquidityReceiver.wowChange ? `${formatCompact(liquidityReceiver.wowChange.amount)} (${liquidityReceiver.wowChange.percent >= 0 ? '+' : ''}${liquidityReceiver.wowChange.percent}%)` : '—'}
+                          <span className="text-right flex flex-col items-end">
+                            <span className={`font-medium ${(liquidityReceiver.wowChange?.amount ?? 0) >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                              {liquidityReceiver.wowChange ? formatCompact(liquidityReceiver.wowChange.amount) : '—'}
+                            </span>
+                            {liquidityReceiver.wowChange && (
+                              <span className="text-zinc-600 text-[10px]">
+                                ({liquidityReceiver.wowChange.percent >= 0 ? '+' : ''}{liquidityReceiver.wowChange.percent}%)
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -518,9 +522,9 @@ export function LiquidityCard({
                           onClick={() => setActiveBurnTip(activeBurnTip === 'avgDay' ? null : 'avgDay')}
                         >
                           <span className="text-zinc-500">Avg/Day:</span>
-                          <span className="text-right">
+                          <span className="text-right flex flex-col items-end">
                             <span className="font-medium text-zinc-300">{formatCompact(liquidityReceiver.avgDailySales || 0)}</span>
-                            <span className="text-zinc-600 text-[10px] ml-1">LY: {formatCompact(lyAvgDay)}</span>
+                            <span className="text-zinc-600 text-[10px]">LY: {formatCompact(lyAvgDay)}</span>
                           </span>
                         </div>
                       </div>
@@ -576,6 +580,7 @@ export function LiquidityCard({
           balances={liquidityReceiver.balances}
           deltas={liquidityReceiver.deltas}
           lyEstimates={liquidityReceiver.lyEstimates}
+          weeklyActualSales={liquidityReceiver.weeklyActualSales}
           estBalanceSeries={liquidityReceiver.estBalanceSeries}
           mergedBalanceSeries={liquidityReceiver.mergedBalanceSeries}
           actualBalanceSeries={liquidityReceiver.actualBalanceSeries}

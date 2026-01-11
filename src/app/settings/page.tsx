@@ -439,15 +439,6 @@ export default function SettingsPage() {
         // Check if store needs setup (no name or no NUT set)
         const isNewStore = !data.businessName || data.monthlyFixedNut === 0;
         setNeedsSetup(isNewStore);
-        
-        // Auto-expand ALL drawers for new stores
-        if (isNewStore && !useShowcase) {
-          setBusinessInfoExpanded(true);
-          setNutExpanded(true);
-          setFinancialsExpanded(true);
-          setCashSnapshotExpanded(true);
-          setYearStartExpanded(true);
-        }
       }
     } catch (error) {
       console.error('Error fetching settings:', error);

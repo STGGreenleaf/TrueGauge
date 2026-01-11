@@ -11,7 +11,7 @@ interface OwnerMenuProps {
   businessName?: string;
 }
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner check now done server-side via /api/auth/me
 
 export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'My Business' }: OwnerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +26,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setIsOwner(data.email === OWNER_EMAIL);
+          setIsOwner(data.isOwner === true);
         }
       } catch {
         setIsOwner(false);
@@ -92,7 +92,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
                   <Eye className="h-4 w-4" />
                   <div className="text-left">
                     <div className="text-sm font-medium">Demo Mode</div>
-                    <div className="text-xs text-zinc-500">View Brightline Supply</div>
+                    <div className="text-xs text-zinc-500">Brightline Supply Co.</div>
                   </div>
                 </div>
                 <div className={`h-5 w-9 rounded-full transition-colors ${userViewEnabled ? 'bg-cyan-500' : 'bg-zinc-700'}`}>

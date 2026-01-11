@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 
 const DEFAULT_ORG_ID = 'default-org';
+const SHOWCASE_ORG_ID = 'showcase-template';
 
 /**
  * Get or create the default organization for single-tenant mode.
@@ -58,18 +59,22 @@ export async function getOrCreateSettings(organizationId: string) {
   return settings;
 }
 
-// Owner email that gets linked to the legacy default-org
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
 
 /**
  * Get the current organization ID from authenticated user.
  * Auto-links owner email to default-org if not already linked.
- * In development, returns default-org without auth check.
+ * 
+ * IMPORTANT: This function should NEVER return default-org (HBBEVCO) for non-owners.
+ * - In dev mode with NEXT_PUBLIC_DEV_MODE=true, showcase mode is handled client-side
+ * - The fallback returns showcase-template to prevent HBBEVCO exposure
  */
 export async function getCurrentOrgId(): Promise<string> {
-  // TEMP: Bypass auth in development
+  // In dev mode, use showcase template (not HBBEVCO)
+  // Client-side demo toggle handles switching between showcase and blank
   if (process.env.NODE_ENV === 'development') {
-    return DEFAULT_ORG_ID;
+    return SHOWCASE_ORG_ID;
   }
   const cookieStore = await cookies();
   
@@ -99,15 +104,15 @@ export async function getCurrentOrgId(): Promise<string> {
     }
     
     // User authenticated but not linked - auto-link owner to default-org
-    if (user.email === OWNER_EMAIL) {
+    if (OWNER_USER_ID && user.id === OWNER_USER_ID) {
       // Ensure user record exists
       await prisma.user.upsert({
         where: { id: user.id },
         update: {},
         create: {
           id: user.id,
-          email: user.email,
-          name: user.user_metadata?.full_name || user.email.split('@')[0],
+          email: user.email || '',
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Owner',
           avatarUrl: user.user_metadata?.avatar_url,
         },
       });
@@ -125,6 +130,7 @@ export async function getCurrentOrgId(): Promise<string> {
     }
   }
   
-  // Not authenticated or not owner - return default-org
-  return DEFAULT_ORG_ID;
+  // Not authenticated or not owner - return showcase template
+  // This prevents HBBEVCO data exposure to unauthorized users
+  return SHOWCASE_ORG_ID;
 }

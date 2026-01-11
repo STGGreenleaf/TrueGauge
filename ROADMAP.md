@@ -52,7 +52,7 @@ Source of truth for phases, principles, and AI collaboration rules.
 Core dashboard with basic survival tracking.
 
 **Delivered:**
-- Prisma + SQLite data model
+- Prisma + PostgreSQL data model (Supabase)
 - Settings page (nut breakdown, targets, store hours)
 - Dashboard with survival gauge (0-200%)
 - Diary page for daily sales entry
@@ -109,7 +109,10 @@ Quality of life improvements and data safety.
 **Not in scope:**
 - No new pages unless absolutely required
 - No external integrations
-- No auth or multi-user
+
+**Completed (Jan 2026):**
+- ✅ Google/GitHub OAuth via Supabase Auth
+- ✅ Multi-tenant architecture (per-user organizations)
 
 ### Milestone 3: Scenario Planning 📋 PLANNED
 What-if analysis and forecasting tools.

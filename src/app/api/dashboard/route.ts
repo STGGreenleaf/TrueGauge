@@ -23,8 +23,8 @@ interface ExpenseRecord {
 const SHOWCASE_ORG_ID = 'showcase-template';
 
 // Frozen date for showcase mode - a "time capsule" that never goes stale
-// Mid-month shows survival >100%, positioned at ~55% between floor and target
-const SHOWCASE_FROZEN_DATE = '2025-08-20';
+// Day 8 shows variety: pace delta solid, velocity moderate (working month)
+const SHOWCASE_FROZEN_DATE = '2025-08-08';
 
 export async function GET(request: Request) {
   try {
@@ -58,10 +58,16 @@ export async function GET(request: Request) {
     });
     
     // Determine asOfDate: max date with sales entered, or today if none
+    // For showcase mode, cap at frozen date to create consistent "time capsule"
     const entriesWithSales = dayEntries.filter(e => e.netSalesExTax !== null && e.netSalesExTax > 0);
-    const asOfDate = entriesWithSales.length > 0
+    let asOfDate = entriesWithSales.length > 0
       ? entriesWithSales.reduce((max, e) => e.date > max ? e.date : max, entriesWithSales[0].date)
       : todayStr;
+    
+    // Cap asOfDate at frozen date for showcase mode
+    if (isShowcase && asOfDate > todayStr) {
+      asOfDate = todayStr;
+    }
     const asOfDay = parseInt(asOfDate.split('-')[2], 10);
     
     // Check if today > asOfDate and today is an open day (sales not entered yet)
@@ -286,6 +292,12 @@ export async function GET(request: Request) {
       orderBy: { effectiveDate: 'asc' },
     });
     
+    // Fetch historical cash snapshots for balance series
+    const historicalSnapshots = await prisma.cashSnapshot.findMany({
+      where: { organizationId: orgId },
+      orderBy: { date: 'asc' },
+    });
+    
     // Calculate date range for liquidity receiver
     // Start from business start (earliest reference data)
     const receiverEndDate = asOfDate;
@@ -319,20 +331,53 @@ export async function GET(request: Request) {
       receiverEndDate
     );
     
-    // Generate cash balance series from snapshot (ACTUAL data)
-    const balances = hasSnapshot
-      ? calc.cashBalanceSeriesFromSnapshot(
-          settings.cashSnapshotAmount!,
-          settings.cashSnapshotAsOf!,
-          allDayEntries,
-          allExpenses,
-          receiverStartDate,
-          receiverEndDate
-        )
-      : [];
+    // Generate cash balance series from historical snapshots (ACTUAL data)
+    // Use historical CashSnapshot records if available, otherwise fall back to settings snapshot
+    const balances = historicalSnapshots.length > 0
+      ? historicalSnapshots
+          .filter(snap => snap.date >= receiverStartDate && snap.date <= receiverEndDate)
+          .map(snap => ({
+            weekEnd: calc.getWeekEnd(snap.date),
+            balance: snap.amount,
+            isEstimate: false,
+          }))
+      : (hasSnapshot
+          ? calc.cashBalanceSeriesFromSnapshot(
+              settings.cashSnapshotAmount!,
+              settings.cashSnapshotAsOf!,
+              allDayEntries,
+              allExpenses,
+              receiverStartDate,
+              receiverEndDate
+            )
+          : []);
     
     // Generate delta series from balances
     const deltas = calc.weeklyDeltaSeriesFromBalance(balances);
+    
+    // ═══ WEEKLY ACTUAL SALES: Aggregate DayEntry sales by week for TY bars ═══
+    const allDayEntriesForReceiver = await prisma.dayEntry.findMany({
+      where: { 
+        organizationId: orgId,
+        date: { gte: receiverStartDate, lte: receiverEndDate },
+      },
+      orderBy: { date: 'asc' },
+    });
+    
+    // Group sales by week (using week end date as key)
+    const salesByWeek = new Map<string, number>();
+    for (const entry of allDayEntriesForReceiver) {
+      const weekEnd = calc.getWeekEnd(entry.date);
+      const current = salesByWeek.get(weekEnd) || 0;
+      salesByWeek.set(weekEnd, current + (entry.netSalesExTax || 0));
+    }
+    
+    // Convert to array matching lyEstimates structure
+    const weeklyActualSales = lyEstimates.map(week => ({
+      weekEnd: week.weekEnd,
+      value: salesByWeek.get(week.weekEnd) || 0,
+      hasData: salesByWeek.has(week.weekEnd),
+    }));
     
     // ═══ CAPITAL INVESTED SERIES: Net cumulative (injections - withdrawals) ═══
     // Build weekly series showing net capital at each point
@@ -545,6 +590,7 @@ export async function GET(request: Request) {
         balances,
         deltas,
         lyEstimates,
+        weeklyActualSales,
         // Continuity V2: full series data
         estBalanceSeries: continuity.estBalanceSeries,
         actualBalanceSeries: continuity.actualBalanceSeries,

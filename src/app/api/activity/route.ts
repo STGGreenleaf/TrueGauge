@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
-const OWNER_EMAIL = 'collingreenleaf@gmail.com';
+// Owner user ID (Supabase auth UUID) - set via environment variable
+const OWNER_USER_ID = process.env.OWNER_USER_ID;
 
 // POST - Track user activity (page view, action, etc.)
 export async function POST(request: Request) {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const user = await getSession();
-    if (!user || user.email !== OWNER_EMAIL) {
+    if (!user || !OWNER_USER_ID || user.id !== OWNER_USER_ID) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
