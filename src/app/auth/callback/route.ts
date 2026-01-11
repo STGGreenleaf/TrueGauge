@@ -1,7 +1,5 @@
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 
 // Owner email that gets linked to the legacy default-org
@@ -14,23 +12,7 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/'
 
   if (code) {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
+    const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
@@ -165,11 +147,14 @@ export async function GET(request: Request) {
         console.error('Auth callback DB error:', dbError);
       }
 
-      // Force redirect to dashboard
-      redirect('/')
+      // Force redirect to dashboard, not the 'next' param
+      const redirectUrl = new URL('/', origin);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
   // Return the user to an error page with instructions
-  redirect('/login?error=auth_failed')
+  const errorUrl = new URL('/login', origin);
+  errorUrl.searchParams.set('error', 'auth_failed');
+  return NextResponse.redirect(errorUrl)
 }
