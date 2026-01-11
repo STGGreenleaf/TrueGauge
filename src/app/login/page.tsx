@@ -11,25 +11,32 @@ export default function LoginPage() {
   const router = useRouter()
   const [splashPhase, setSplashPhase] = useState<'visible' | 'fading' | 'done'>('visible')
 
-  // Splash timing: hold 1s, fade out 0.5s
+  // Splash timing: hold 1.5s, fade out 1s
   useEffect(() => {
-    const holdTimer = setTimeout(() => setSplashPhase('fading'), 1000)
-    const doneTimer = setTimeout(() => setSplashPhase('done'), 1500)
+    const holdTimer = setTimeout(() => setSplashPhase('fading'), 1500)
+    const doneTimer = setTimeout(() => setSplashPhase('done'), 2500)
     return () => {
       clearTimeout(holdTimer)
       clearTimeout(doneTimer)
     }
   }, [])
 
-  // Check if user is already logged in, redirect to dashboard
+  // Listen for auth state changes - redirect to dashboard when logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        router.replace('/')
+      }
+    })
+    
+    // Also check on mount
+    supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         router.replace('/')
       }
-    }
-    checkAuth()
+    })
+    
+    return () => subscription.unsubscribe()
   }, [supabase, router])
 
   const handleGoogleLogin = async () => {
@@ -55,7 +62,7 @@ export default function LoginPage() {
       {/* Splash overlay - matches PWA splash */}
       {splashPhase !== 'done' && (
         <div 
-          className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-opacity duration-500 ${
+          className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-opacity duration-1000 ${
             splashPhase === 'fading' ? 'opacity-0' : 'opacity-100'
           }`}
         >
