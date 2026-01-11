@@ -16,16 +16,7 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(() => {
-    // Only show animation on first load of session, not on navigation back
-    if (typeof window !== 'undefined') {
-      const hasShown = sessionStorage.getItem('splashShown');
-      if (hasShown) return false;
-      sessionStorage.setItem('splashShown', 'true');
-      return true;
-    }
-    return false;
-  });
+  const [showAnimation, setShowAnimation] = useState(true);
   const [animationDuration, setAnimationDuration] = useState(3000);
   const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
