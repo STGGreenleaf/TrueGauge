@@ -1,34 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Github } from 'lucide-react'
-import Image from 'next/image'
 
 export default function LoginPage() {
   const supabase = createClient()
-  const router = useRouter()
-  const [splashPhase, setSplashPhase] = useState<'visible' | 'fading' | 'done'>('visible')
-
-  // Splash timing: hold 1.5s, fade out 1s
-  useEffect(() => {
-    const holdTimer = setTimeout(() => setSplashPhase('fading'), 1500)
-    const doneTimer = setTimeout(() => setSplashPhase('done'), 2500)
-    return () => {
-      clearTimeout(holdTimer)
-      clearTimeout(doneTimer)
-    }
-  }, [])
-
-  // Check auth once on mount - redirect if already logged in
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        window.location.href = '/'
-      }
-    })
-  }, [])
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -50,23 +26,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
-      {/* Splash overlay - matches PWA splash */}
-      {splashPhase !== 'done' && (
-        <div 
-          className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-opacity duration-1000 ${
-            splashPhase === 'fading' ? 'opacity-0' : 'opacity-100'
-          }`}
-        >
-          <Image
-            src="/truegauge_icon.png"
-            alt="TrueGauge"
-            width={192}
-            height={192}
-            priority
-          />
-        </div>
-      )}
-
       <div className="w-full max-w-md p-8">
         {/* Logo / Brand */}
         <div className="text-center mb-12">
