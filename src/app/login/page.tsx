@@ -1,13 +1,25 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Github } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
+  const [splashPhase, setSplashPhase] = useState<'visible' | 'fading' | 'done'>('visible')
+
+  // Splash timing: hold 1s, fade out 0.5s
+  useEffect(() => {
+    const holdTimer = setTimeout(() => setSplashPhase('fading'), 1000)
+    const doneTimer = setTimeout(() => setSplashPhase('done'), 1500)
+    return () => {
+      clearTimeout(holdTimer)
+      clearTimeout(doneTimer)
+    }
+  }, [])
 
   // Check if user is already logged in, redirect to dashboard
   useEffect(() => {
@@ -40,6 +52,23 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center">
+      {/* Splash overlay - matches PWA splash */}
+      {splashPhase !== 'done' && (
+        <div 
+          className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-opacity duration-500 ${
+            splashPhase === 'fading' ? 'opacity-0' : 'opacity-100'
+          }`}
+        >
+          <Image
+            src="/truegauge_icon.png"
+            alt="TrueGauge"
+            width={192}
+            height={192}
+            priority
+          />
+        </div>
+      )}
+
       <div className="w-full max-w-md p-8">
         {/* Logo / Brand */}
         <div className="text-center mb-12">
