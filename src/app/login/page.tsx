@@ -1,10 +1,24 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Github } from 'lucide-react'
 
 export default function LoginPage() {
   const supabase = createClient()
+  const router = useRouter()
+
+  // Check if user is already logged in, redirect to dashboard
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        router.replace('/')
+      }
+    }
+    checkAuth()
+  }, [supabase, router])
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({
