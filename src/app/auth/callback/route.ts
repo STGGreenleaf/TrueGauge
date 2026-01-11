@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 
 // Owner email that gets linked to the legacy default-org
@@ -164,14 +165,11 @@ export async function GET(request: Request) {
         console.error('Auth callback DB error:', dbError);
       }
 
-      // Force redirect to dashboard, not the 'next' param
-      const redirectUrl = new URL('/', origin);
-      return NextResponse.redirect(redirectUrl);
+      // Force redirect to dashboard
+      redirect('/')
     }
   }
 
   // Return the user to an error page with instructions
-  const errorUrl = new URL('/login', origin);
-  errorUrl.searchParams.set('error', 'auth_failed');
-  return NextResponse.redirect(errorUrl)
+  redirect('/login?error=auth_failed')
 }
