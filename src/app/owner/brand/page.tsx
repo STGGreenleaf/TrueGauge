@@ -584,10 +584,96 @@ export default function BrandGuidelinesPage() {
           
           {openSections.social && (
           <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 mt-4 space-y-6">
-            {/* Top - Preview */}
+            
+            {/* Google Search Preview */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Search className="h-4 w-4 text-blue-400" />
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Google Search Preview</p>
+              </div>
+              <div className="bg-white rounded-lg p-4 max-w-[600px]">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center overflow-hidden">
+                    <img src="/favicon.png" alt="" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-800">truegauge.app</p>
+                    <p className="text-xs text-gray-500">https://truegauge.app</p>
+                  </div>
+                </div>
+                <p className="text-xl text-blue-700 hover:underline cursor-pointer mb-1">{seoTitle || 'TrueGauge'}</p>
+                <p className="text-sm text-gray-600 line-clamp-2">{seoDescription || 'Business health dashboard for smart operators'}</p>
+              </div>
+            </div>
+            
+            {/* SEO Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <label className="text-xs text-zinc-500 uppercase tracking-wider">SEO Title (Google)</label>
+                  <span className={`text-xs ${seoTitle.length > 60 ? 'text-red-400' : seoTitle.length > 50 ? 'text-amber-400' : 'text-green-400'}`}>
+                    {seoTitle.length}/60
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                  maxLength={70}
+                  placeholder="TrueGauge - Business Health Dashboard"
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500"
+                />
+                <p className="text-[10px] text-zinc-600 mt-1">50-60 chars optimal for Google</p>
+              </div>
+              
+              <div>
+                <div className="flex justify-between mb-1">
+                  <label className="text-xs text-zinc-500 uppercase tracking-wider">Meta Description</label>
+                  <span className={`text-xs ${seoDescription.length > 160 ? 'text-red-400' : seoDescription.length > 140 ? 'text-amber-400' : 'text-green-400'}`}>
+                    {seoDescription.length}/160
+                  </span>
+                </div>
+                <textarea
+                  value={seoDescription}
+                  onChange={(e) => setSeoDescription(e.target.value)}
+                  maxLength={160}
+                  rows={2}
+                  placeholder="Real-time financial health dashboard for small business operators..."
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500 resize-none"
+                />
+                <p className="text-[10px] text-zinc-600 mt-1">120-155 chars optimal. Include action words.</p>
+              </div>
+            </div>
+            
+            {/* Keywords */}
+            <div>
+              <div className="flex justify-between mb-1">
+                <label className="text-xs text-zinc-500 uppercase tracking-wider">Keywords (comma separated)</label>
+                <span className="text-xs text-zinc-600">{seoKeywords.split(',').filter(k => k.trim()).length} keywords</span>
+              </div>
+              <input
+                type="text"
+                value={seoKeywords}
+                onChange={(e) => setSeoKeywords(e.target.value)}
+                placeholder="business dashboard, cash flow, financial health, small business"
+                className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-500"
+              />
+              <div className="flex flex-wrap gap-1 mt-2">
+                {seoKeywords.split(',').filter(k => k.trim()).slice(0, 8).map((keyword, i) => (
+                  <span key={i} className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 rounded text-xs">
+                    {keyword.trim()}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-zinc-600 mt-2">Hot keywords: business analytics, cash flow tracking, profit margins, financial dashboard, small business tools</p>
+            </div>
+            
+            <hr className="border-zinc-800" />
+            
+            {/* Social Preview - OG Image */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Preview <span className="text-zinc-600">(1200×630 @ 50%)</span></p>
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Social Share Preview <span className="text-zinc-600">(1200×630 @ 50%)</span></p>
                 <button
                   onClick={exportPreview}
                   className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 border border-zinc-700 text-xs text-zinc-400 hover:text-white hover:border-zinc-600 transition-colors"
