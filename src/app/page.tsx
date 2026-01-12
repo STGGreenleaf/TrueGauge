@@ -158,6 +158,15 @@ export default function Dashboard() {
       window.removeEventListener('show-splash', handleShowSplash);
       window.removeEventListener('splash-duration-change', handleDurationChange);
     };
+  }, []);
+  
+  // Watch for demo mode changes - reset data and refetch
+  // This is separate from init so toggling demo mode clears stale data immediately
+  useEffect(() => {
+    // Reset data to null to show loading/blank state immediately
+    setData(null);
+    setLoading(true);
+    fetchDashboard(shouldUseShowcase);
   }, [shouldUseShowcase]);
 
   const handleRefresh = () => {
