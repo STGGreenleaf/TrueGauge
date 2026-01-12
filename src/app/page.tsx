@@ -16,16 +16,17 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showAnimation, setShowAnimation] = useState(() => {
-    // Only show animation on first visit this session
-    if (typeof window !== 'undefined') {
-      const shown = sessionStorage.getItem('splashShown');
-      if (shown) return false;
+  // Animation state - check after mount to avoid SSR hydration mismatch
+  const [showAnimation, setShowAnimation] = useState(false);
+  
+  // Check if animation should show after component mounts (client-side only)
+  useEffect(() => {
+    const shown = sessionStorage.getItem('splashShown');
+    if (!shown) {
       sessionStorage.setItem('splashShown', 'true');
-      return true;
+      setShowAnimation(true);
     }
-    return true;
-  });
+  }, []);
   const [animationDuration, setAnimationDuration] = useState(3000);
   const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
@@ -314,7 +315,15 @@ export default function Dashboard() {
   };
 
   // Calculate setup status for tiered COG indicator
+  // When demo is ON: no cog notification (they're viewing demo, not their store)
+  // When demo is OFF: show cog notification based on missing data
   const getSetupStatus = (): 'urgent' | 'normal' | 'complete' => {
+    // If viewing demo (shouldUseShowcase), don't show setup notifications
+    // The hamburger menu will indicate demo mode is active
+    if (shouldUseShowcase) {
+      return 'complete';
+    }
+    
     if (!data && isEmptyState) {
       // Blank dashboard - always urgent until settings visited and basics filled
       return 'urgent';
