@@ -24,6 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
       title: settings?.seoTitle || 'TrueGauge',
       description: settings?.seoDescription || 'Business health dashboard for smart operators',
       keywords: settings?.seoKeywords?.split(', ') || ['business dashboard'],
+      verification: {
+        google: 'DjU512waQEVyJE_TGwyBb0rqvvUiaomWeaBkyb-v-Yg',
+      },
       openGraph: {
         title: settings?.ogTitle || 'TrueGauge - Precision Business Health',
         description: settings?.ogDescription || 'Your instrument panel for business clarity',
