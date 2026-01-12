@@ -28,19 +28,29 @@ export async function GET() {
       // Compute isOwner server-side - never expose email to client for comparison
       const isOwner = OWNER_USER_ID ? user.id === OWNER_USER_ID : false;
       
-      // Check if user has their own org (not showcase-template)
+      // Check if user has their own org WITH DATA (not just a blank org)
       const orgUser = await prisma.organizationUser.findFirst({
         where: { userId: user.id },
         select: { organizationId: true },
       });
-      const hasOwnOrg = orgUser && orgUser.organizationId !== 'showcase-template';
+      
+      // Only consider user as having "own org" if they have actual data entered
+      let hasOwnOrgWithData = false;
+      if (orgUser && orgUser.organizationId !== 'showcase-template') {
+        // Check if org has any day entries (sales data)
+        const dataCount = await prisma.dayEntry.count({
+          where: { organizationId: orgUser.organizationId },
+          take: 1, // Just need to know if any exist
+        });
+        hasOwnOrgWithData = dataCount > 0;
+      }
       
       return NextResponse.json({
         id: user.id,
         name: user.user_metadata?.full_name || 'User',
         avatarUrl: user.user_metadata?.avatar_url,
         isOwner,
-        hasOwnOrg, // true if user has their own store (not just demo)
+        hasOwnOrg: hasOwnOrgWithData, // true only if user has actual data in their store
       });
     }
     
