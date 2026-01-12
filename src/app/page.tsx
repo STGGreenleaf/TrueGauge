@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarDays } from 'lucide-react';
+import { Plus, CalendarDays, Wallet, X } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
 import { Nav } from '@/components/Nav';
@@ -52,6 +52,11 @@ export default function Dashboard() {
     }
     return false;
   });
+  
+  // Cash logging modal state
+  const [showCashModal, setShowCashModal] = useState(false);
+  const [cashInputRaw, setCashInputRaw] = useState('');
+  const [savingCash, setSavingCash] = useState(false);
   
   // Persist userViewEnabled to localStorage
   useEffect(() => {
@@ -170,6 +175,41 @@ export default function Dashboard() {
 
   const formatPercent = (value: number) => {
     return `${Math.round(value * 100)}%`;
+  };
+
+  // Auto-decimal cash input: 1114300 becomes 11143.00
+  const handleCashInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setCashInputRaw(raw);
+  };
+  
+  const cashDisplayValue = cashInputRaw 
+    ? (parseInt(cashInputRaw, 10) / 100).toFixed(2)
+    : '';
+  
+  const handleSaveCash = async () => {
+    if (!cashInputRaw) return;
+    setSavingCash(true);
+    try {
+      const amount = parseInt(cashInputRaw, 10) / 100;
+      const res = await fetch('/api/cash-snapshots', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          amount,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+      if (res.ok) {
+        setShowCashModal(false);
+        setCashInputRaw('');
+        fetchDashboard(shouldUseShowcase); // Refresh to show new balance
+      }
+    } catch (error) {
+      console.error('Error saving cash:', error);
+    } finally {
+      setSavingCash(false);
+    }
   };
 
   if (loading) {
@@ -1104,11 +1144,14 @@ export default function Dashboard() {
               </div>
             </button>
             <button
-              onClick={() => router.push('/annual')}
-              className="group relative h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              onClick={() => setShowCashModal(true)}
+              className="group relative h-14 overflow-hidden rounded-lg border border-emerald-500/30 bg-emerald-500/10 font-light tracking-wide text-emerald-300 backdrop-blur-sm transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
-              <span className="relative">Annual Report</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="relative flex items-center justify-center gap-2">
+                <Wallet className="h-4 w-4" />
+                Log Cash
+              </div>
             </button>
           </div>
         </section>
@@ -1133,6 +1176,51 @@ export default function Dashboard() {
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
+
+      {/* Cash Logging Modal */}
+      {showCashModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="relative mx-4 w-full max-w-sm rounded-xl border border-zinc-700/50 bg-zinc-900/95 p-6 shadow-2xl">
+            <button
+              onClick={() => { setShowCashModal(false); setCashInputRaw(''); }}
+              className="absolute right-4 top-4 text-zinc-500 hover:text-zinc-300"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            
+            <div className="mb-6 flex items-center gap-2 text-emerald-400">
+              <Wallet className="h-5 w-5" />
+              <span className="text-sm font-medium uppercase tracking-widest">Log Cash on Hand</span>
+            </div>
+            
+            <div className="relative mb-4">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-zinc-500">$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="0.00"
+                value={cashDisplayValue}
+                onChange={handleCashInput}
+                autoFocus
+                className="h-16 w-full rounded-lg border border-zinc-700/50 bg-zinc-800/50 pl-12 pr-4 text-3xl font-bold text-emerald-400 outline-none focus:border-emerald-500/50"
+                style={{ textShadow: '0 0 20px rgba(52, 211, 153, 0.3)' }}
+              />
+            </div>
+            
+            <p className="mb-4 text-xs text-zinc-500">
+              Type digits only (1114300 → $11,143.00)
+            </p>
+            
+            <button
+              onClick={handleSaveCash}
+              disabled={savingCash || !cashInputRaw}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/20 py-3 font-light tracking-wide text-emerald-300 transition-all hover:border-emerald-400/50 hover:bg-emerald-500/30 disabled:opacity-50"
+            >
+              {savingCash ? 'Saving...' : 'Save Cash Balance'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
