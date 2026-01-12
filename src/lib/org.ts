@@ -6,6 +6,19 @@ import { createServerClient } from '@supabase/ssr';
 const DEFAULT_ORG_ID = 'default-org';
 const SHOWCASE_ORG_ID = 'showcase-template';
 
+// Export for use in guards
+export { SHOWCASE_ORG_ID };
+
+/**
+ * Guard: Throws if attempting to write to showcase-template.
+ * Use this in all write endpoints (POST, PUT, DELETE) to enforce read-only demo.
+ */
+export function assertNotShowcase(orgId: string): void {
+  if (orgId === SHOWCASE_ORG_ID) {
+    throw new Error('SHOWCASE_READ_ONLY: Cannot modify showcase data');
+  }
+}
+
 /**
  * Get or create the default organization for single-tenant mode.
  * This will be replaced with proper auth-based org lookup later.

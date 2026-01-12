@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { ExpenseTransactionSchema } from '@/lib/types';
-import { getCurrentOrgId } from '@/lib/org';
+import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
 export async function GET(request: Request) {
   try {
@@ -39,6 +39,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId); // Prevent writes to showcase-template
     const body = await request.json();
     const validated = ExpenseTransactionSchema.parse(body);
     

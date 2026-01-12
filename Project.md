@@ -167,6 +167,12 @@ See `ROADMAP.md` for phase status and AI collaboration rules.
   - estBalance (violet dashed) formula documented: yearStartCash + Σ(dailySales × 62% - dailyNut)
   - Timeline refinements: calendar-aligned ticks, smooth panning, full year visibility
 - 2026-01-02: **Liquidity Receiver V3 Radio Dial Stack** complete - Stacked layout with amber NOW needle, lens window scrub, visible-slice scaling, color-mapped LED blocks, readouts (balance/safe to spend/runway), 141 tests passing
+- 2026-01-11: **Production Closeout** complete
+  - Owner gating switched from OWNER_EMAIL to OWNER_USER_ID (Supabase auth UUID)
+  - Personal email removed from repo and logs
+  - Docs reconciled: README, ROADMAP, CONTRACTS updated for cloud-first architecture
+  - Showcase read-only enforced via `assertNotShowcase()` guard on all write endpoints
+  - 141 tests passing, build green
 - 2026-01-02: **Cash on Hand Snapshot** complete - Manual cash snapshot in Settings, dashboard liquidity instrument, 77 tests passing
 - 2026-01-02: **Export Backup** complete - JSON/CSV export with server-side ZIP, 68 tests passing
 - 2026-01-02: **Cash Logged label fix** - renamed from "After Expenses", confidence-aware subtext

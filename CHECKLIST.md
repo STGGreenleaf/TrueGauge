@@ -15,6 +15,7 @@ Rule: do not delete completed work. Move it to Done with a date.
   - Accept: "Sales not entered" and "Low confidence" indicators are obvious but not panic inducing
 
 ## Backlog (Later)
+- [ ] Add Supabase RLS policies for defense-in-depth (currently app-layer only)
 - [ ] Import helpers (CSV for reference months, optional day entries)
 - [ ] True Health toggle details (cash vs normalized view)
 - [ ] Multi-store support (future)
@@ -23,6 +24,12 @@ Rule: do not delete completed work. Move it to Done with a date.
 - [ ] Liquidity Receiver V4: Future region shaded and desaturated
 
 ## Done (Archive)
+- [x] 2026-01-11: **Production Closeout** complete
+  - Owner gating switched to OWNER_USER_ID (Supabase auth UUID)
+  - Personal email removed from repo and logs
+  - Docs reconciled for cloud-first architecture
+  - Showcase read-only enforced via `assertNotShowcase()` guard
+  - 141 tests passing, build green
 - [x] 2026-01-04: **Burn Analysis Panel** complete
   - Right-side panel in Liquidity Card header showing: Monthly burn, Annual gap, Floor|Zero date, Gap to Break-Even
   - Speech bubble tooltips on click with detailed explanations

@@ -37,6 +37,22 @@ These are non-negotiables. If one changes, update tests and Project.md.
 - If COGS/OPEX not logged, show "not logged" or "estimated" instead of 0.
 - Confidence score influences UI intensity (dim, warning, indicator).
 
+## Owner gating (Jan 2026)
+- Owner is identified by `OWNER_USER_ID` env var (Supabase auth UUID).
+- `/api/auth/me` returns `isOwner: true/false` computed server-side.
+- Client never sees owner email; only uses `isOwner` boolean for UI gating.
+- Owner-only features: OwnerMenu, /owner/brand, /owner-portal, analytics endpoints.
+
+## Multi-tenant model
+- Each user gets their own organization on first login.
+- Data isolation enforced at application layer via `organizationId` filtering.
+- `showcase-template` is a special org used for demo mode (Brightline Supply Co.).
+
+## Showcase mode (read-only)
+- Demo mode (`?showcase=true` or `demoModeEnabled`) shows Brightline data.
+- All write endpoints call `assertNotShowcase(orgId)` to prevent mutations.
+- Normal users can view showcase data but cannot modify it.
+
 ---
 
 **Related docs:** `ROADMAP.md` (phases, AI rules) • `DESIGN.md` (visual system) • `CHECKLIST.md` (work queue)
