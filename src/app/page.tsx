@@ -393,17 +393,17 @@ export default function Dashboard() {
         <section className="mb-4">
           {/* Mobile: 2-column, 2-row grid */}
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 md:hidden">
-            <span className="text-xs uppercase tracking-widest text-zinc-500">
+            <span className="text-xs uppercase tracking-widest text-zinc-400">
               {displayData.settings?.businessName || 'TRUEGAUGE'}
             </span>
-            <span className="text-xs text-zinc-500 text-right">
+            <span className="text-xs text-zinc-400 text-right">
               Day {displayData.asOfDay} of {displayData.daysInMonth}
             </span>
-            <span className="text-xs uppercase tracking-widest text-zinc-500">
+            <span className="text-xs uppercase tracking-widest text-zinc-400">
               As of {new Date(displayData.asOfDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
             {displayData.liquidityReceiver?.daysInBusiness ? (
-              <span className="text-xs text-zinc-600 text-right">
+              <span className="text-xs text-zinc-400 text-right">
                 <span className="text-cyan-400 font-medium">{displayData.liquidityReceiver.daysInBusiness.toLocaleString()}</span> Days in Business
               </span>
             ) : <span />}
@@ -419,14 +419,14 @@ export default function Dashboard() {
           {/* Desktop: Original single row layout */}
           <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-xs uppercase tracking-widest text-zinc-500">
+              <span className="text-xs uppercase tracking-widest text-zinc-400">
                 {displayData.settings?.businessName || 'TRUEGAUGE'}
               </span>
-              <span className="text-zinc-600">•</span>
-              <span className="text-xs uppercase tracking-widest text-zinc-500">
+              <span className="text-zinc-500">•</span>
+              <span className="text-xs uppercase tracking-widest text-zinc-400">
                 As of {new Date(displayData.asOfDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
-              <span className="text-xs text-zinc-600">
+              <span className="text-xs text-zinc-400">
                 (Day {displayData.asOfDay} of {displayData.daysInMonth})
               </span>
               {displayData.salesNotEntered && (
@@ -436,7 +436,7 @@ export default function Dashboard() {
               )}
             </div>
             {displayData.liquidityReceiver?.daysInBusiness && (
-              <span className="text-xs text-zinc-600">
+              <span className="text-xs text-zinc-400">
                 <span className="text-cyan-400 font-medium">{displayData.liquidityReceiver.daysInBusiness.toLocaleString()}</span> Days in Business
               </span>
             )}
@@ -1113,29 +1113,43 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Quick Actions - glassy dark buttons */}
+        {/* Quick Actions - 5 column grid matching info section */}
         <section>
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-3">
+            {/* Enter Sales - bright cyan */}
             <button
               onClick={() => router.push('/diary')}
-              className="group relative h-14 overflow-hidden rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-light tracking-wide text-cyan-300 backdrop-blur-sm transition-all hover:border-cyan-400/50 hover:bg-cyan-500/20"
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-cyan-500/30 bg-cyan-500/10 text-sm font-light tracking-wide text-cyan-300 backdrop-blur-sm transition-all hover:border-cyan-400/50 hover:bg-cyan-500/20"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/10 to-cyan-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative flex items-center justify-center gap-2">
-                <Plus className="h-5 w-5" />
+                <Plus className="h-4 w-4" />
                 Enter Sales
               </div>
             </button>
+            {/* Log Cash - emerald */}
+            <button
+              onClick={() => setShowCashModal(true)}
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-sm font-light tracking-wide text-emerald-300 backdrop-blur-sm transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="relative flex items-center justify-center gap-2">
+                <Wallet className="h-4 w-4" />
+                Log Cash
+              </div>
+            </button>
+            {/* Add Expense */}
             <button
               onClick={() => router.push('/diary')}
-              className="group relative h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
               <span className="relative">Add Expense</span>
             </button>
+            {/* Month View */}
             <button
               onClick={() => router.push(shouldUseShowcase ? '/calendar?showcase=true' : '/calendar')}
-              className="group relative h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative flex items-center justify-center gap-2">
@@ -1143,15 +1157,13 @@ export default function Dashboard() {
                 Month View
               </div>
             </button>
+            {/* Annual Report */}
             <button
-              onClick={() => setShowCashModal(true)}
-              className="group relative h-14 overflow-hidden rounded-lg border border-emerald-500/30 bg-emerald-500/10 font-light tracking-wide text-emerald-300 backdrop-blur-sm transition-all hover:border-emerald-400/50 hover:bg-emerald-500/20"
+              onClick={() => router.push('/annual')}
+              className="col-span-2 md:col-span-1 group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/0 via-emerald-500/10 to-emerald-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
-              <div className="relative flex items-center justify-center gap-2">
-                <Wallet className="h-4 w-4" />
-                Log Cash
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <span className="relative">Annual Report</span>
             </button>
           </div>
         </section>
