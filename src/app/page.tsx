@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarDays, Wallet, X, Receipt, BarChart3 } from 'lucide-react';
+import { Plus, CalendarDays, Wallet, X, Receipt, BarChart3, Settings } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
 import { Nav } from '@/components/Nav';
@@ -374,6 +374,34 @@ export default function Dashboard() {
             Try Again
           </Button>
         </div>
+      </div>
+    );
+  }
+  
+  // Empty state: Demo OFF with no user data - show blank dashboard pointing to settings
+  if (isEmptyState) {
+    return (
+      <div className="min-h-screen bg-black">
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/5 blur-[120px]" />
+        </div>
+        <Nav onRefresh={handleRefresh} refreshing={refreshing} showDashboard={false} setupStatus="urgent" />
+        <main className="relative z-10 flex min-h-[80vh] flex-col items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <div className="mb-6 text-6xl">📊</div>
+            <h2 className="text-2xl font-light text-zinc-300 mb-3">Your Dashboard is Empty</h2>
+            <p className="text-sm text-zinc-500 mb-8">
+              Set up your business in Settings to start tracking your financial health.
+            </p>
+            <Button 
+              onClick={() => router.push('/settings')}
+              className="bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/30 hover:border-cyan-400/50 px-8 py-3"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Go to Settings
+            </Button>
+          </div>
+        </main>
       </div>
     );
   }
