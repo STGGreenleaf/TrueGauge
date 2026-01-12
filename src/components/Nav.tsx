@@ -7,6 +7,7 @@ import { PulseIndicator } from '@/components/PulseIndicator';
 import { OwnerMenu } from '@/components/OwnerMenu';
 import { AdminMenu } from '@/components/AdminMenu';
 import { FeedbackButton } from '@/components/FeedbackButton';
+import { useActivityTracker } from '@/hooks/useActivityTracker';
 
 interface NavProps {
   onRefresh?: () => void;
@@ -25,6 +26,9 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
   const [userViewEnabled, setUserViewEnabled] = useState(false);
   const [demoEnabled, setDemoEnabled] = useState(true);
   const [mounted, setMounted] = useState(false);
+  
+  // Track page views for owner analytics
+  useActivityTracker();
   
   // Hydrate state from localStorage after mount
   useEffect(() => {
