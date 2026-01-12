@@ -133,6 +133,7 @@ export default function SettingsPage() {
   // Check if in dev mode with demo OFF (simulate new user)
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
   const [isOwner, setIsOwner] = useState(false);
+  const [isOwnerLoaded, setIsOwnerLoaded] = useState(false); // Prevent fetch until owner check completes
   const [demoModeEnabled, setDemoModeEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('demoModeEnabled');
@@ -147,7 +148,7 @@ export default function SettingsPage() {
   const shouldUseShowcase = isDevMode ? demoModeEnabled : (isOwner ? userViewEnabled : demoModeEnabled);
 
   useEffect(() => {
-    // Check if user is owner
+    // Check if user is owner FIRST before any data fetching
     const checkOwner = async () => {
       try {
         const res = await fetch('/api/auth/me');
@@ -157,6 +158,8 @@ export default function SettingsPage() {
         }
       } catch {
         setIsOwner(false);
+      } finally {
+        setIsOwnerLoaded(true); // Mark owner check as complete
       }
     };
     checkOwner();
@@ -171,6 +174,18 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
+    // Wait for owner check to complete before fetching
+    if (!isOwnerLoaded) return;
+    
+    // CRITICAL: Reset all state to defaults BEFORE fetching new data
+    // This prevents stale demo data from showing when switching to user mode
+    setSettings(DEFAULT_SETTINGS as SettingsType);
+    setRefMonths({});
+    setInjections([]);
+    setSnapshots([]);
+    setYearAnchors([]);
+    setLoading(true);
+    
     // Mark settings as visited for tiered COG indicator
     localStorage.setItem('settingsVisited', 'true');
     
@@ -180,7 +195,7 @@ export default function SettingsPage() {
     fetchSnapshots(shouldUseShowcase, isNewUserMode);
     fetchYearAnchors(shouldUseShowcase, isNewUserMode);
     fetchVendorsCount(isNewUserMode);
-  }, [shouldUseShowcase, isNewUserMode]);
+  }, [shouldUseShowcase, isNewUserMode, isOwnerLoaded]);
   
   // Fetch users and invites when drawer expands
   useEffect(() => {

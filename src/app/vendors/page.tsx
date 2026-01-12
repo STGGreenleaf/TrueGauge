@@ -76,6 +76,7 @@ export default function VendorsPage() {
     return true;
   });
   const [isOwner, setIsOwner] = useState(false);
+  const [isOwnerLoaded, setIsOwnerLoaded] = useState(false); // Prevent fetch until owner check completes
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
   const isNewUserMode = isDevMode && !demoModeEnabled;
   
@@ -92,7 +93,7 @@ export default function VendorsPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(CATEGORIES.map(c => c.key)));
 
   useEffect(() => {
-    // Check if user is owner
+    // Check if user is owner FIRST before any data fetching
     const checkOwner = async () => {
       try {
         const res = await fetch('/api/auth/me');
@@ -102,14 +103,21 @@ export default function VendorsPage() {
         }
       } catch {
         setIsOwner(false);
+      } finally {
+        setIsOwnerLoaded(true); // Mark owner check as complete
       }
     };
     checkOwner();
   }, []);
 
   useEffect(() => {
+    // Wait for owner check to complete before fetching
+    if (!isOwnerLoaded) return;
+    // Reset vendors to empty before fetching to prevent stale data
+    setVendors([]);
+    setLoading(true);
     fetchVendors();
-  }, [shouldUseShowcase]);
+  }, [shouldUseShowcase, isOwnerLoaded]);
 
   const fetchVendors = async () => {
     try {
