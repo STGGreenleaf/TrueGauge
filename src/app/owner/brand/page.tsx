@@ -569,28 +569,25 @@ export default function BrandGuidelinesPage() {
           )}
         </section>
 
-        {/* Social Share Preview */}
+        {/* Google Search & SEO */}
         <section className="mb-4">
           <button 
-            onClick={() => toggleSection('social')}
+            onClick={() => toggleSection('seo')}
             className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <Share2 className="h-4 w-4 text-cyan-400" />
-              <h2 className="text-lg font-semibold text-white">Social Share Preview</h2>
+              <Search className="h-4 w-4 text-blue-400" />
+              <h2 className="text-lg font-semibold text-white">Google Search & SEO</h2>
             </div>
-            {openSections.social ? <ChevronDown className="h-4 w-4 text-zinc-500" /> : <ChevronRight className="h-4 w-4 text-zinc-500" />}
+            {openSections.seo ? <ChevronDown className="h-4 w-4 text-zinc-500" /> : <ChevronRight className="h-4 w-4 text-zinc-500" />}
           </button>
           
-          {openSections.social && (
+          {openSections.seo && (
           <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 mt-4 space-y-6">
             
             {/* Google Search Preview */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Search className="h-4 w-4 text-blue-400" />
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Google Search Preview</p>
-              </div>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Live Preview</p>
               <div className="bg-white rounded-lg p-4 max-w-[600px]">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center overflow-hidden">
@@ -668,8 +665,33 @@ export default function BrandGuidelinesPage() {
               <p className="text-[10px] text-zinc-600 mt-2">Hot keywords: business analytics, cash flow tracking, profit margins, financial dashboard, small business tools</p>
             </div>
             
-            <hr className="border-zinc-800" />
-            
+            {/* Save Button */}
+            <Button 
+              onClick={saveSeoSettings}
+              disabled={seoSaving}
+              className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium"
+            >
+              {seoSaving ? 'Saving...' : seoSaved ? '✓ Saved' : 'Save SEO Settings'}
+            </Button>
+          </div>
+          )}
+        </section>
+
+        {/* Social Share Preview */}
+        <section className="mb-4">
+          <button 
+            onClick={() => toggleSection('social')}
+            className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Share2 className="h-4 w-4 text-cyan-400" />
+              <h2 className="text-lg font-semibold text-white">Social Share Preview</h2>
+            </div>
+            {openSections.social ? <ChevronDown className="h-4 w-4 text-zinc-500" /> : <ChevronRight className="h-4 w-4 text-zinc-500" />}
+          </button>
+          
+          {openSections.social && (
+          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 mt-4 space-y-6">
             {/* Social Preview - OG Image */}
             <div>
               <div className="flex items-center justify-between mb-3">
