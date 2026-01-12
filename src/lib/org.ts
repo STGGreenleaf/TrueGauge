@@ -113,7 +113,16 @@ export async function getCurrentOrgId(): Promise<string> {
     });
     
     if (orgUser) {
-      return orgUser.organizationId;
+      // CRITICAL: Never return showcase-template for authenticated users
+      // If user is somehow linked to showcase, create their own org instead
+      if (orgUser.organizationId === SHOWCASE_ORG_ID) {
+        // Delete bad link and fall through to create new org
+        await prisma.organizationUser.deleteMany({
+          where: { userId: user.id, organizationId: SHOWCASE_ORG_ID },
+        });
+      } else {
+        return orgUser.organizationId;
+      }
     }
     
     // User authenticated but not linked - auto-link owner to default-org
