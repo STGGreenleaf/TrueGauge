@@ -80,10 +80,11 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
   }, [userViewEnabled]);
   
   // Handle demo toggle for non-owners
+  // Always redirect to dashboard to ensure clean state reset
   const handleDemoToggle = (enabled: boolean) => {
     setDemoEnabled(enabled);
     localStorage.setItem('demoModeEnabled', String(enabled));
-    window.location.reload();
+    window.location.href = '/'; // Redirect to dashboard for clean reset
   };
 
   return (

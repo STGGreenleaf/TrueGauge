@@ -230,8 +230,9 @@ export default function Dashboard() {
     );
   }
 
-  // Check for empty state (dev mode with demo OFF)
-  const isEmptyState = isDevMode && !demoModeEnabled;
+  // Check for empty state: demo OFF means show blank state
+  // User needs to fill settings before seeing real dashboard
+  const isEmptyState = !shouldUseShowcase && (!data || !data.settings?.businessName);
 
   // Create empty data for first-time/blank dashboard
   const today = new Date();
