@@ -95,21 +95,33 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchDashboard(shouldUseShowcase);
-    
-    // Check if user is owner (computed server-side)
-    const checkOwner = async () => {
+    // Check auth first, then fetch with correct showcase mode
+    const initDashboard = async () => {
+      let useShowcase = shouldUseShowcase;
+      
+      // Check if user is owner and has their own org (computed server-side)
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const userData = await res.json();
           setIsOwner(userData.isOwner === true);
+          
+          // If user has their own org and hasn't explicitly set demo preference,
+          // default to showing their own data (not demo)
+          if (userData.hasOwnOrg && localStorage.getItem('demoModeEnabled') === null) {
+            setDemoModeEnabled(false);
+            localStorage.setItem('demoModeEnabled', 'false');
+            useShowcase = false; // Override for this initial fetch
+          }
         }
       } catch {
         setIsOwner(false);
       }
+      
+      // Now fetch dashboard with correct showcase mode
+      fetchDashboard(useShowcase);
     };
-    checkOwner();
+    initDashboard();
     
     // Re-fetch when tab becomes visible (user returns from Settings)
     const handleVisibility = () => {

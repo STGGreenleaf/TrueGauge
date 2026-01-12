@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { prisma } from '@/lib/prisma';
 
 // Owner user ID (Supabase auth UUID) - set via environment variable
 const OWNER_USER_ID = process.env.OWNER_USER_ID;
@@ -27,11 +28,19 @@ export async function GET() {
       // Compute isOwner server-side - never expose email to client for comparison
       const isOwner = OWNER_USER_ID ? user.id === OWNER_USER_ID : false;
       
+      // Check if user has their own org (not showcase-template)
+      const orgUser = await prisma.organizationUser.findFirst({
+        where: { userId: user.id },
+        select: { organizationId: true },
+      });
+      const hasOwnOrg = orgUser && orgUser.organizationId !== 'showcase-template';
+      
       return NextResponse.json({
         id: user.id,
         name: user.user_metadata?.full_name || 'User',
         avatarUrl: user.user_metadata?.avatar_url,
         isOwner,
+        hasOwnOrg, // true if user has their own store (not just demo)
       });
     }
     
