@@ -413,11 +413,11 @@ export default function Dashboard() {
             month={asOfDateObj.getMonth() + 1}
             openHoursTemplate={displayData.settings?.openHoursTemplate}
             onDayClick={(day) => {
+              const asOfDateObj = new Date(displayData.asOfDate + 'T12:00:00');
               const year = asOfDateObj.getFullYear();
               const month = asOfDateObj.getMonth() + 1;
               const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-              const showcaseParam = shouldUseShowcase ? '&showcase=true' : '';
-              router.push(`/calendar?date=${dateStr}${showcaseParam}`);
+              router.push(`/diary?date=${dateStr}`);
             }}
           />
         </section>

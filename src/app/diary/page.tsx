@@ -72,6 +72,7 @@ function DiaryPageContent() {
     netSalesExTax: null,
     notes: null,
   });
+  const [salesInputRaw, setSalesInputRaw] = useState(''); // Raw cents input for auto-decimal
   const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -96,8 +97,15 @@ function DiaryPageContent() {
         const data = await entryRes.json();
         if (data) {
           setEntry(data);
+          // Sync raw input for auto-decimal display
+          if (data.netSalesExTax !== null) {
+            setSalesInputRaw(Math.round(data.netSalesExTax * 100).toString());
+          } else {
+            setSalesInputRaw('');
+          }
         } else {
           setEntry({ date: currentDate, netSalesExTax: null, notes: null });
+          setSalesInputRaw('');
         }
       }
 
@@ -185,6 +193,24 @@ function DiaryPageContent() {
     }).format(value);
   };
 
+  // Auto-decimal: typing 64524 becomes 645.24
+  const handleSalesInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, ''); // Strip non-digits
+    setSalesInputRaw(raw);
+    if (raw === '') {
+      setEntry({ ...entry, netSalesExTax: null });
+    } else {
+      const cents = parseInt(raw, 10);
+      const dollars = cents / 100;
+      setEntry({ ...entry, netSalesExTax: dollars });
+    }
+  };
+
+  // Format display value with decimal
+  const salesDisplayValue = entry.netSalesExTax !== null 
+    ? entry.netSalesExTax.toFixed(2) 
+    : '';
+
   const displayDate = parseISO(currentDate);
   const isToday = format(new Date(), 'yyyy-MM-dd') === currentDate;
 
@@ -248,21 +274,17 @@ function DiaryPageContent() {
                     $
                   </span>
                   <Input
-                    type="number"
-                    placeholder="0"
-                    value={entry.netSalesExTax ?? ''}
-                    onChange={(e) =>
-                      setEntry({
-                        ...entry,
-                        netSalesExTax: e.target.value ? parseFloat(e.target.value) : null,
-                      })
-                    }
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0.00"
+                    value={salesDisplayValue}
+                    onChange={handleSalesInput}
                     className="h-16 border-zinc-700/50 bg-zinc-800/50 pl-10 text-3xl font-bold text-cyan-400"
                     style={{ textShadow: '0 0 20px rgba(34, 211, 238, 0.3)' }}
                   />
                 </div>
                 <p className="mt-3 text-[10px] text-zinc-600">
-                  Use the Net Sales line from your POS daily summary
+                  Type digits only (64524 → $645.24)
                 </p>
                 <button
                   onClick={handleSaveEntry}
