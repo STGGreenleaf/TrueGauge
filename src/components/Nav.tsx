@@ -50,23 +50,18 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
       
       // Fetch business name from settings
       // Demo ON: fetch showcase settings
-      // Demo OFF in dev mode: use newUser mode (empty/default settings)
-      const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+      // Demo OFF: fetch user's settings (or empty if no data)
       const storedDemo = localStorage.getItem('demoModeEnabled');
       const demoOn = storedDemo === null ? true : storedDemo === 'true';
-      const isNewUserMode = isDevMode && !demoOn;
       
       try {
-        let settingsUrl = '/api/settings';
-        if (isNewUserMode) {
-          settingsUrl = '/api/settings?newUser=true';
-        } else if (demoOn) {
-          settingsUrl = '/api/settings?showcase=true';
-        }
+        // Demo ON = fetch showcase, Demo OFF = fetch user's org
+        const settingsUrl = demoOn ? '/api/settings?showcase=true' : '/api/settings';
         const settingsRes = await fetch(settingsUrl);
         if (settingsRes.ok) {
           const settings = await settingsRes.json();
-          setBusinessName(settings.businessName || '');
+          // Only show business name if it exists (prevents showing demo name when demo OFF)
+          setBusinessName(demoOn ? (settings.businessName || 'Demo Store') : (settings.businessName || ''));
         }
       } catch {
         // Keep default business name
