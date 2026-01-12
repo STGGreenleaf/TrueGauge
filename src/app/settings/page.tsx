@@ -132,18 +132,39 @@ export default function SettingsPage() {
 
   // Check if in dev mode with demo OFF (simulate new user)
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  const [isOwner, setIsOwner] = useState(false);
   const [demoModeEnabled, setDemoModeEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('demoModeEnabled') === 'true';
+      const stored = localStorage.getItem('demoModeEnabled');
+      return stored === null ? true : stored === 'true'; // Default true for new users
     }
-    return false;
+    return true;
   });
   const isNewUserMode = isDevMode && !demoModeEnabled;
+  
+  // Determine if showcase mode should be used (same logic as dashboard)
+  // Owner uses userViewEnabled, non-owner uses demoModeEnabled
+  const shouldUseShowcase = isDevMode ? demoModeEnabled : (isOwner ? userViewEnabled : demoModeEnabled);
 
   useEffect(() => {
+    // Check if user is owner
+    const checkOwner = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const userData = await res.json();
+          setIsOwner(userData.isOwner === true);
+        }
+      } catch {
+        setIsOwner(false);
+      }
+    };
+    checkOwner();
+    
     // Listen for demo mode changes
     const handleStorage = () => {
-      setDemoModeEnabled(localStorage.getItem('demoModeEnabled') === 'true');
+      const stored = localStorage.getItem('demoModeEnabled');
+      setDemoModeEnabled(stored === null ? true : stored === 'true');
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -153,13 +174,13 @@ export default function SettingsPage() {
     // Mark settings as visited for tiered COG indicator
     localStorage.setItem('settingsVisited', 'true');
     
-    fetchSettings(userViewEnabled, isNewUserMode);
-    fetchReferenceMonths(refYear, userViewEnabled, isNewUserMode);
-    fetchInjections(userViewEnabled, isNewUserMode);
-    fetchSnapshots(userViewEnabled, isNewUserMode);
-    fetchYearAnchors(userViewEnabled, isNewUserMode);
+    fetchSettings(shouldUseShowcase, isNewUserMode);
+    fetchReferenceMonths(refYear, shouldUseShowcase, isNewUserMode);
+    fetchInjections(shouldUseShowcase, isNewUserMode);
+    fetchSnapshots(shouldUseShowcase, isNewUserMode);
+    fetchYearAnchors(shouldUseShowcase, isNewUserMode);
     fetchVendorsCount(isNewUserMode);
-  }, [userViewEnabled, isNewUserMode]);
+  }, [shouldUseShowcase, isNewUserMode]);
   
   // Fetch users and invites when drawer expands
   useEffect(() => {

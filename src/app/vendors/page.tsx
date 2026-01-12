@@ -75,8 +75,12 @@ export default function VendorsPage() {
     }
     return true;
   });
+  const [isOwner, setIsOwner] = useState(false);
   const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === 'true';
   const isNewUserMode = isDevMode && !demoModeEnabled;
+  
+  // Determine if showcase mode should be used (same logic as dashboard)
+  const shouldUseShowcase = isDevMode ? demoModeEnabled : (isOwner ? userViewEnabled : demoModeEnabled);
   const [formData, setFormData] = useState({
     name: '',
     defaultCategory: '',
@@ -88,15 +92,31 @@ export default function VendorsPage() {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(CATEGORIES.map(c => c.key)));
 
   useEffect(() => {
-    fetchVendors();
+    // Check if user is owner
+    const checkOwner = async () => {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const userData = await res.json();
+          setIsOwner(userData.isOwner === true);
+        }
+      } catch {
+        setIsOwner(false);
+      }
+    };
+    checkOwner();
   }, []);
+
+  useEffect(() => {
+    fetchVendors();
+  }, [shouldUseShowcase]);
 
   const fetchVendors = async () => {
     try {
       let url = '/api/vendors';
       if (isNewUserMode) {
         url = '/api/vendors?newUser=true';
-      } else if (userViewEnabled) {
+      } else if (shouldUseShowcase) {
         url = '/api/vendors?showcase=true';
       }
       const res = await fetch(url);
