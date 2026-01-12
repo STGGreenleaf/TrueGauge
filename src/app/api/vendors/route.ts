@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getCurrentOrgId } from '@/lib/org';
+import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
 interface VendorRecord {
   id: string;
@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId);
     const body = await request.json();
     
     const vendor = await prisma.vendorTemplate.create({
@@ -93,6 +94,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId);
     const body = await request.json();
     
     if (!body.id) {
@@ -127,6 +130,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId);
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get('id');
     

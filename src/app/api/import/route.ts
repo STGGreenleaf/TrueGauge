@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getCurrentOrgId } from '@/lib/org';
+import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
 // Import a JSON backup and populate the organization
 export async function POST(request: NextRequest) {
@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
     if (!orgId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    assertNotShowcase(orgId);
 
     const body = await request.json();
     const { data, wipeFirst } = body;

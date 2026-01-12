@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { getCurrentOrgId } from '@/lib/org';
+import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
 const SHOWCASE_ORG_ID = 'showcase-template';
 
@@ -43,6 +43,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId);
     const body = await request.json();
     const { year, month, referenceNetSalesExTax, note } = body;
     
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const orgId = await getCurrentOrgId();
+    assertNotShowcase(orgId);
     const body = await request.json();
     const { year, months } = body; // months: { 1: 25000, 2: 28000, ... }
     

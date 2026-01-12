@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentOrgId } from '@/lib/org';
+import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
   if (!orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  assertNotShowcase(orgId);
 
   const body = await request.json();
   const { year, amount, date, note } = body;
@@ -69,6 +70,7 @@ export async function DELETE(request: NextRequest) {
   if (!orgId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  assertNotShowcase(orgId);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
