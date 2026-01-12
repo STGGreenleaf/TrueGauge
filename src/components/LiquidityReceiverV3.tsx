@@ -165,6 +165,12 @@ export function LiquidityReceiverV3({
   
   const [lensWidth, setLensWidth] = useState(lensWidths['TODAY']);
   const [centerIndex, setCenterIndex] = useState(totalWeeks - 1); // Start at NOW
+  
+  // Sync lensWidth when lensWidths changes (e.g., after mobile detection or data load)
+  useEffect(() => {
+    setLensWidth(lensWidths[activePreset]);
+    setCenterIndex(totalWeeks - 1);
+  }, [lensWidths, totalWeeks, activePreset]);
   const [hoveredWeekIdx, setHoveredWeekIdx] = useState<number | null>(null);
   const [hoveredDeltaIdx, setHoveredDeltaIdx] = useState<number | null>(null);
   const [liveHovered, setLiveHovered] = useState(false);
