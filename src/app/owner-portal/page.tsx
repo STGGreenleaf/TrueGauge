@@ -27,7 +27,8 @@ import {
   Eye,
   Mail,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Search
 } from 'lucide-react';
 
 interface FeedbackItem {
@@ -94,6 +95,14 @@ interface Analytics {
   featureAdoption: Array<{ feature: string; count: number }>;
 }
 
+interface SearchConsoleData {
+  totals: { clicks: number; impressions: number; ctr: number; avgPosition: number };
+  queries: Array<{ query: string; clicks: number; impressions: number; ctr: number; position: number }>;
+  daily: Array<{ date: string; clicks: number; impressions: number }>;
+  pages: Array<{ page: string; clicks: number; impressions: number }>;
+  dateRange: { start: string; end: string };
+}
+
 // Tooltip component
 const Tooltip = ({ children, text }: { children: React.ReactNode; text: string }) => (
   <div className="group relative inline-block">
@@ -115,6 +124,7 @@ export default function OwnerPortal() {
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
   const [animationDuration, setAnimationDuration] = useState(3000);
+  const [searchConsole, setSearchConsole] = useState<SearchConsoleData | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -122,6 +132,11 @@ export default function OwnerPortal() {
     fetch('/api/settings/splash-duration')
       .then(res => res.ok ? res.json() : null)
       .then(data => data && setAnimationDuration(data.duration))
+      .catch(() => {});
+    // Fetch Search Console data
+    fetch('/api/owner/search-console')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => data && !data.error && setSearchConsole(data))
       .catch(() => {});
   }, []);
 
@@ -484,6 +499,60 @@ export default function OwnerPortal() {
                 </button>
               </Tooltip>
             </div>
+
+            {/* Search Console Widget */}
+            {searchConsole && (
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-blue-400 flex items-center gap-2">
+                    <Search className="w-4 h-4" />
+                    Google Search (28 days)
+                  </h3>
+                  <a 
+                    href="https://search.google.com/search-console" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-zinc-500 hover:text-blue-400 flex items-center gap-1"
+                  >
+                    Open Console <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  <div className="bg-zinc-800/50 rounded p-3 text-center">
+                    <div className="text-2xl font-bold text-blue-400">{searchConsole.totals.clicks}</div>
+                    <div className="text-[10px] text-zinc-500">Clicks</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded p-3 text-center">
+                    <div className="text-2xl font-bold text-cyan-400">{searchConsole.totals.impressions.toLocaleString()}</div>
+                    <div className="text-[10px] text-zinc-500">Impressions</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded p-3 text-center">
+                    <div className="text-2xl font-bold text-emerald-400">{searchConsole.totals.ctr}%</div>
+                    <div className="text-[10px] text-zinc-500">CTR</div>
+                  </div>
+                  <div className="bg-zinc-800/50 rounded p-3 text-center">
+                    <div className="text-2xl font-bold text-amber-400">{searchConsole.totals.avgPosition}</div>
+                    <div className="text-[10px] text-zinc-500">Avg Position</div>
+                  </div>
+                </div>
+                {searchConsole.queries.length > 0 && (
+                  <div>
+                    <div className="text-xs text-zinc-500 mb-2">Top Queries</div>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {searchConsole.queries.slice(0, 5).map((q, i) => (
+                        <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded bg-zinc-800/30 text-xs">
+                          <span className="text-zinc-300 truncate flex-1">{q.query}</span>
+                          <div className="flex items-center gap-3 text-zinc-500">
+                            <span>{q.clicks} clicks</span>
+                            <span className="text-zinc-600">pos {q.position}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Expanded: Stores List */}
             {expandedWidget === 'stores' && (
