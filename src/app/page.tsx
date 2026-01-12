@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
 import { Button } from '@/components/ui/button';
-import { Plus, CalendarDays, Wallet, X } from 'lucide-react';
+import { Plus, CalendarDays, Wallet, X, Receipt, BarChart3 } from 'lucide-react';
 import type { DashboardData } from '@/lib/types';
 import StartupAnimation from '@/components/StartupAnimation';
 import { Nav } from '@/components/Nav';
@@ -1138,32 +1138,38 @@ export default function Dashboard() {
                 Log Cash
               </div>
             </button>
-            {/* Add Expense */}
+            {/* Add Expense - amber */}
             <button
               onClick={() => router.push('/diary')}
-              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-amber-500/30 bg-amber-500/10 text-sm font-light tracking-wide text-amber-300 backdrop-blur-sm transition-all hover:border-amber-400/50 hover:bg-amber-500/20"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
-              <span className="relative">Add Expense</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="relative flex items-center justify-center gap-2">
+                <Receipt className="h-4 w-4" />
+                Add Expense
+              </div>
             </button>
-            {/* Month View */}
+            {/* Month View - violet */}
             <button
               onClick={() => router.push(shouldUseShowcase ? '/calendar?showcase=true' : '/calendar')}
-              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              className="group relative h-12 md:h-14 overflow-hidden rounded-lg border border-violet-500/30 bg-violet-500/10 text-sm font-light tracking-wide text-violet-300 backdrop-blur-sm transition-all hover:border-violet-400/50 hover:bg-violet-500/20"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-500/10 to-violet-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
               <div className="relative flex items-center justify-center gap-2">
                 <CalendarDays className="h-4 w-4" />
                 Month View
               </div>
             </button>
-            {/* Annual Report */}
+            {/* Annual Report - blue */}
             <button
               onClick={() => router.push('/annual')}
-              className="col-span-2 md:col-span-1 group relative h-12 md:h-14 overflow-hidden rounded-lg border border-zinc-700/50 bg-zinc-800/30 text-sm font-light tracking-wide text-zinc-400 backdrop-blur-sm transition-all hover:border-zinc-600 hover:text-zinc-300"
+              className="col-span-2 md:col-span-1 group relative h-12 md:h-14 overflow-hidden rounded-lg border border-blue-500/30 bg-blue-500/10 text-sm font-light tracking-wide text-blue-300 backdrop-blur-sm transition-all hover:border-blue-400/50 hover:bg-blue-500/20"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-500/0 via-zinc-500/5 to-zinc-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
-              <span className="relative">Annual Report</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-blue-500/0 opacity-0 transition-opacity group-hover:opacity-100" />
+              <div className="relative flex items-center justify-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Annual Report
+              </div>
             </button>
           </div>
         </section>
