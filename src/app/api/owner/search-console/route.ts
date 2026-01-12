@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { google } from 'googleapis';
 
 const OWNER_USER_ID = process.env.OWNER_USER_ID;
-const SITE_URL = 'sc-domain:truegauge.app';
+const SITE_URL = 'https://truegauge.app/';
 
 async function getSearchConsoleClient() {
   const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
