@@ -141,9 +141,28 @@ export async function getCurrentOrgId(): Promise<string> {
       
       return DEFAULT_ORG_ID;
     }
+    
+    // Authenticated user but no org (shouldn't happen after auth callback)
+    // Create a blank org for them on the fly to prevent showcase fallback
+    const newOrg = await prisma.organization.create({
+      data: {
+        name: 'My Business',
+        users: {
+          create: {
+            userId: user.id,
+            role: 'owner',
+          },
+        },
+        settings: {
+          create: {
+            businessName: '',  // Empty name triggers blank dashboard state
+          },
+        },
+      },
+    });
+    return newOrg.id;
   }
   
-  // Not authenticated or not owner - return showcase template
-  // This prevents HBBEVCO data exposure to unauthorized users
+  // Not authenticated - return showcase template for demo browsing
   return SHOWCASE_ORG_ID;
 }
