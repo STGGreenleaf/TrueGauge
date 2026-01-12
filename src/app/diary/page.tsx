@@ -59,10 +59,25 @@ const EXPENSE_CATEGORIES = [
 function DiaryPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Demo mode: read-only showcase data
+  const [demoModeEnabled] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('demoModeEnabled');
+      return stored === null ? true : stored === 'true';
+    }
+    return true;
+  });
+  const isShowcase = demoModeEnabled; // In demo mode, show showcase data
+  
   const [currentDate, setCurrentDate] = useState(() => {
     const dateParam = searchParams.get('date');
     if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
       return dateParam;
+    }
+    // In demo mode, use showcase frozen date
+    if (isShowcase) {
+      return '2025-08-08';
     }
     const now = new Date();
     return format(now, 'yyyy-MM-dd');
@@ -91,8 +106,9 @@ function DiaryPageContent() {
   const fetchDayData = async () => {
     setLoading(true);
     try {
-      // Fetch day entry
-      const entryRes = await fetch(`/api/day-entries?date=${currentDate}`);
+      // Fetch day entry - pass showcase param if in demo mode
+      const showcaseParam = isShowcase ? '&showcase=true' : '';
+      const entryRes = await fetch(`/api/day-entries?date=${currentDate}${showcaseParam}`);
       if (entryRes.ok) {
         const data = await entryRes.json();
         if (data) {
@@ -110,7 +126,7 @@ function DiaryPageContent() {
       }
 
       // Fetch expenses for this date
-      const expensesRes = await fetch(`/api/expenses?month=${currentDate.substring(0, 7)}`);
+      const expensesRes = await fetch(`/api/expenses?month=${currentDate.substring(0, 7)}${showcaseParam}`);
       if (expensesRes.ok) {
         const data = await expensesRes.json();
         setExpenses(data.filter((e: ExpenseTransaction) => e.date === currentDate));
@@ -286,22 +302,29 @@ function DiaryPageContent() {
                 <p className="mt-3 text-[10px] text-zinc-600">
                   Type digits only (64524 → $645.24)
                 </p>
-                <button
-                  onClick={handleSaveEntry}
-                  disabled={saving}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-3 font-light tracking-wide text-cyan-300 transition-all hover:border-cyan-400/50 hover:bg-cyan-500/20 disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Save Sales
-                    </>
-                  )}
-                </button>
+                {isShowcase ? (
+                  <div className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700/50 bg-zinc-800/30 py-3 text-zinc-500">
+                    <span className="text-xs uppercase tracking-wider">Demo Mode - Read Only</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSaveEntry}
+                    disabled={saving}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-3 font-light tracking-wide text-cyan-300 transition-all hover:border-cyan-400/50 hover:bg-cyan-500/20 disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save Sales
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Expense Quick Add Buttons */}
+            {/* Expense Quick Add Buttons - hidden in demo mode */}
+            {!isShowcase && (
             <div className="mb-4">
               <h3 className="mb-3 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
                 Add Expense
@@ -456,6 +479,7 @@ function DiaryPageContent() {
                 ))}
               </div>
             </div>
+            )}
 
             {/* Today's Expenses */}
             {expenses.length > 0 && (

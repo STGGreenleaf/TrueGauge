@@ -3,10 +3,13 @@ import prisma from '@/lib/db';
 import { ExpenseTransactionSchema } from '@/lib/types';
 import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
+const SHOWCASE_ORG_ID = 'showcase-template';
+
 export async function GET(request: Request) {
   try {
-    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const month = searchParams.get('month'); // Format: YYYY-MM
     const category = searchParams.get('category');
     

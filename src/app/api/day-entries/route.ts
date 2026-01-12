@@ -3,10 +3,13 @@ import prisma from '@/lib/db';
 import { DayEntrySchema } from '@/lib/types';
 import { getCurrentOrgId, assertNotShowcase } from '@/lib/org';
 
+const SHOWCASE_ORG_ID = 'showcase-template';
+
 export async function GET(request: Request) {
   try {
-    const orgId = await getCurrentOrgId();
     const { searchParams } = new URL(request.url);
+    const isShowcase = searchParams.get('showcase') === 'true';
+    const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const date = searchParams.get('date');
     const month = searchParams.get('month'); // Format: YYYY-MM
     
