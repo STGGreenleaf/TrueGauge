@@ -960,6 +960,118 @@ export default function SettingsPage() {
           </div>
           )}</div>
 
+        {/* Year Start Cash Section */}
+        <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
+          <button
+            onClick={() => setYearStartExpanded(!yearStartExpanded)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left"
+          >
+            <div className="flex items-center gap-3">
+              <Ruler className="h-4 w-4 text-violet-500" />
+              <div>
+                <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Starting Cash</h2>
+                <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Year Anchor</p>
+              </div>
+              <PulseIndicator show={!settings.yearStartCashAmount} size="sm" />
+            </div>
+            {yearStartExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
+          </button>
+          {yearStartExpanded && (
+          <div className="px-5 pb-5 pt-0 border-t border-zinc-800/50">
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label htmlFor="yearStartCashAmount" className="text-zinc-300">
+                  Starting Cash Balance ($)
+                </Label>
+                <Input
+                  id="yearStartCashAmount"
+                  type="number"
+                  value={settings.yearStartCashAmount ?? ''}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? null : parseFloat(e.target.value);
+                    updateSetting('yearStartCashAmount', val);
+                  }}
+                  placeholder="e.g. 60000"
+                  className="mt-1 border-zinc-700 bg-zinc-800 text-white"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="yearStartCashDate" className="text-zinc-300">
+                  Year Start Date (YYYY-MM-DD)
+                </Label>
+                <Input
+                  id="yearStartCashDate"
+                  type="date"
+                  value={settings.yearStartCashDate ?? ''}
+                  onChange={(e) => {
+                    updateSetting('yearStartCashDate', e.target.value);
+                  }}
+                  className="mt-1 border-zinc-700 bg-zinc-800 text-white [color-scheme:dark]"
+                />
+              </div>
+              
+              {/* Summary display */}
+              {settings.yearStartCashAmount !== null && settings.yearStartCashAmount !== undefined && settings.yearStartCashDate ? (
+                <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
+                  <p className="text-sm text-violet-300">
+                    Starting with ${settings.yearStartCashAmount.toLocaleString()} on {settings.yearStartCashDate}
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-3">
+                  <p className="text-sm text-zinc-500">not set</p>
+                </div>
+              )}
+              
+              <p className="text-xs text-zinc-600">
+                Set your opening cash balance for the year. This anchors the Liquidity dial — showing how far you've come since day one of the fiscal year.
+              </p>
+              
+              {/* Year Anchors History - Collapsible */}
+              {yearAnchors.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-zinc-800/50">
+                  <button
+                    onClick={() => setYearAnchorsHistoryExpanded(!yearAnchorsHistoryExpanded)}
+                    className="flex items-center justify-between w-full text-left"
+                  >
+                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Year History ({yearAnchors.length})</div>
+                    {yearAnchorsHistoryExpanded ? <ChevronUp className="h-3 w-3 text-zinc-500" /> : <ChevronDown className="h-3 w-3 text-zinc-500" />}
+                  </button>
+                  {yearAnchorsHistoryExpanded && (
+                    <div className="space-y-1 mt-2">
+                      {yearAnchors.map((anchor, idx) => {
+                        const prev = yearAnchors[idx + 1];
+                        const diff = prev ? anchor.amount - prev.amount : 0;
+                        return (
+                          <div key={anchor.id} className="py-2 px-3 rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-900/5 border border-violet-500/20 backdrop-blur-sm relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                            <div className="flex items-center justify-between relative">
+                              <div className="flex items-center gap-3">
+                                <span className="text-violet-300 font-bold">{anchor.year}</span>
+                                <span className="text-violet-200/80 font-medium">${anchor.amount.toLocaleString()}</span>
+                                <span className="text-zinc-500 text-xs">{anchor.date}</span>
+                                {prev && diff !== 0 && (
+                                  <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {diff > 0 ? '+' : ''}${diff.toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {anchor.note && <p className="text-violet-300/50 text-xs mt-1 italic relative">{anchor.note}</p>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          )}
+        </div>
+
         {/* Financial Targets Card */}
         <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
           <button
@@ -1887,115 +1999,6 @@ export default function SettingsPage() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Year Start Cash Section */}
-        <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
-          <button
-            onClick={() => setYearStartExpanded(!yearStartExpanded)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left"
-          >
-            <div className="flex items-center gap-3">
-              <Ruler className="h-4 w-4 text-violet-500" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Starting Cash (Year Anchor)</h2>
-              <PulseIndicator show={!settings.yearStartCashAmount} size="sm" />
-            </div>
-            {yearStartExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
-          </button>
-          {yearStartExpanded && (
-          <div className="px-5 pb-5 pt-0 border-t border-zinc-800/50">
-            <div className="space-y-4 pt-4">
-              <div>
-                <Label htmlFor="yearStartCashAmount" className="text-zinc-300">
-                  Starting Cash Balance ($)
-                </Label>
-                <Input
-                  id="yearStartCashAmount"
-                  type="number"
-                  value={settings.yearStartCashAmount ?? ''}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    const val = e.target.value === '' ? null : parseFloat(e.target.value);
-                    updateSetting('yearStartCashAmount', val);
-                  }}
-                  placeholder="e.g. 60000"
-                  className="mt-1 border-zinc-700 bg-zinc-800 text-white"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="yearStartCashDate" className="text-zinc-300">
-                  Year Start Date (YYYY-MM-DD)
-                </Label>
-                <Input
-                  id="yearStartCashDate"
-                  type="date"
-                  value={settings.yearStartCashDate ?? ''}
-                  onChange={(e) => {
-                    updateSetting('yearStartCashDate', e.target.value);
-                  }}
-                  className="mt-1 border-zinc-700 bg-zinc-800 text-white [color-scheme:dark]"
-                />
-              </div>
-              
-              {/* Summary display */}
-              {settings.yearStartCashAmount !== null && settings.yearStartCashAmount !== undefined && settings.yearStartCashDate ? (
-                <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
-                  <p className="text-sm text-violet-300">
-                    Starting with ${settings.yearStartCashAmount.toLocaleString()} on {settings.yearStartCashDate}
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-lg border border-zinc-700/50 bg-zinc-800/30 p-3">
-                  <p className="text-sm text-zinc-500">not set</p>
-                </div>
-              )}
-              
-              <p className="text-xs text-zinc-600">
-                Set your opening cash balance for the year. This anchors the Liquidity dial — showing how far you've come since day one of the fiscal year.
-              </p>
-              
-              {/* Year Anchors History - Collapsible */}
-              {yearAnchors.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-zinc-800/50">
-                  <button
-                    onClick={() => setYearAnchorsHistoryExpanded(!yearAnchorsHistoryExpanded)}
-                    className="flex items-center justify-between w-full text-left"
-                  >
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Year History ({yearAnchors.length})</div>
-                    {yearAnchorsHistoryExpanded ? <ChevronUp className="h-3 w-3 text-zinc-500" /> : <ChevronDown className="h-3 w-3 text-zinc-500" />}
-                  </button>
-                  {yearAnchorsHistoryExpanded && (
-                    <div className="space-y-1 mt-2">
-                      {yearAnchors.map((anchor, idx) => {
-                        const prev = yearAnchors[idx + 1];
-                        const diff = prev ? anchor.amount - prev.amount : 0;
-                        return (
-                          <div key={anchor.id} className="py-2 px-3 rounded-lg bg-gradient-to-br from-violet-500/10 to-violet-900/5 border border-violet-500/20 backdrop-blur-sm relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                            <div className="flex items-center justify-between relative">
-                              <div className="flex items-center gap-3">
-                                <span className="text-violet-300 font-bold">{anchor.year}</span>
-                                <span className="text-violet-200/80 font-medium">${anchor.amount.toLocaleString()}</span>
-                                <span className="text-zinc-500 text-xs">{anchor.date}</span>
-                                {prev && diff !== 0 && (
-                                  <span className={`text-xs ${diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    {diff > 0 ? '+' : ''}${diff.toLocaleString()}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            {anchor.note && <p className="text-violet-300/50 text-xs mt-1 italic relative">{anchor.note}</p>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
           )}
         </div>
 
