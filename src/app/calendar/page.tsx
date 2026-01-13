@@ -71,6 +71,7 @@ function CalendarContent() {
   });
   const [editingDay, setEditingDay] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editRawCents, setEditRawCents] = useState(''); // Raw cents for auto-decimal
   const [saving, setSaving] = useState(false);
   const [showLY, setShowLY] = useState(false);
   const [showJumpTo, setShowJumpTo] = useState(false);
@@ -212,22 +213,46 @@ function CalendarContent() {
     return 'bg-red-600/20 border-red-500/30';
   };
 
+  // Auto-decimal formatting helper (e.g., 77826 → 778.26)
+  const formatCentsToDisplay = (cents: string): string => {
+    if (!cents) return '';
+    const num = parseInt(cents, 10);
+    if (isNaN(num)) return '';
+    return (num / 100).toFixed(2);
+  };
+
   // Inline edit handlers
   const startEdit = (dateStr: string, currentValue: number | null) => {
     setEditingDay(dateStr);
-    setEditValue(currentValue?.toString() ?? '');
+    // Convert current value to cents string for editing
+    if (currentValue !== null) {
+      const cents = Math.round(currentValue * 100).toString();
+      setEditRawCents(cents);
+      setEditValue((currentValue).toFixed(2));
+    } else {
+      setEditRawCents('');
+      setEditValue('');
+    }
   };
 
   const cancelEdit = () => {
     setEditingDay(null);
     setEditValue('');
+    setEditRawCents('');
+  };
+
+  const handleEditInput = (input: string) => {
+    // Only allow digits
+    const digits = input.replace(/\D/g, '');
+    setEditRawCents(digits);
+    setEditValue(formatCentsToDisplay(digits));
   };
 
   const saveEdit = async () => {
     if (!editingDay) return;
     setSaving(true);
     try {
-      const value = editValue === '' ? null : parseFloat(editValue);
+      const value = editRawCents === '' ? null : parseInt(editRawCents, 10) / 100;
       const res = await fetch('/api/diary', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -586,32 +611,32 @@ function CalendarContent() {
                       <div className="flex-1 flex flex-col items-center justify-center">
                         {isEditing ? (
                           <div className="flex flex-col items-center gap-1 w-full px-1">
-                            <Input
-                              ref={editInputRef}
-                              type="number"
-                              value={editValue}
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveEdit();
-                                if (e.key === 'Escape') cancelEdit();
-                              }}
-                              className="h-6 text-xs text-center bg-zinc-800 border-zinc-600 w-full"
-                              placeholder="$"
-                            />
-                            <div className="flex gap-1">
+                            <div className="flex items-center gap-1 w-full">
+                              <span className="text-cyan-400 text-sm font-medium">$</span>
+                              <input
+                                ref={editInputRef}
+                                type="text"
+                                inputMode="numeric"
+                                value={editValue}
+                                onChange={(e) => handleEditInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveEdit();
+                                  if (e.key === 'Escape') cancelEdit();
+                                }}
+                                className="h-7 text-sm font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded w-full focus:border-cyan-500 focus:outline-none"
+                                placeholder="0.00"
+                              />
                               <button
                                 onClick={saveEdit}
                                 disabled={saving}
-                                className="p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
+                                className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded bg-emerald-500/10"
+                                title="Save"
                               >
-                                <Check className="h-3 w-3" />
+                                <Check className="h-4 w-4" />
                               </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
+                            </div>
+                            <div className="text-[9px] text-zinc-500">
+                              Type digits: 77826 → $778.26
                             </div>
                           </div>
                         ) : (

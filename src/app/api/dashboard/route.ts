@@ -344,9 +344,10 @@ export async function GET(request: Request) {
     
     // Generate cash balance series from historical snapshots (ACTUAL data)
     // Use historical CashSnapshot records if available, otherwise fall back to settings snapshot
+    // NOTE: Use todayStr for cash snapshots (not asOfDate) so recent snapshots aren't filtered out
     const balances = historicalSnapshots.length > 0
       ? historicalSnapshots
-          .filter(snap => snap.date >= receiverStartDate && snap.date <= receiverEndDate)
+          .filter(snap => snap.date >= receiverStartDate && snap.date <= todayStr)
           .map(snap => ({
             weekEnd: calc.getWeekEnd(snap.date),
             balance: snap.amount,
