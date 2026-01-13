@@ -39,26 +39,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
   }
 
-  // Check if snapshot already exists for this date - update it instead
-  const existing = await prisma.cashSnapshot.findFirst({
-    where: { organizationId: orgId, date },
+  // Always create new snapshot record (preserve history for velocity calculation)
+  const snapshot = await prisma.cashSnapshot.create({
+    data: {
+      organizationId: orgId,
+      amount,
+      date,
+    },
   });
-
-  let snapshot;
-  if (existing) {
-    snapshot = await prisma.cashSnapshot.update({
-      where: { id: existing.id },
-      data: { amount },
-    });
-  } else {
-    snapshot = await prisma.cashSnapshot.create({
-      data: {
-        organizationId: orgId,
-        amount,
-        date,
-      },
-    });
-  }
 
   // Also update the Settings single snapshot for dashboard liquidity dial
   await prisma.settings.update({

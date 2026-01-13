@@ -252,8 +252,14 @@ export async function GET(request: Request) {
     let allDayEntries: { date: string; netSalesExTax: number | null }[] = [];
     let allExpenses: { date: string; amount: number }[] = [];
     
+    // Fetch ALL historical snapshots for change calculation (moved up for access)
+    const allSnapshots = await prisma.cashSnapshot.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: 'desc' }, // Most recent first
+    });
+    
     if (hasSnapshot && settings.cashSnapshotAsOf) {
-      // Get ALL day entries and expenses for changeSince calculation (not just MTD)
+      // Get ALL day entries and expenses for liquidity calculations
       const dayEntriesRaw = await prisma.dayEntry.findMany({
         where: { organizationId: orgId, date: { gt: settings.cashSnapshotAsOf, lte: asOfDate } },
       });
@@ -264,13 +270,21 @@ export async function GET(request: Request) {
       allDayEntries = dayEntriesRaw.map(e => ({ date: e.date, netSalesExTax: e.netSalesExTax }));
       allExpenses = expensesRaw.map(e => ({ date: e.date, amount: e.amount }));
       
-      changeSince = calc.changeSinceSnapshot(
-        settings.cashSnapshotAsOf,
-        asOfDate,
-        allDayEntries,
-        allExpenses
-      );
-      cashNow = calc.cashOnHand(settings.cashSnapshotAmount!, changeSince);
+      // Calculate change from previous snapshot (not just sales-expenses)
+      if (allSnapshots.length >= 2) {
+        // Latest snapshot is current, second is previous
+        const currentSnapshot = allSnapshots[0];
+        const previousSnapshot = allSnapshots[1];
+        changeSince = currentSnapshot.amount - previousSnapshot.amount;
+        cashNow = currentSnapshot.amount;
+      } else if (allSnapshots.length === 1) {
+        // Only one snapshot - no change to show
+        changeSince = 0;
+        cashNow = allSnapshots[0].amount;
+      } else {
+        // Fall back to settings snapshot
+        cashNow = settings.cashSnapshotAmount!;
+      }
       fillPct = calc.cashFillPct(cashNow, settings.monthlyFixedNut);
     }
     
