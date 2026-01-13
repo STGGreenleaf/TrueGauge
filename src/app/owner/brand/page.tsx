@@ -1062,7 +1062,7 @@ export default function BrandGuidelinesPage() {
                   { id: 'p1', text: `Running a small business means making decisions every day without the data big companies have.\n\nTrueGauge fixes that. It's a real-time operating dashboard that shows your daily velocity, monthly projection, and runway — all from a 10-second daily check-in.\n\nBuilt for owners who think strategically and want clarity without complexity.` },
                   { id: 'p2', text: `Most small business owners fly blind. They check the bank account and hope.\n\nTrueGauge changes that. Log your sales in 10 seconds. See your daily target, runway, and pace vs. last year — all in one glance.\n\nNo accountant. No spreadsheet gymnastics. Just clarity.` },
                   { id: 'p3', text: `Your accountant gives you reports quarterly. You need answers daily.\n\nTrueGauge is the operating dashboard that tells you exactly where you stand — survival percentage, daily velocity, runway, and how you're tracking vs. last year.\n\nStrategic clarity for the business owner who runs by the numbers.` },
-                  { id: 'p4', text: `I built TrueGauge because I was tired of wondering "are we going to make it this month?"\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nIt's free to use. Built by an operator, for operators.` },
+                  { id: 'p4', text: `I built TrueGauge because I wanted better visibility into my business — without waiting for quarterly reports.\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nBuilt by an operator, for operators.` },
                 ].map((pitch) => (
                   <button
                     key={pitch.id}
@@ -1095,10 +1095,10 @@ export default function BrandGuidelinesPage() {
                   { id: 's1', text: `TrueGauge: The operating dashboard for owners who run by the numbers.` },
                   { id: 's2', text: `Know your pace. See your runway. Own your trajectory.` },
                   { id: 's3', text: `Strategic clarity for the operator who doesn't wait for quarterly reports.` },
-                  { id: 's4', text: `Log sales in 10 seconds. Know if you'll survive the month.` },
+                  { id: 's4', text: `Log sales in 10 seconds. See exactly where you stand.` },
                   { id: 's5', text: `Your business dashboard shouldn't require an accounting degree.` },
                   { id: 's6', text: `TrueGauge: Real-time business health. No spreadsheets required.` },
-                  { id: 's7', text: `Built by an operator who got tired of wondering "are we going to make it?"` },
+                  { id: 's7', text: `Built by an operator who wanted real-time visibility, not quarterly reports.` },
                   { id: 's8', text: `The dashboard your accountant can't give you — because you need answers today.` },
                 ].map((pitch) => (
                   <button
@@ -1123,13 +1123,15 @@ export default function BrandGuidelinesPage() {
             
             {/* Free / Gratis Pitches */}
             <div>
-              <p className="text-xs text-emerald-400 uppercase tracking-wider mb-3">Free to Use — Gratis Pitches</p>
+              <p className="text-xs text-emerald-400 uppercase tracking-wider mb-3">While It's Free — Use Now</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
-                  { id: 'f1', text: `TrueGauge is completely free. No trials, no tiers, no credit card. Just sign up and start tracking your business health today.` },
-                  { id: 'f2', text: `Why free? Because every small business deserves clarity — not just the ones who can afford expensive software.` },
-                  { id: 'f3', text: `Free business dashboard. Real-time clarity. Built by an operator who believes small business owners deserve better tools.` },
-                  { id: 'f4', text: `No subscription. No hidden fees. TrueGauge is free because running a business is hard enough without paying for basic visibility.` },
+                  { id: 'f1', text: `TrueGauge is free right now. No trials, no credit card. Just sign up and start tracking your business health today.` },
+                  { id: 'f2', text: `While it's free, why not try it? Real-time business clarity without the enterprise price tag.` },
+                  { id: 'f3', text: `Free to use. Donations welcome. Built by an operator who believes small business owners deserve better tools.` },
+                  { id: 'f4', text: `TrueGauge is free while we grow. Get in now and start tracking your trajectory today.` },
+                  { id: 'f5', text: `Currently free. No subscription required. If it helps your business, donations are always appreciated.` },
+                  { id: 'f6', text: `Use TrueGauge free while you can. We're building something operators actually need — try it and see.` },
                 ].map((pitch) => (
                   <button
                     key={pitch.id}
