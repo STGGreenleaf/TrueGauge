@@ -419,8 +419,11 @@ export function LiquidityCard({
                       )}
                       <div className="flex justify-between gap-4 cursor-pointer hover:bg-zinc-800/30 px-1 rounded" onClick={() => setActiveBurnTip(activeBurnTip === 'annual' ? null : 'annual')}>
                         <span className="text-zinc-500">Annual:</span>
-                        <span className={`font-medium ${annualGap >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                          {formatCompact(annualGap)}
+                        <span className="text-right flex flex-col items-end">
+                          <span className={`font-medium ${annualGap >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                            {formatCompact(annualGap)}
+                          </span>
+                          <span className="text-zinc-600 text-[10px]">PY: {formatCompact(lyTotal)}</span>
                         </span>
                       </div>
                     </div>
