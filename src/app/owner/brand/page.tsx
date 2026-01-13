@@ -22,7 +22,8 @@ import {
   Download,
   Trash2,
   Star,
-  Plus
+  Plus,
+  MessageSquare
 } from 'lucide-react';
 
 // Owner check now done server-side via /api/auth/me
@@ -54,6 +55,7 @@ export default function BrandGuidelinesPage() {
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(true);
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
+  const [copiedPitch, setCopiedPitch] = useState<string | null>(null);
   
   // Collapsible sections - persist state in localStorage
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
@@ -1029,6 +1031,123 @@ export default function BrandGuidelinesPage() {
                   <Check className="h-4 w-4" />
                   Confirm
                 </button>
+              </div>
+            </div>
+          </div>
+          )}
+        </section>
+
+        {/* Elevator Pitches */}
+        <section className="mb-4">
+          <button 
+            onClick={() => toggleSection('pitches')}
+            className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-cyan-400" />
+              <h2 className="text-lg font-semibold text-white">Elevator Pitches</h2>
+            </div>
+            {openSections.pitches ? <ChevronDown className="h-4 w-4 text-zinc-500" /> : <ChevronRight className="h-4 w-4 text-zinc-500" />}
+          </button>
+          
+          {openSections.pitches && (
+          <div className="p-6 rounded-xl bg-zinc-900 border border-zinc-800 mt-4 space-y-6">
+            <p className="text-xs text-zinc-500">Click any pitch to copy. Use these for social posts, bios, and marketing.</p>
+            
+            {/* Medium Length - For Social Posts */}
+            <div>
+              <p className="text-xs text-cyan-400 uppercase tracking-wider mb-3">Medium — Social Posts</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { id: 'p1', text: `Running a small business means making decisions every day without the data big companies have.\n\nTrueGauge fixes that. It's a real-time operating dashboard that shows your daily velocity, monthly projection, and runway — all from a 10-second daily check-in.\n\nBuilt for owners who think strategically and want clarity without complexity.` },
+                  { id: 'p2', text: `Most small business owners fly blind. They check the bank account and hope.\n\nTrueGauge changes that. Log your sales in 10 seconds. See your daily target, runway, and pace vs. last year — all in one glance.\n\nNo accountant. No spreadsheet gymnastics. Just clarity.` },
+                  { id: 'p3', text: `Your accountant gives you reports quarterly. You need answers daily.\n\nTrueGauge is the operating dashboard that tells you exactly where you stand — survival percentage, daily velocity, runway, and how you're tracking vs. last year.\n\nStrategic clarity for the business owner who runs by the numbers.` },
+                  { id: 'p4', text: `I built TrueGauge because I was tired of wondering "are we going to make it this month?"\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nIt's free to use. Built by an operator, for operators.` },
+                ].map((pitch) => (
+                  <button
+                    key={pitch.id}
+                    onClick={() => {
+                      navigator.clipboard.writeText(pitch.text.replace(/\\n/g, '\n'));
+                      setCopiedPitch(pitch.id);
+                      setTimeout(() => setCopiedPitch(null), 2000);
+                    }}
+                    className="group p-4 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:border-cyan-500/50 transition-all text-left"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[10px] text-zinc-600">Click to copy</span>
+                      {copiedPitch === pitch.id ? (
+                        <Check className="h-3 w-3 text-green-400" />
+                      ) : (
+                        <Copy className="h-3 w-3 text-zinc-600 group-hover:text-cyan-400" />
+                      )}
+                    </div>
+                    <p className="text-sm text-zinc-300 whitespace-pre-line leading-relaxed">{pitch.text.replace(/\\n/g, '\n')}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Short — One-liners & Tweets */}
+            <div>
+              <p className="text-xs text-cyan-400 uppercase tracking-wider mb-3">Short — One-liners & Tweets</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { id: 's1', text: `TrueGauge: The operating dashboard for owners who run by the numbers.` },
+                  { id: 's2', text: `Know your pace. See your runway. Own your trajectory.` },
+                  { id: 's3', text: `Strategic clarity for the operator who doesn't wait for quarterly reports.` },
+                  { id: 's4', text: `Log sales in 10 seconds. Know if you'll survive the month.` },
+                  { id: 's5', text: `Your business dashboard shouldn't require an accounting degree.` },
+                  { id: 's6', text: `TrueGauge: Real-time business health. No spreadsheets required.` },
+                  { id: 's7', text: `Built by an operator who got tired of wondering "are we going to make it?"` },
+                  { id: 's8', text: `The dashboard your accountant can't give you — because you need answers today.` },
+                ].map((pitch) => (
+                  <button
+                    key={pitch.id}
+                    onClick={() => {
+                      navigator.clipboard.writeText(pitch.text);
+                      setCopiedPitch(pitch.id);
+                      setTimeout(() => setCopiedPitch(null), 2000);
+                    }}
+                    className="group p-3 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:border-cyan-500/50 transition-all text-left flex justify-between items-center gap-3"
+                  >
+                    <p className="text-sm text-zinc-300">{pitch.text}</p>
+                    {copiedPitch === pitch.id ? (
+                      <Check className="h-3 w-3 text-green-400 flex-shrink-0" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-zinc-600 group-hover:text-cyan-400 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Free / Gratis Pitches */}
+            <div>
+              <p className="text-xs text-emerald-400 uppercase tracking-wider mb-3">Free to Use — Gratis Pitches</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { id: 'f1', text: `TrueGauge is completely free. No trials, no tiers, no credit card. Just sign up and start tracking your business health today.` },
+                  { id: 'f2', text: `Why free? Because every small business deserves clarity — not just the ones who can afford expensive software.` },
+                  { id: 'f3', text: `Free business dashboard. Real-time clarity. Built by an operator who believes small business owners deserve better tools.` },
+                  { id: 'f4', text: `No subscription. No hidden fees. TrueGauge is free because running a business is hard enough without paying for basic visibility.` },
+                ].map((pitch) => (
+                  <button
+                    key={pitch.id}
+                    onClick={() => {
+                      navigator.clipboard.writeText(pitch.text);
+                      setCopiedPitch(pitch.id);
+                      setTimeout(() => setCopiedPitch(null), 2000);
+                    }}
+                    className="group p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:border-emerald-500/50 transition-all text-left flex justify-between items-center gap-3"
+                  >
+                    <p className="text-sm text-zinc-300">{pitch.text}</p>
+                    {copiedPitch === pitch.id ? (
+                      <Check className="h-3 w-3 text-green-400 flex-shrink-0" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-zinc-600 group-hover:text-emerald-400 flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
