@@ -1561,7 +1561,7 @@ export default function SettingsPage() {
                   </button>
                   
                   <p className="text-xs text-zinc-600">
-                    Enter last year's monthly net sales (ex-tax) for dashboard comparison.
+                    Enter last year's monthly gross sales for dashboard comparison.
                   </p>
                 </div>
             </div>
