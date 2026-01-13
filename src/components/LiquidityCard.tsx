@@ -332,10 +332,10 @@ export function LiquidityCard({
             const annualGap = monthlyBurn * 12;
             const survivalGoal = liquidityReceiver.survivalGoal;
             
-            // Calculate LY monthly average from lyEstimates
+            // Calculate LY this month (same month last year) for focused comparison
             const lyTotal = liquidityReceiver.lyEstimates.reduce((sum, w) => sum + w.value, 0);
-            const lyMonthlyAvg = lyTotal / 12;
-            const breakEvenGap = lyMonthlyAvg - survivalGoal;
+            const lyThisMonth = liquidityReceiver.pyMonthlyTotal || 0;
+            const monthlyGapVsLY = monthlyBurn - lyThisMonth;
             
             // Calculate days to floor (emergency fund) - always show a date
             const floor = liquidityReceiver.operatingFloor || 0;
@@ -367,14 +367,14 @@ export function LiquidityCard({
               return `${prefix}$${Math.round(val)}`;
             };
             
-            const effectiveBurnRate = velocity < 0 ? velocity : (breakEvenGap < 0 ? breakEvenGap / 30.4 : 0);
+            const effectiveBurnRate = velocity < 0 ? velocity : (monthlyGapVsLY < 0 ? monthlyGapVsLY / 30.4 : 0);
             const burnTips: Record<string, string> = {
               monthly: `Velocity from MTD Sales Pace\n\nMTD Net ÷ Days Elapsed = Daily Pace\n${formatCompact(velocity)}/day × 30.4 = ${formatCompact(monthlyBurn)}/month\n\n${monthlyBurn >= 0 ? "You're gaining cash based on sales pace." : "You're losing cash based on sales pace."}\n\nThis smooths out daily fluctuations by averaging your month so far.`,
               annual: `Monthly velocity projected over 12 months.\n\n${formatCompact(monthlyBurn)}/mo × 12 = ${formatCompact(annualGap)}/year\n\nThis is your trajectory if current sales pace continues. Updates daily as you log sales.`,
               floor: floor > 0 
                 ? `Emergency Floor: ${formatCurrency(floor)}\nCash Now: ${formatCurrency(cashNow)}\nDaily Pace: ${formatCompact(velocity)}/day ${velocity >= 0 ? '(gaining)' : '(burning)'}\n\n${velocity >= 0 ? 'Floor not approaching — your sales pace is positive.' : `At current pace, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`}`
                 : `No floor set. Go to Settings to set your emergency fund threshold.`,
-              gap: `LY Avg Monthly: ${formatCompact(lyMonthlyAvg)}\nSurvival Goal: ${formatCompact(survivalGoal)}\nGap: ${formatCompact(breakEvenGap)}/mo\n\n${breakEvenGap >= 0 ? "Your LY pattern exceeds break-even. Good!" : "Your LY pattern is below break-even. You need to outperform LY to stay profitable."}`,
+              gap: `This Month Focus\n\nLY Jan: ${formatCompact(lyThisMonth)}\nProjected: ${formatCompact(monthlyBurn)}\nvs LY: ${formatCompact(monthlyGapVsLY)}\n\n${monthlyGapVsLY >= 0 ? "On pace to beat last January!" : "Behind last January's pace. Push for more sales."}`,
             };
             
             return (
@@ -451,9 +451,9 @@ export function LiquidityCard({
                                                   </div>
                       )}
                       <div className="flex justify-between gap-4 cursor-pointer hover:bg-zinc-800/30 px-1 rounded" onClick={() => setActiveBurnTip(activeBurnTip === 'gap' ? null : 'gap')}>
-                        <span className="text-zinc-500">Gap:</span>
-                        <span className={`font-medium ${breakEvenGap >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                          {formatCompact(breakEvenGap)}/mo
+                        <span className="text-zinc-500">vs LY:</span>
+                        <span className={`font-medium ${monthlyGapVsLY >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                          {formatCompact(monthlyGapVsLY)}
                         </span>
                       </div>
                     </div>
