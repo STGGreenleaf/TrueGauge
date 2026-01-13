@@ -255,8 +255,8 @@ export function LiquidityCard({
             {/* Cash tips - dynamic explanations */}
             {(() => {
               const cashTips: Record<string, string> = {
-                cash: `Snapshot: ${formatCurrency(snapshotAmount ?? 0)} (as of ${snapshotAsOf ?? 'not set'})\nChange since: ${changeSince >= 0 ? '+' : ''}${formatCurrency(changeSince)}\n= ${formatCurrency(cashNow)} cash on hand\n\nThis is your snapshot + all logged net sales − expenses since that date.`,
-                change: `Net change from ${snapshotAsOf ?? 'snapshot date'} to ${asOfDate}.\n\nSales logged: adds to cash\nExpenses logged: subtracts from cash\n\nCurrent change: ${changeSince >= 0 ? '+' : ''}${formatCurrency(changeSince)}`,
+                cash: `Last snapshot: ${formatCurrency(snapshotAmount ?? 0)} (as of ${snapshotAsOf ?? 'not set'})\nMTD Net: ${changeSince >= 0 ? '+' : ''}${formatCurrency(changeSince)}\n\nYour cash on hand is updated weekly via Log Cash. The MTD net shows your sales minus expenses this month.`,
+                change: `MTD Net = Sales − Expenses this month\n\nThis shows your month-to-date performance:\n• Sales logged: ${formatCurrency(changeSince > 0 ? changeSince : 0)} (approx)\n• Expenses logged: deducted\n\nCurrent MTD Net: ${changeSince >= 0 ? '+' : ''}${formatCurrency(changeSince)}\n\nThis updates daily as you log sales.`,
                 target: `Target reserve: ${formatCurrency(liquidityReceiver.targetReserve)}\nCurrent cash: ${formatCurrency(cashNow)}\nGap: ${formatCurrency(liquidityReceiver.toTarget)}\n\nThis is how much more you need to reach your target reserve (set in Settings).`,
               };
               
@@ -377,12 +377,12 @@ export function LiquidityCard({
             
             const effectiveBurnRate = velocity < 0 ? velocity : (breakEvenGap < 0 ? breakEvenGap / 30.4 : 0);
             const burnTips: Record<string, string> = {
-              monthly: `Your actual current pace based on recent logged sales vs expenses. Velocity (${formatCompact(velocity)}/day) × 30.4 days = ${formatCompact(monthlyBurn)}/month. ${monthlyBurn >= 0 ? "You're currently gaining cash." : "You're currently losing cash."}`,
-              annual: `Monthly projected over 12 months. ${formatCompact(monthlyBurn)} × 12 = ${formatCompact(annualGap)}/year. This is what happens if current velocity continues unchanged.`,
+              monthly: `Velocity from MTD Sales Pace\n\nMTD Net ÷ Days Elapsed = Daily Pace\n${formatCompact(velocity)}/day × 30.4 = ${formatCompact(monthlyBurn)}/month\n\n${monthlyBurn >= 0 ? "You're gaining cash based on sales pace." : "You're losing cash based on sales pace."}\n\nThis smooths out daily fluctuations by averaging your month so far.`,
+              annual: `Monthly velocity projected over 12 months.\n\n${formatCompact(monthlyBurn)}/mo × 12 = ${formatCompact(annualGap)}/year\n\nThis is your trajectory if current sales pace continues. Updates daily as you log sales.`,
               floor: floor > 0 
-                ? `Emergency floor: ${formatCurrency(floor)}\nCash now: ${formatCurrency(cashNow)}\nVelocity: ${formatCompact(velocity)}/day ${velocity >= 0 ? '(gaining)' : '(burning)'}\n\n${velocity >= 0 ? 'Floor not approaching while gaining cash.' : `At current pace, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`}`
+                ? `Emergency Floor: ${formatCurrency(floor)}\nCash Now: ${formatCurrency(cashNow)}\nDaily Pace: ${formatCompact(velocity)}/day ${velocity >= 0 ? '(gaining)' : '(burning)'}\n\n${velocity >= 0 ? 'Floor not approaching — your sales pace is positive.' : `At current pace, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`}`
                 : `No floor set. Go to Settings to set your emergency fund threshold.`,
-              gap: `LY avg monthly: ${formatCompact(lyMonthlyAvg)}\nSurvival goal: ${formatCompact(survivalGoal)}\nGap: ${formatCompact(breakEvenGap)}/mo\n\n${breakEvenGap >= 0 ? "Your LY pattern exceeds break-even. Good!" : "Your LY pattern is below break-even. You need to outperform LY to stay profitable."}`,
+              gap: `LY Avg Monthly: ${formatCompact(lyMonthlyAvg)}\nSurvival Goal: ${formatCompact(survivalGoal)}\nGap: ${formatCompact(breakEvenGap)}/mo\n\n${breakEvenGap >= 0 ? "Your LY pattern exceeds break-even. Good!" : "Your LY pattern is below break-even. You need to outperform LY to stay profitable."}`,
             };
             
             return (
@@ -476,8 +476,8 @@ export function LiquidityCard({
                     avgDay: `Average Daily Sales\n\nCurrent: ${formatCompact(liquidityReceiver.avgDailySales || 0)}/day\nLY Avg: ${formatCompact(lyAvgDay)}/day\n\nBased on your logged sales entries this month vs last year's reference data.`,
                     nut: `NUT Coverage\n\nCash on hand: ${formatCurrency(cashNow)}\nMonthly NUT: ${formatCurrency(monthlyFixedNut)}\nCoverage: ${liquidityReceiver.nutCoverage}%\n\n${(liquidityReceiver.nutCoverage || 0) >= 100 ? 'You can cover this month\'s fixed costs!' : 'You need more cash to cover this month\'s fixed costs.'}`,
                     runway: liquidityReceiver.runwayDays !== null && liquidityReceiver.runwayDays !== undefined
-                      ? `Runway Days\n\nAt current burn rate (${formatCompact(liquidityReceiver.dailyBurn || 0)}/day), you have ~${liquidityReceiver.runwayDays} days of cash remaining.\n\n${liquidityReceiver.runwayDays > 90 ? 'Healthy runway!' : liquidityReceiver.runwayDays > 30 ? 'Monitor closely.' : 'Urgent - low runway!'}`
-                      : 'Not burning cash - runway extends indefinitely.',
+                      ? `Runway Days\n\nBased on your MTD sales pace (${formatCompact(velocity)}/day), you have ~${liquidityReceiver.runwayDays} days of cash remaining.\n\n${liquidityReceiver.runwayDays > 90 ? 'Healthy runway!' : liquidityReceiver.runwayDays > 30 ? 'Monitor closely.' : 'Urgent - low runway!'}`
+                      : 'Runway: ∞\n\nYour sales pace is positive — you\'re gaining cash, not burning it. Runway extends indefinitely while pace stays positive.',
                   };
                   
                   return (
