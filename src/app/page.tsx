@@ -569,14 +569,14 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    {/* NUT Remaining - Full Width Cradle */}
-                    <div className="px-4 py-3 bg-amber-900/20 border-t border-amber-600/30">
+                    {/* Sales To Go - Hero (actionable target) */}
+                    <div className="px-4 py-3 bg-cyan-900/20 border-t border-cyan-600/30">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span className="text-amber-400 text-[11px] font-medium uppercase tracking-wider">NUT Remaining (inner arc)</span>
+                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span className="text-cyan-400 text-[11px] font-medium uppercase tracking-wider">Still Need to Sell</span>
                       </div>
-                      <div className="text-amber-400 text-2xl font-bold">{formatCurrency(nutRemaining)}</div>
-                      <div className="text-amber-300/60 text-[10px]">Amount still needed to cover this month&apos;s fixed costs</div>
+                      <div className="text-cyan-400 text-2xl font-bold">{formatCurrency(Math.max(0, displayData.survivalGoal - displayData.mtdNetSales))}</div>
+                      <div className="text-cyan-300/60 text-[10px]">Sales remaining to hit your {formatCurrency(displayData.survivalGoal)} goal</div>
                     </div>
                     
                     {overage > 0 && (
@@ -589,12 +589,12 @@ export default function Dashboard() {
                     {/* Footer */}
                     <div className="px-4 py-3 bg-zinc-800/30 border-t border-zinc-800">
                       <div className="flex justify-between text-xs">
-                        <span className="text-zinc-500">Sales goal (outer arc @ 100%)</span>
-                        <span className="text-zinc-300">{formatCurrency(displayData.survivalGoal)}</span>
+                        <span className="text-zinc-500">NUT remaining (inner arc)</span>
+                        <span className="text-amber-400">{formatCurrency(nutRemaining)}</span>
                       </div>
                       <div className="flex justify-between text-xs mt-1">
-                        <span className="text-zinc-500">Still need to sell</span>
-                        <span className="text-cyan-400">{formatCurrency(Math.max(0, displayData.survivalGoal - displayData.mtdNetSales))}</span>
+                        <span className="text-zinc-500">Sales goal (outer arc @ 100%)</span>
+                        <span className="text-zinc-300">{formatCurrency(displayData.survivalGoal)}</span>
                       </div>
                       <div className="text-[10px] text-zinc-500 mt-3 leading-relaxed border-t border-zinc-700/50 pt-2">
                         <span className="text-zinc-300">{formatCurrency(displayData.survivalGoal)}</span> because you only keep <span className="text-cyan-400">{marginPct}%</span> after COGS & fees. That <span className="text-cyan-400">{marginPct}%</span> is your gross profit — it pays the <span className="text-zinc-300">{formatCurrency(displayData.settings.monthlyFixedNut)}</span> NUT.
@@ -686,20 +686,20 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    {/* NUT Remaining - Full Width Cradle */}
-                    <div className="px-3 py-2 bg-amber-900/20 border-t border-amber-600/30">
+                    {/* Sales To Go - Hero (actionable target) */}
+                    <div className="px-3 py-2 bg-cyan-900/20 border-t border-cyan-600/30">
                       <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span className="text-amber-400 text-[10px] font-medium uppercase tracking-wider">NUT Remaining</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span className="text-cyan-400 text-[10px] font-medium uppercase tracking-wider">Still Need to Sell</span>
                       </div>
-                      <div className="text-amber-400 text-xl font-bold">{formatCurrency(nutRemaining)}</div>
+                      <div className="text-cyan-400 text-xl font-bold">{formatCurrency(Math.max(0, displayData.survivalGoal - displayData.mtdNetSales))}</div>
                     </div>
                     
                     {/* Footer */}
                     <div className="px-3 py-2 bg-zinc-800/30 border-t border-zinc-800">
                       <div className="flex justify-between text-[10px]">
-                        <span className="text-zinc-500">Still need</span>
-                        <span className="text-cyan-400">{formatCurrency(Math.max(0, displayData.survivalGoal - displayData.mtdNetSales))}</span>
+                        <span className="text-zinc-500">NUT remaining</span>
+                        <span className="text-amber-400">{formatCurrency(nutRemaining)}</span>
                       </div>
                       <div className="text-[9px] text-zinc-500 mt-2 leading-relaxed border-t border-zinc-700/50 pt-1.5">
                         <span className="text-zinc-300">{formatCurrency(displayData.survivalGoal)}</span> because you only keep <span className="text-cyan-400">{marginPct}%</span> after COGS & fees.
