@@ -610,9 +610,9 @@ function CalendarContent() {
                       {/* Content area */}
                       <div className="flex-1 flex flex-col items-center justify-center">
                         {isEditing ? (
-                          <div className="flex flex-col items-center gap-1 w-full px-1">
-                            <div className="flex items-center gap-1 w-full">
-                              <span className="text-cyan-400 text-sm font-medium">$</span>
+                          <div className="flex flex-col items-center gap-1 w-full px-0.5">
+                            <div className="flex items-center gap-0.5 w-full">
+                              <span className="text-cyan-400 text-xs">$</span>
                               <input
                                 ref={editInputRef}
                                 type="text"
@@ -623,20 +623,24 @@ function CalendarContent() {
                                   if (e.key === 'Enter') saveEdit();
                                   if (e.key === 'Escape') cancelEdit();
                                 }}
-                                className="h-7 text-sm font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded w-full focus:border-cyan-500 focus:outline-none"
+                                className="h-6 text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
                                 placeholder="0.00"
                               />
+                            </div>
+                            <div className="flex gap-2">
                               <button
                                 onClick={saveEdit}
                                 disabled={saving}
-                                className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded bg-emerald-500/10"
-                                title="Save"
+                                className="p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
                               >
-                                <Check className="h-4 w-4" />
+                                <Check className="h-3.5 w-3.5" />
                               </button>
-                            </div>
-                            <div className="text-[9px] text-zinc-500">
-                              Type digits: 77826 → $778.26
+                              <button
+                                onClick={cancelEdit}
+                                className="p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
                             </div>
                           </div>
                         ) : (
