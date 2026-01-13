@@ -542,6 +542,10 @@ export async function GET(request: Request) {
       .filter(r => r.year === previousYear)
       .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
     
+    // PY Monthly: Same month last year
+    const pyMonthlyRef = referenceMonths.find(r => r.year === previousYear && r.month === month);
+    const pyMonthlyTotal = pyMonthlyRef?.referenceNetSalesExTax || 0;
+    
     return NextResponse.json({
       settings: {
         ...settings,
@@ -661,6 +665,8 @@ export async function GET(request: Request) {
           : null,
         // PY Annual Total (previous year only)
         pyAnnualTotal,
+        // PY Monthly (same month last year)
+        pyMonthlyTotal,
       },
     });
   } catch (error) {

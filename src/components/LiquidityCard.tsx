@@ -60,6 +60,8 @@ interface LiquidityCardProps {
     nutSnapshots?: Array<{ effectiveDate: string; amount: number; note: string | null }>;
     // PY Annual Total (previous year only)
     pyAnnualTotal?: number;
+    // PY Monthly (same month last year)
+    pyMonthlyTotal?: number;
   };
   onSetSnapshot?: () => void;
   timezone?: string;
@@ -405,8 +407,11 @@ export function LiquidityCard({
                       )}
                       <div className="flex justify-between gap-4 cursor-pointer hover:bg-zinc-800/30 px-1 rounded" onClick={() => setActiveBurnTip(activeBurnTip === 'monthly' ? null : 'monthly')}>
                         <span className="text-zinc-500">Monthly:</span>
-                        <span className={`font-medium ${monthlyBurn >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                          {formatCompact(monthlyBurn)}
+                        <span className="text-right flex flex-col items-end">
+                          <span className={`font-medium ${monthlyBurn >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                            {formatCompact(monthlyBurn)}
+                          </span>
+                          <span className="text-zinc-600 text-[10px]">PY: {formatCompact(liquidityReceiver.pyMonthlyTotal || 0)}</span>
                         </span>
                       </div>
                     </div>
