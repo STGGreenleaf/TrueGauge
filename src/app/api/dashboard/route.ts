@@ -536,6 +536,12 @@ export async function GET(request: Request) {
     // Gross margin trend (compare to target)
     const marginTrend = calc.grossMarginTrend(actualCogs, settings.targetCogsPct);
     
+    // PY Annual Total: Only sum previous year (year - 1), not all historical data
+    const previousYear = year - 1;
+    const pyAnnualTotal = referenceMonths
+      .filter(r => r.year === previousYear)
+      .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    
     return NextResponse.json({
       settings: {
         ...settings,
@@ -653,6 +659,8 @@ export async function GET(request: Request) {
         daysInBusiness: settings.businessStartDate 
           ? Math.floor((new Date().getTime() - new Date(settings.businessStartDate).getTime()) / (1000 * 60 * 60 * 24))
           : null,
+        // PY Annual Total (previous year only)
+        pyAnnualTotal,
       },
     });
   } catch (error) {

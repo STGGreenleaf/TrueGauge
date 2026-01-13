@@ -58,6 +58,8 @@ interface LiquidityCardProps {
     // NUT history series
     nutSeries?: Array<{ weekEnd: string; nut: number }>;
     nutSnapshots?: Array<{ effectiveDate: string; amount: number; note: string | null }>;
+    // PY Annual Total (previous year only)
+    pyAnnualTotal?: number;
   };
   onSetSnapshot?: () => void;
   timezone?: string;
@@ -423,7 +425,7 @@ export function LiquidityCard({
                           <span className={`font-medium ${annualGap >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                             {formatCompact(annualGap)}
                           </span>
-                          <span className="text-zinc-600 text-[10px]">PY: {formatCompact(lyTotal)}</span>
+                          <span className="text-zinc-600 text-[10px]">PY: {formatCompact(liquidityReceiver.pyAnnualTotal || 0)}</span>
                         </span>
                       </div>
                     </div>
