@@ -374,7 +374,7 @@ export function LiquidityCard({
               floor: floor > 0 
                 ? `Emergency Floor: ${formatCurrency(floor)}\nCash Now: ${formatCurrency(cashNow)}\nDaily Pace: ${formatCompact(velocity)}/day ${velocity >= 0 ? '(gaining)' : '(burning)'}\n\n${velocity >= 0 ? 'Floor not approaching — your sales pace is positive.' : `At current pace, you'll hit floor in ~${daysToFloor} days (${floorDateStr}).`}`
                 : `No floor set. Go to Settings to set your emergency fund threshold.`,
-              gap: `This Month Focus\n\nLY Jan: ${formatCompact(lyThisMonth)}\nProjected: ${formatCompact(monthlyBurn)}\nvs LY: ${formatCompact(monthlyGapVsLY)}\n\n${monthlyGapVsLY >= 0 ? "On pace to beat last January!" : "Behind last January's pace. Push for more sales."}`,
+              gap: `This Month Focus\n\nLY Jan: ${formatCompact(lyThisMonth)}\nProjected: ${formatCompact(monthlyBurn)}\nvs LY: ${formatCompact(monthlyGapVsLY)}\n\n${monthlyGapVsLY >= 0 ? "On pace to beat last January!" : "Behind last January's pace.\nPush to close the gap!"}`,
             };
             
             return (
