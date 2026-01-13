@@ -471,8 +471,17 @@ export async function GET(request: Request) {
     // Calculate safe to spend
     const safeToSpendAmount = calc.safeToSpend(cashNow, settings.operatingFloorCash);
     
-    // Calculate velocity for ETA (use 30-day lookback)
-    const velocity = calc.calculateVelocity(balances, 30);
+    // Calculate velocity from snapshot history (first to last snapshot)
+    let velocity = 0;
+    if (allSnapshots.length >= 2) {
+      // allSnapshots is ordered by createdAt desc, so [0] is newest, [length-1] is oldest
+      const newest = allSnapshots[0];
+      const oldest = allSnapshots[allSnapshots.length - 1];
+      const daysDiff = Math.max(1, 
+        (new Date(newest.date).getTime() - new Date(oldest.date).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      velocity = Math.round(((newest.amount - oldest.amount) / daysDiff) * 100) / 100;
+    }
     
     // Calculate ETA to floor/target
     const etaToFloor = calc.etaToThreshold(
