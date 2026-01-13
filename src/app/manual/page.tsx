@@ -14,7 +14,10 @@ import {
   FileText,
   Zap,
   BookOpen,
-  X
+  X,
+  Calendar,
+  Wallet,
+  CircleDot
 } from 'lucide-react';
 
 export default function ManualPage() {
@@ -162,6 +165,99 @@ export default function ManualPage() {
           </div>
         </section>
 
+        {/* Reading the Gauges */}
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-zinc-800">
+              <CircleDot className="h-5 w-5 text-cyan-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white uppercase tracking-wide">Reading the Gauges</h2>
+          </div>
+          <p className="text-zinc-400 leading-relaxed mb-4">
+            Colors tell you where you stand at a glance:
+          </p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-4 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]"></span>
+              <span className="text-cyan-400 font-medium w-16">Cyan</span>
+              <span className="text-zinc-400 text-sm">On track or ahead — you&apos;re in good shape</span>
+            </div>
+            <div className="flex items-center gap-4 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
+              <span className="text-amber-400 font-medium w-16">Amber</span>
+              <span className="text-zinc-400 text-sm">Caution zone — worth watching, not alarming</span>
+            </div>
+            <div className="flex items-center gap-4 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="w-3 h-3 rounded-full bg-red-400 shadow-[0_0_8px_#f87171]"></span>
+              <span className="text-red-400 font-medium w-16">Red</span>
+              <span className="text-zinc-400 text-sm">Needs attention — take a closer look</span>
+            </div>
+          </div>
+          <p className="text-zinc-500 text-sm mt-4 italic">
+            Glowing indicators mean the gauge is active and current. Dim means data may be stale or missing.
+          </p>
+        </section>
+
+        {/* Daily Habit */}
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-zinc-800">
+              <Calendar className="h-5 w-5 text-cyan-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white uppercase tracking-wide">Daily Habit</h2>
+          </div>
+          <p className="text-zinc-400 leading-relaxed mb-4">
+            The best results come from a simple daily check-in:
+          </p>
+          <ol className="space-y-3 text-zinc-300 text-sm">
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-bold">1</span>
+              <span><strong className="text-white">Log today&apos;s sales</strong> — takes 30 seconds from your daily report</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-bold">2</span>
+              <span><strong className="text-white">Check your gauges</strong> — see where you stand this month</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-bold">3</span>
+              <span><strong className="text-white">Done</strong> — close the app and run your business</span>
+            </li>
+          </ol>
+          <p className="text-zinc-500 text-sm mt-4 italic">
+            Consistency beats intensity. A quick daily glance keeps you oriented without living in the numbers.
+          </p>
+        </section>
+
+        {/* Cash Snapshot */}
+        <section className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-zinc-800">
+              <Wallet className="h-5 w-5 text-cyan-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white uppercase tracking-wide">Cash Snapshot</h2>
+          </div>
+          <p className="text-zinc-400 leading-relaxed mb-4">
+            Once a week, log your actual cash on hand using the <strong className="text-cyan-400">Log Cash</strong> button:
+          </p>
+          <div className="space-y-3 text-zinc-400 text-sm">
+            <div className="p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="text-zinc-300 font-medium">When:</span>
+              <span className="ml-2">Same day each week (e.g., Monday morning)</span>
+            </div>
+            <div className="p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="text-zinc-300 font-medium">What:</span>
+              <span className="ml-2">Your actual bank balance — the real number</span>
+            </div>
+            <div className="p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
+              <span className="text-zinc-300 font-medium">Why:</span>
+              <span className="ml-2">Keeps your liquidity gauge honest and builds trend data over time</span>
+            </div>
+          </div>
+          <p className="text-zinc-500 text-sm mt-4 italic">
+            Daily sales track your pace. Weekly cash snapshots confirm reality. Together they tell the full story.
+          </p>
+        </section>
+
         {/* Glossary */}
         <section className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -177,7 +273,7 @@ export default function ManualPage() {
             </div>
             <div className="flex gap-4 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
               <span className="text-cyan-400 font-mono text-sm font-semibold w-24 flex-shrink-0">Runway</span>
-              <span className="text-zinc-400 text-sm">Days of operating cash remaining based on current burn rate.</span>
+              <span className="text-zinc-400 text-sm">Days of operating cash remaining based on your current sales pace.</span>
             </div>
             <div className="flex gap-4 p-3 rounded-lg bg-zinc-900/30 border border-zinc-800/50">
               <span className="text-cyan-400 font-mono text-sm font-semibold w-24 flex-shrink-0">Confidence</span>
@@ -235,24 +331,24 @@ export default function ManualPage() {
             <h2 className="text-lg font-semibold text-white uppercase tracking-wide">Privacy</h2>
           </div>
           <p className="text-zinc-400 leading-relaxed mb-4">
-            TrueGauge is designed to be <strong className="text-white">local-first</strong>.
+            TrueGauge uses <strong className="text-white">secure cloud storage</strong> to keep your data safe and accessible.
           </p>
           <ul className="space-y-2 text-zinc-400 text-sm">
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5"></span>
-              Your business data stays on your device by default
+              Your data is stored securely in your personal account
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5"></span>
-              No required bank linking
+              No bank linking required — you enter the numbers you trust
             </li>
             <li className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5"></span>
-              No required account to get value from the tool
+              Your business data is never shared or sold
             </li>
           </ul>
           <p className="text-zinc-500 text-sm mt-4 italic">
-            If this ever changes (analytics, accounts, cloud sync), the privacy statement will be updated clearly before it ships.
+            We use industry-standard encryption and authentication to protect your information.
           </p>
         </section>
 
