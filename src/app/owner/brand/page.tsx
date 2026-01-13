@@ -1059,10 +1059,11 @@ export default function BrandGuidelinesPage() {
               <p className="text-xs text-cyan-400 uppercase tracking-wider mb-3">Medium — Social Posts</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { id: 'p1', text: `Running a small business means making decisions every day without the data big companies have.\n\nTrueGauge fixes that. It's a real-time operating dashboard that shows your daily velocity, monthly projection, and runway — all from a 10-second daily check-in.\n\nBuilt for owners who think strategically and want clarity without complexity.` },
-                  { id: 'p2', text: `Most small business owners fly blind. They check the bank account and hope.\n\nTrueGauge changes that. Log your sales in 10 seconds. See your daily target, runway, and pace vs. last year — all in one glance.\n\nNo accountant. No spreadsheet gymnastics. Just clarity.` },
-                  { id: 'p3', text: `Your accountant gives you reports quarterly. You need answers daily.\n\nTrueGauge is the operating dashboard that tells you exactly where you stand — survival percentage, daily velocity, runway, and how you're tracking vs. last year.\n\nStrategic clarity for the business owner who runs by the numbers.` },
-                  { id: 'p4', text: `I built TrueGauge because I wanted better visibility into my business — without waiting for quarterly reports.\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nBuilt by an operator, for operators.` },
+                  { id: 'M1', text: `Running a small business means making decisions every day without the data big companies have.\n\nTrueGauge fixes that. It's a real-time operating dashboard that shows your daily velocity, monthly projection, and runway — all from a 10-second daily check-in.\n\nBuilt for owners who think strategically and want clarity without complexity.` },
+                  { id: 'M2', text: `Most small business owners fly blind. They check the bank account and hope.\n\nTrueGauge changes that. Log your sales in 10 seconds. See your daily target, runway, and pace vs. last year — all in one glance.\n\nNo accountant. No spreadsheet gymnastics. Just clarity.` },
+                  { id: 'M3', text: `Your accountant gives you reports quarterly. You need answers daily.\n\nTrueGauge is the operating dashboard that tells you exactly where you stand — survival percentage, daily velocity, runway, and how you're tracking vs. last year.\n\nStrategic clarity for the business owner who runs by the numbers.` },
+                  { id: 'M4', text: `I built TrueGauge because I wanted better visibility into my business — without waiting for quarterly reports.\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nBuilt by an operator, for operators.` },
+                  { id: 'M5', text: `I built TrueGauge because I was tired of wondering where I stood each month.\n\nNow I log sales in 10 seconds and know exactly where I stand. Daily pace. Monthly projection. Cash runway. All real-time.\n\nIt's free to use. Built by an operator, for operators.` },
                 ].map((pitch) => (
                   <button
                     key={pitch.id}
@@ -1074,7 +1075,7 @@ export default function BrandGuidelinesPage() {
                     className="group p-4 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:border-cyan-500/50 transition-all text-left"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-[10px] text-zinc-600">Click to copy</span>
+                      <span className="text-[10px] text-cyan-500 font-mono font-bold">{pitch.id}</span>
                       {copiedPitch === pitch.id ? (
                         <Check className="h-3 w-3 text-green-400" />
                       ) : (
@@ -1092,14 +1093,16 @@ export default function BrandGuidelinesPage() {
               <p className="text-xs text-cyan-400 uppercase tracking-wider mb-3">Short — One-liners & Tweets</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
-                  { id: 's1', text: `TrueGauge: The operating dashboard for owners who run by the numbers.` },
-                  { id: 's2', text: `Know your pace. See your runway. Own your trajectory.` },
-                  { id: 's3', text: `Strategic clarity for the operator who doesn't wait for quarterly reports.` },
-                  { id: 's4', text: `Log sales in 10 seconds. See exactly where you stand.` },
-                  { id: 's5', text: `Your business dashboard shouldn't require an accounting degree.` },
-                  { id: 's6', text: `TrueGauge: Real-time business health. No spreadsheets required.` },
-                  { id: 's7', text: `Built by an operator who wanted real-time visibility, not quarterly reports.` },
-                  { id: 's8', text: `The dashboard your accountant can't give you — because you need answers today.` },
+                  { id: 'S1', text: `TrueGauge: The operating dashboard for owners who run by the numbers.` },
+                  { id: 'S2', text: `Know your pace. See your runway. Own your trajectory.` },
+                  { id: 'S3', text: `Strategic clarity for the operator who doesn't wait for quarterly reports.` },
+                  { id: 'S4', text: `Log sales in 10 seconds. See exactly where you stand.` },
+                  { id: 'S5', text: `Log sales in 10 seconds. Know if you'll survive the month.` },
+                  { id: 'S6', text: `Your business dashboard shouldn't require an accounting degree.` },
+                  { id: 'S7', text: `TrueGauge: Real-time business health. No spreadsheets required.` },
+                  { id: 'S8', text: `Built by an operator who wanted real-time visibility, not quarterly reports.` },
+                  { id: 'S9', text: `Built by an operator who got tired of wondering "are we going to make it?"` },
+                  { id: 'S10', text: `The dashboard your accountant can't give you — because you need answers today.` },
                 ].map((pitch) => (
                   <button
                     key={pitch.id}
@@ -1108,9 +1111,10 @@ export default function BrandGuidelinesPage() {
                       setCopiedPitch(pitch.id);
                       setTimeout(() => setCopiedPitch(null), 2000);
                     }}
-                    className="group p-3 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:border-cyan-500/50 transition-all text-left flex justify-between items-center gap-3"
+                    className="group p-3 rounded-lg bg-zinc-800/50 border border-zinc-700 hover:border-cyan-500/50 transition-all text-left flex items-center gap-3"
                   >
-                    <p className="text-sm text-zinc-300">{pitch.text}</p>
+                    <span className="text-[10px] text-cyan-500 font-mono font-bold flex-shrink-0">{pitch.id}</span>
+                    <p className="text-sm text-zinc-300 flex-1">{pitch.text}</p>
                     {copiedPitch === pitch.id ? (
                       <Check className="h-3 w-3 text-green-400 flex-shrink-0" />
                     ) : (
@@ -1126,12 +1130,14 @@ export default function BrandGuidelinesPage() {
               <p className="text-xs text-emerald-400 uppercase tracking-wider mb-3">While It's Free — Use Now</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
-                  { id: 'f1', text: `TrueGauge is free right now. No trials, no credit card. Just sign up and start tracking your business health today.` },
-                  { id: 'f2', text: `While it's free, why not try it? Real-time business clarity without the enterprise price tag.` },
-                  { id: 'f3', text: `Free to use. Donations welcome. Built by an operator who believes small business owners deserve better tools.` },
-                  { id: 'f4', text: `TrueGauge is free while we grow. Get in now and start tracking your trajectory today.` },
-                  { id: 'f5', text: `Currently free. No subscription required. If it helps your business, donations are always appreciated.` },
-                  { id: 'f6', text: `Use TrueGauge free while you can. We're building something operators actually need — try it and see.` },
+                  { id: 'F1', text: `TrueGauge is free right now. No trials, no credit card. Just sign up and start tracking your business health today.` },
+                  { id: 'F2', text: `While it's free, why not try it? Real-time business clarity without the enterprise price tag.` },
+                  { id: 'F3', text: `Free to use. Donations welcome. Built by an operator who believes small business owners deserve better tools.` },
+                  { id: 'F4', text: `TrueGauge is free while we grow. Get in now and start tracking your trajectory today.` },
+                  { id: 'F5', text: `Currently free. No subscription required. If it helps your business, donations are always appreciated.` },
+                  { id: 'F6', text: `Use TrueGauge free while you can. We're building something operators actually need — try it and see.` },
+                  { id: 'F7', text: `TrueGauge is completely free. No trials, no tiers, no credit card. Just sign up and start tracking your business health today.` },
+                  { id: 'F8', text: `Why free? Because every small business deserves clarity — not just the ones who can afford expensive software.` },
                 ].map((pitch) => (
                   <button
                     key={pitch.id}
@@ -1140,9 +1146,10 @@ export default function BrandGuidelinesPage() {
                       setCopiedPitch(pitch.id);
                       setTimeout(() => setCopiedPitch(null), 2000);
                     }}
-                    className="group p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:border-emerald-500/50 transition-all text-left flex justify-between items-center gap-3"
+                    className="group p-3 rounded-lg bg-emerald-900/20 border border-emerald-700/30 hover:border-emerald-500/50 transition-all text-left flex items-center gap-3"
                   >
-                    <p className="text-sm text-zinc-300">{pitch.text}</p>
+                    <span className="text-[10px] text-emerald-500 font-mono font-bold flex-shrink-0">{pitch.id}</span>
+                    <p className="text-sm text-zinc-300 flex-1">{pitch.text}</p>
                     {copiedPitch === pitch.id ? (
                       <Check className="h-3 w-3 text-green-400 flex-shrink-0" />
                     ) : (
