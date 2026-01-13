@@ -270,21 +270,18 @@ export async function GET(request: Request) {
       allDayEntries = dayEntriesRaw.map(e => ({ date: e.date, netSalesExTax: e.netSalesExTax }));
       allExpenses = expensesRaw.map(e => ({ date: e.date, amount: e.amount }));
       
-      // Calculate change from previous snapshot (not just sales-expenses)
-      if (allSnapshots.length >= 2) {
-        // Latest snapshot is current, second is previous
-        const currentSnapshot = allSnapshots[0];
-        const previousSnapshot = allSnapshots[1];
-        changeSince = currentSnapshot.amount - previousSnapshot.amount;
-        cashNow = currentSnapshot.amount;
-      } else if (allSnapshots.length === 1) {
-        // Only one snapshot - no change to show
-        changeSince = 0;
+      // Use latest snapshot for cashNow
+      if (allSnapshots.length >= 1) {
         cashNow = allSnapshots[0].amount;
       } else {
-        // Fall back to settings snapshot
         cashNow = settings.cashSnapshotAmount!;
       }
+      
+      // Calculate MTD expenses for change display
+      const mtdExpensesForChange = expenses.reduce((sum: number, e: ExpenseRecord) => sum + e.amount, 0);
+      // Change = MTD net (sales - expenses) - smooth, meaningful metric
+      changeSince = mtdNetSales - mtdExpensesForChange;
+      
       fillPct = calc.cashFillPct(cashNow, settings.monthlyFixedNut);
     }
     
@@ -471,17 +468,12 @@ export async function GET(request: Request) {
     // Calculate safe to spend
     const safeToSpendAmount = calc.safeToSpend(cashNow, settings.operatingFloorCash);
     
-    // Calculate velocity from snapshot history (first to last snapshot)
-    let velocity = 0;
-    if (allSnapshots.length >= 2) {
-      // allSnapshots is ordered by createdAt desc, so [0] is newest, [length-1] is oldest
-      const newest = allSnapshots[0];
-      const oldest = allSnapshots[allSnapshots.length - 1];
-      const daysDiff = Math.max(1, 
-        (new Date(newest.date).getTime() - new Date(oldest.date).getTime()) / (1000 * 60 * 60 * 24)
-      );
-      velocity = Math.round(((newest.amount - oldest.amount) / daysDiff) * 100) / 100;
-    }
+    // Calculate velocity from MTD sales pace (smooth, not jumpy like snapshots)
+    // Velocity = (MTD Net Sales - MTD Total Expenses) / days elapsed this month
+    const mtdTotalExpenses = mtdCogsCash + mtdOpexCash + mtdOwnerDraw + mtdCapexCash;
+    const mtdNet = mtdNetSales - mtdTotalExpenses;
+    const daysElapsed = Math.max(1, asOfDay); // days into the month
+    const velocity = Math.round((mtdNet / daysElapsed) * 100) / 100;
     
     // Calculate ETA to floor/target
     const etaToFloor = calc.etaToThreshold(
