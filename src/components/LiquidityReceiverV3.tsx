@@ -607,12 +607,6 @@ export function LiquidityReceiverV3({
                   <p className="text-zinc-500">The runway shows estimated days until you hit your operating floor.</p>
                 </>
               )}
-              <button 
-                onClick={(e) => { e.stopPropagation(); setShowRunwayTip(false); }} 
-                className="absolute top-1 right-2 text-zinc-500 hover:text-zinc-300"
-              >
-                ×
-              </button>
             </div>
           )}
         </div>

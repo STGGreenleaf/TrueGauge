@@ -201,12 +201,6 @@ export function LiquidityCard({
               {showTooltip && (
                 <div className="absolute left-0 top-6 z-10 w-64 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
                   Cash on hand = snapshot + net sales - logged expenses (to asOfDate). Logged-only. No bank access.
-                  <button
-                    onClick={() => setShowTooltip(false)}
-                    className="absolute top-1 right-1 text-zinc-500 hover:text-zinc-300"
-                  >
-                    ×
-                  </button>
                 </div>
               )}
             </div>
@@ -235,12 +229,6 @@ export function LiquidityCard({
                     <div className="mt-2 pt-2 border-t border-zinc-800 text-[10px]">
                       {runwayPct >= 1 ? '✓ Can cover 1+ month of fixed costs' : runwayPct >= 0.5 ? '⚠ Can cover ~2 weeks of fixed costs' : '⚠ Low coverage - needs attention'}
                     </div>
-                    <button
-                      onClick={() => setShowRunwayTip(false)}
-                      className="absolute top-1 right-1 text-zinc-500 hover:text-zinc-300"
-                    >
-                      ×
-                    </button>
                   </div>
                 )}
               </>
