@@ -345,11 +345,13 @@ export async function GET(request: Request) {
     // Generate cash balance series from historical snapshots (ACTUAL data)
     // Use historical CashSnapshot records if available, otherwise fall back to settings snapshot
     // NOTE: Use todayStr for cash snapshots (not asOfDate) so recent snapshots aren't filtered out
-    const balances = historicalSnapshots.length > 0
+    // Aggregate by weekEnd, keeping latest snapshot per week for accurate WoW calculation
+    const rawBalances = historicalSnapshots.length > 0
       ? historicalSnapshots
           .filter(snap => snap.date >= receiverStartDate && snap.date <= todayStr)
           .map(snap => ({
             weekEnd: calc.getWeekEnd(snap.date),
+            date: snap.date,
             balance: snap.amount,
             isEstimate: false,
           }))
@@ -363,6 +365,18 @@ export async function GET(request: Request) {
               receiverEndDate
             )
           : []);
+    
+    // Aggregate by weekEnd - keep latest snapshot per week for WoW
+    const balancesByWeek = new Map<string, { weekEnd: string; balance: number; isEstimate: boolean; date?: string }>();
+    for (const b of rawBalances) {
+      const entry = b as { weekEnd: string; balance: number; isEstimate: boolean; date?: string };
+      const existing = balancesByWeek.get(entry.weekEnd);
+      // Keep latest snapshot per week (higher date wins)
+      if (!existing || (entry.date && (!existing.date || entry.date > existing.date))) {
+        balancesByWeek.set(entry.weekEnd, { weekEnd: entry.weekEnd, balance: entry.balance, isEstimate: entry.isEstimate, date: entry.date });
+      }
+    }
+    const balances = Array.from(balancesByWeek.values()).sort((a, b) => a.weekEnd.localeCompare(b.weekEnd));
     
     // Generate delta series from balances
     const deltas = calc.weeklyDeltaSeriesFromBalance(balances);
