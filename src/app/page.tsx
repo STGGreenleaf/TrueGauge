@@ -202,17 +202,16 @@ export default function Dashboard() {
     setSavingCash(true);
     try {
       const amount = parseInt(cashInputRaw, 10) / 100;
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const res = await fetch('/api/cash-snapshots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          amount,
-          timestamp: new Date().toISOString(),
-        }),
+        body: JSON.stringify({ amount, date: today }),
       });
+      // Always close modal and clear input after attempt
+      setShowCashModal(false);
+      setCashInputRaw('');
       if (res.ok) {
-        setShowCashModal(false);
-        setCashInputRaw('');
         fetchDashboard(shouldUseShowcase); // Refresh to show new balance
       }
     } catch (error) {
