@@ -668,7 +668,14 @@ function CalendarContent() {
                               </div>
                             ) : (
                               <button
-                                onClick={() => startEdit(dateStr, null)}
+                                onClick={() => {
+                                  // Mobile: go to diary page, Desktop: inline edit
+                                  if (window.innerWidth < 640) {
+                                    router.push(`/diary?date=${dateStr}`);
+                                  } else {
+                                    startEdit(dateStr, null);
+                                  }
+                                }}
                                 className="text-xs sm:text-[10px] text-zinc-500 hover:text-cyan-400 transition-colors py-2 px-3 sm:py-0 sm:px-0"
                               >
                                 + add
@@ -685,56 +692,7 @@ function CalendarContent() {
           )}
         </div>
 
-        {/* Mobile Input Modal - only shows on mobile when editing */}
-        {editingDay && (
-          <div className="sm:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={cancelEdit}>
-            <div 
-              className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 w-64 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center mb-3">
-                <div className="text-zinc-500 text-xs">Sales for</div>
-                <div className="text-white text-sm font-medium">
-                  {format(new Date(editingDay + 'T12:00:00'), 'MMM d, yyyy')}
-                </div>
-              </div>
-              
-              <div className="relative mb-4">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 text-xl font-bold">$</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={editValue}
-                  onChange={(e) => handleEditInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') saveEdit();
-                    if (e.key === 'Escape') cancelEdit();
-                  }}
-                  autoFocus
-                  className="w-full h-12 pl-8 text-xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg focus:border-cyan-500 focus:outline-none"
-                  placeholder="0.00"
-                />
-              </div>
-              
-              <div className="flex justify-center gap-6">
-                <button
-                  onClick={cancelEdit}
-                  className="p-3 rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={saveEdit}
-                  disabled={saving}
-                  className="p-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-500 transition-colors disabled:opacity-50"
-                >
-                  <Check className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+        
         {/* Legend */}
         <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] text-zinc-600">
           <div className="flex items-center gap-2">
