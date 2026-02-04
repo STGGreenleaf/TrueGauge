@@ -253,8 +253,8 @@ function CalendarContent() {
     setSaving(true);
     try {
       const value = editRawCents === '' ? null : parseInt(editRawCents, 10) / 100;
-      const res = await fetch('/api/diary', {
-        method: 'PUT',
+      const res = await fetch('/api/day-entries', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ date: editingDay, netSalesExTax: value }),
       });
