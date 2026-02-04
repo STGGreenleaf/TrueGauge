@@ -193,9 +193,29 @@ function CalendarContent() {
 
   const getLYDayData = (date: Date): DayData | null => {
     if (!lyMonthData) return null;
+    
     // Get same day of month from last year
     const lyDateStr = `${year - 1}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    return lyMonthData.days.find(d => d.date === lyDateStr) || null;
+    const actualDay = lyMonthData.days.find(d => d.date === lyDateStr);
+    
+    // Return actual data if it exists
+    if (actualDay && actualDay.netSalesExTax !== null) {
+      return actualDay;
+    }
+    
+    // Fallback: estimate from monthly average when daily data missing
+    const daysWithData = lyMonthData.days.filter(d => d.netSalesExTax !== null).length;
+    if (daysWithData > 0 && lyMonthData.mtdNetSales > 0) {
+      const avgDaily = lyMonthData.mtdNetSales / daysWithData;
+      return {
+        date: lyDateStr,
+        netSalesExTax: avgDaily,
+        expenseTotal: 0,
+        expenseCount: 0,
+      };
+    }
+    
+    return null;
   };
 
   const getDayColor = (dayData: DayData | null): string => {
@@ -659,10 +679,10 @@ function CalendarContent() {
                                     -{formatCurrency(dayData.expenseTotal)}
                                   </div>
                                 )}
-                                {/* LY comparison */}
+                                {/* LY comparison - purple amount below white */}
                                 {showLY && lyDayData?.netSalesExTax !== null && lyDayData?.netSalesExTax !== undefined && (
-                                  <div className="text-[9px] text-violet-400 mt-0.5">
-                                    LY: {formatCurrency(lyDayData.netSalesExTax)}
+                                  <div className="text-[10px] text-violet-400 font-bold">
+                                    {formatCurrency(lyDayData.netSalesExTax)}
                                   </div>
                                 )}
                               </div>
