@@ -261,6 +261,8 @@ function CalendarContent() {
       if (res.ok) {
         // Refresh data
         await fetchMonthData();
+      } else {
+        console.error('Save failed:', res.status, await res.text());
       }
     } catch (error) {
       console.error('Error saving:', error);
@@ -268,6 +270,7 @@ function CalendarContent() {
       setSaving(false);
       setEditingDay(null);
       setEditValue('');
+      setEditRawCents('');
     }
   };
 
@@ -689,18 +692,18 @@ function CalendarContent() {
         {editingDay && (
           <div className="sm:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={cancelEdit}>
             <div 
-              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 mx-4 w-full max-w-xs shadow-2xl"
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-4 w-64 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-center mb-4">
-                <div className="text-zinc-400 text-sm">Enter sales for</div>
-                <div className="text-white text-lg font-semibold mt-1">
-                  {format(new Date(editingDay + 'T12:00:00'), 'MMMM d, yyyy')}
+              <div className="text-center mb-3">
+                <div className="text-zinc-500 text-xs">Sales for</div>
+                <div className="text-white text-sm font-medium">
+                  {format(new Date(editingDay + 'T12:00:00'), 'MMM d, yyyy')}
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 mb-6">
-                <span className="text-cyan-400 text-2xl font-bold">$</span>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-cyan-400 text-xl font-bold">$</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -711,26 +714,24 @@ function CalendarContent() {
                     if (e.key === 'Escape') cancelEdit();
                   }}
                   autoFocus
-                  className="h-14 text-2xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg flex-1 focus:border-cyan-500 focus:outline-none"
+                  className="h-12 text-xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg flex-1 focus:border-cyan-500 focus:outline-none"
                   placeholder="0.00"
                 />
               </div>
               
-              <div className="flex gap-3">
+              <div className="flex justify-center gap-6">
                 <button
                   onClick={cancelEdit}
-                  className="flex-1 py-3 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
+                  className="p-3 rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors"
                 >
-                  <X className="h-5 w-5" />
-                  Cancel
+                  <X className="h-6 w-6" />
                 </button>
                 <button
                   onClick={saveEdit}
                   disabled={saving}
-                  className="flex-1 py-3 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="p-3 rounded-full bg-emerald-600 text-white hover:bg-emerald-500 transition-colors disabled:opacity-50"
                 >
-                  <Check className="h-5 w-5" />
-                  Save
+                  <Check className="h-6 w-6" />
                 </button>
               </div>
             </div>
