@@ -85,9 +85,6 @@ function CalendarContent() {
 
   useEffect(() => {
     fetchMonthData();
-    // Auto-refresh every 30 seconds for "live" calendar
-    const interval = setInterval(fetchMonthData, 30000);
-    return () => clearInterval(interval);
   }, [monthStr, isShowcase]);
 
   const fetchMonthData = async () => {
