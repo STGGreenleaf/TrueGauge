@@ -573,7 +573,7 @@ function CalendarContent() {
             <div className={`grid grid-cols-7 gap-1 ${viewMode === 'week' ? 'min-h-[120px]' : ''}`}>
               {paddedDays.map((day, index) => {
                 if (!day) {
-                  return <div key={`pad-${index}`} className={viewMode === 'week' ? 'min-h-[100px]' : 'aspect-[3/2]'} />;
+                  return <div key={`pad-${index}`} className={viewMode === 'week' ? 'min-h-[100px]' : 'min-h-[72px] sm:min-h-0 sm:aspect-[3/2]'} />;
                 }
                 
                 const dateStr = format(day, 'yyyy-MM-dd');
@@ -586,7 +586,7 @@ function CalendarContent() {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`${viewMode === 'week' ? 'min-h-[100px]' : 'aspect-[3/2]'} rounded-lg border p-1 transition-all ${dayColor} ${
+                    className={`${viewMode === 'week' ? 'min-h-[100px]' : 'min-h-[72px] sm:min-h-0 sm:aspect-[3/2]'} rounded-lg border p-1 sm:p-1.5 transition-all ${dayColor} ${
                       isCurrentDay ? 'ring-2 ring-cyan-500' : 'border-zinc-700'
                     }`}
                   >
@@ -610,9 +610,9 @@ function CalendarContent() {
                       {/* Content area */}
                       <div className="flex-1 flex flex-col items-center justify-center">
                         {isEditing ? (
-                          <div className="flex flex-col items-center gap-1 w-full px-0.5">
+                          <div className="flex flex-col items-center gap-1.5 w-full px-0.5">
                             <div className="flex items-center gap-0.5 w-full">
-                              <span className="text-cyan-400 text-xs">$</span>
+                              <span className="text-cyan-400 text-sm sm:text-xs">$</span>
                               <input
                                 ref={editInputRef}
                                 type="text"
@@ -623,23 +623,23 @@ function CalendarContent() {
                                   if (e.key === 'Enter') saveEdit();
                                   if (e.key === 'Escape') cancelEdit();
                                 }}
-                                className="h-6 text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
+                                className="h-8 sm:h-6 text-sm sm:text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
                                 placeholder="0.00"
                               />
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3 sm:gap-2">
                               <button
                                 onClick={saveEdit}
                                 disabled={saving}
-                                className="p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
+                                className="p-1.5 sm:p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
                               >
-                                <Check className="h-3.5 w-3.5" />
+                                <Check className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                               </button>
                               <button
                                 onClick={cancelEdit}
-                                className="p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
+                                className="p-1.5 sm:p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
                               >
-                                <X className="h-3.5 w-3.5" />
+                                <X className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                               </button>
                             </div>
                           </div>
@@ -668,7 +668,7 @@ function CalendarContent() {
                             ) : (
                               <button
                                 onClick={() => startEdit(dateStr, null)}
-                                className="text-[10px] text-zinc-600 hover:text-cyan-400 transition-colors"
+                                className="text-xs sm:text-[10px] text-zinc-500 hover:text-cyan-400 transition-colors py-2 px-3 sm:py-0 sm:px-0"
                               >
                                 + add
                               </button>
