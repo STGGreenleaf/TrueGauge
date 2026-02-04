@@ -702,8 +702,8 @@ function CalendarContent() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-cyan-400 text-xl font-bold">$</span>
+              <div className="relative mb-4">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400 text-xl font-bold">$</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -714,7 +714,7 @@ function CalendarContent() {
                     if (e.key === 'Escape') cancelEdit();
                   }}
                   autoFocus
-                  className="h-12 text-xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg flex-1 focus:border-cyan-500 focus:outline-none"
+                  className="w-full h-12 pl-8 text-xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg focus:border-cyan-500 focus:outline-none"
                   placeholder="0.00"
                 />
               </div>
