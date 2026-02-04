@@ -28,6 +28,7 @@ import {
   ChevronRight,
   Save,
   Trash2,
+  X,
 } from 'lucide-react';
 import { format, addDays, subDays, parseISO } from 'date-fns';
 import { Nav } from '@/components/Nav';
@@ -242,6 +243,17 @@ function DiaryPageContent() {
       <Nav showRefresh={false} />
 
       <div className="relative z-10 mx-auto max-w-lg px-6 py-8">
+
+        {/* Close button */}
+        <div className="mb-4 flex justify-end">
+          <button
+            onClick={() => router.push('/calendar')}
+            className="p-2 rounded-full bg-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+            aria-label="Close and return to calendar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
         {/* Date Navigator */}
         <div className="mb-8 flex items-center justify-center gap-6">
