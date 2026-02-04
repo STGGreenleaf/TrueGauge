@@ -610,9 +610,10 @@ function CalendarContent() {
                       {/* Content area */}
                       <div className="flex-1 flex flex-col items-center justify-center">
                         {isEditing ? (
-                          <div className="flex flex-col items-center gap-1.5 w-full px-0.5">
+                          /* Desktop inline edit - hidden on mobile */
+                          <div className="hidden sm:flex flex-col items-center gap-1.5 w-full px-0.5">
                             <div className="flex items-center gap-0.5 w-full">
-                              <span className="text-cyan-400 text-sm sm:text-xs">$</span>
+                              <span className="text-cyan-400 text-xs">$</span>
                               <input
                                 ref={editInputRef}
                                 type="text"
@@ -623,23 +624,23 @@ function CalendarContent() {
                                   if (e.key === 'Enter') saveEdit();
                                   if (e.key === 'Escape') cancelEdit();
                                 }}
-                                className="h-8 sm:h-6 text-sm sm:text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
+                                className="h-6 text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
                                 placeholder="0.00"
                               />
                             </div>
-                            <div className="flex gap-3 sm:gap-2">
+                            <div className="flex gap-2">
                               <button
                                 onClick={saveEdit}
                                 disabled={saving}
-                                className="p-1.5 sm:p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
+                                className="p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
                               >
-                                <Check className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                <Check className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={cancelEdit}
-                                className="p-1.5 sm:p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
+                                className="p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
                               >
-                                <X className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>
@@ -683,6 +684,58 @@ function CalendarContent() {
             </div>
           )}
         </div>
+
+        {/* Mobile Input Modal - only shows on mobile when editing */}
+        {editingDay && (
+          <div className="sm:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={cancelEdit}>
+            <div 
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 mx-4 w-full max-w-xs shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-4">
+                <div className="text-zinc-400 text-sm">Enter sales for</div>
+                <div className="text-white text-lg font-semibold mt-1">
+                  {format(new Date(editingDay + 'T12:00:00'), 'MMMM d, yyyy')}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-cyan-400 text-2xl font-bold">$</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={editValue}
+                  onChange={(e) => handleEditInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit();
+                    if (e.key === 'Escape') cancelEdit();
+                  }}
+                  autoFocus
+                  className="h-14 text-2xl font-bold text-cyan-400 text-center bg-zinc-800 border border-zinc-600 rounded-lg flex-1 focus:border-cyan-500 focus:outline-none"
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelEdit}
+                  className="flex-1 py-3 rounded-lg bg-zinc-800 text-zinc-400 hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <X className="h-5 w-5" />
+                  Cancel
+                </button>
+                <button
+                  onClick={saveEdit}
+                  disabled={saving}
+                  className="flex-1 py-3 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Check className="h-5 w-5" />
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Legend */}
         <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] text-zinc-600">
