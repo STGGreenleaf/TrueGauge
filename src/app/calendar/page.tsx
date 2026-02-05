@@ -92,9 +92,10 @@ function CalendarContent() {
   const [editValue, setEditValue] = useState('');
   const [editRawCents, setEditRawCents] = useState(''); // Raw cents for auto-decimal
   const [saving, setSaving] = useState(false);
-  const [showLY, setShowLY] = useState(false);
+  const [showLY, setShowLY] = useState(true);
   const [showJumpTo, setShowJumpTo] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [activeTip, setActiveTip] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
 
   const year = currentDate.getFullYear();
@@ -602,11 +603,12 @@ function CalendarContent() {
               
               // Calculate LY MTD estimate (hours-weighted through current point)
               let lyMtdEstimate = 0;
+              let maxDay = 0;
               if (monthData.lyReference && monthData.openHoursTemplate) {
                 const daysWithSales = monthData.days.filter(d => d.netSalesExTax !== null && d.netSalesExTax > 0);
                 if (daysWithSales.length > 0) {
                   const maxDate = daysWithSales.reduce((max, d) => d.date > max ? d.date : max, daysWithSales[0].date);
-                  const maxDay = parseInt(maxDate.split('-')[2]);
+                  maxDay = parseInt(maxDate.split('-')[2]);
                   for (let d = 1; d <= maxDay; d++) {
                     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     lyMtdEstimate += getTargetForDay(dateStr, lyMonthTotal, monthData.openHoursTemplate);
@@ -618,27 +620,77 @@ function CalendarContent() {
               const pctMonth = Math.round(((monthData.mtdNetSales / lyMonthTotal) - 1) * 100);
               const diffMtd = lyMtdEstimate > 0 ? monthData.mtdNetSales - lyMtdEstimate : 0;
               const pctMtd = lyMtdEstimate > 0 ? Math.round(((monthData.mtdNetSales / lyMtdEstimate) - 1) * 100) : 0;
+              const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
               
               return (
                 <div className="flex flex-col items-center gap-1 text-xs text-zinc-500">
-                  <div className="flex items-center justify-center gap-4">
-                    <span>LY Month: <span className="text-violet-400">{formatCurrency(lyMonthTotal)}</span></span>
-                    <span>
-                      vs LY: {' '}
-                      <span className={diffMonth >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                        {diffMonth >= 0 ? '+' : ''}{formatCurrency(diffMonth)} ({pctMonth}%)
-                      </span>
-                    </span>
-                  </div>
-                  {lyMtdEstimate > 0 && (
-                    <div className="flex items-center justify-center gap-4">
-                      <span>LY MTD est: <span className="text-violet-400">{formatCurrency(lyMtdEstimate)}</span></span>
+                  {/* Full Month Comparison - clickable for tooltip */}
+                  <div className="relative">
+                    <button 
+                      className="flex items-center justify-center gap-4 hover:text-zinc-400 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'ly-month' ? null : 'ly-month'); }}
+                    >
+                      <span>LY Month: <span className="text-violet-400">{formatCurrency(lyMonthTotal)}</span></span>
                       <span>
-                        vs LY MTD: {' '}
-                        <span className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                          {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)} ({pctMtd}%)
+                        vs LY: {' '}
+                        <span className={diffMonth >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                          {diffMonth >= 0 ? '+' : ''}{formatCurrency(diffMonth)} ({pctMonth}%)
                         </span>
                       </span>
+                    </button>
+                    {activeTip === 'ly-month' && (
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
+                        <div className="font-medium text-violet-400 text-base mb-2">vs Last Year Full Month</div>
+                        <p className="text-sm text-zinc-300 mb-2">
+                          <strong>{monthNames[month]} {year - 1}</strong> total: {formatCurrency(lyMonthTotal)}
+                        </p>
+                        <p className="text-sm text-zinc-300 mb-2">
+                          Your MTD ({formatCurrency(monthData.mtdNetSales)}) is{' '}
+                          <strong className={diffMonth >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                            {diffMonth >= 0 ? '+' : ''}{formatCurrency(diffMonth)}
+                          </strong>{' '}
+                          compared to last year&apos;s full month.
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {pctMonth >= 0 ? `${pctMonth}% ahead` : `${Math.abs(pctMonth)}% behind`} of LY full month total.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* MTD Comparison - clickable for tooltip */}
+                  {lyMtdEstimate > 0 && (
+                    <div className="relative">
+                      <button 
+                        className="flex items-center justify-center gap-4 hover:text-zinc-400 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'ly-mtd' ? null : 'ly-mtd'); }}
+                      >
+                        <span>LY MTD est: <span className="text-violet-400">{formatCurrency(lyMtdEstimate)}</span></span>
+                        <span>
+                          vs LY MTD: {' '}
+                          <span className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                            {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)} ({pctMtd}%)
+                          </span>
+                        </span>
+                      </button>
+                      {activeTip === 'ly-mtd' && (
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
+                          <div className="font-medium text-violet-400 text-base mb-2">vs Last Year Same Point</div>
+                          <p className="text-sm text-zinc-300 mb-2">
+                            If LY&apos;s {formatCurrency(lyMonthTotal)} was distributed by your open hours, you&apos;d have ~{formatCurrency(lyMtdEstimate)} by day {maxDay}.
+                          </p>
+                          <p className="text-sm text-zinc-300 mb-2">
+                            Your MTD ({formatCurrency(monthData.mtdNetSales)}) is{' '}
+                            <strong className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                              {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)}
+                            </strong>{' '}
+                            compared to LY at this point.
+                          </p>
+                          <p className="text-xs text-zinc-500">
+                            {pctMtd >= 0 ? `${pctMtd}% ahead` : `${Math.abs(pctMtd)}% behind`} of where LY was through day {maxDay}.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
