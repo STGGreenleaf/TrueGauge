@@ -745,7 +745,7 @@ function CalendarContent() {
                           <span className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
                             {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)}
                           </span>
-                          {' '}est vs LY
+                          {' '}vs LY
                         </span>
                       </button>
                       {activeTip === 'ly-ytd' && (
@@ -763,7 +763,7 @@ function CalendarContent() {
                           </div>
                           
                           <div className="text-sm text-zinc-300 mb-3">
-                            <div className="font-medium text-violet-400 mb-1">{year - 1} YTD est: {formatCurrency(ytdLastYear)}</div>
+                            <div className="font-medium text-violet-400 mb-1">{year - 1} YTD: {formatCurrency(ytdLastYear)}</div>
                             {monthData.ytd && month > 1 && (
                               <div className="text-xs text-zinc-500 ml-2">
                                 Prior months: {formatCurrency(monthData.ytd.lastYearPriorMonths)}<br/>
