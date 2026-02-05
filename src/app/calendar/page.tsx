@@ -595,21 +595,52 @@ function CalendarContent() {
               })()}
             </div>
             
-            {/* LY Comparison Summary - use lyReference when lyMonthData not available */}
+            {/* LY Comparison Summary - shows both full month and MTD comparison */}
             {showLY && (lyMonthData || monthData.lyReference) && (() => {
-              const lyTotal = lyMonthData?.mtdNetSales || monthData.lyReference?.netSales || 0;
-              if (lyTotal <= 0) return null;
-              const diff = monthData.mtdNetSales - lyTotal;
-              const pct = Math.round(((monthData.mtdNetSales / lyTotal) - 1) * 100);
+              const lyMonthTotal = monthData.lyReference?.netSales || lyMonthData?.mtdNetSales || 0;
+              if (lyMonthTotal <= 0) return null;
+              
+              // Calculate LY MTD estimate (hours-weighted through current point)
+              let lyMtdEstimate = 0;
+              if (monthData.lyReference && monthData.openHoursTemplate) {
+                const daysWithSales = monthData.days.filter(d => d.netSalesExTax !== null && d.netSalesExTax > 0);
+                if (daysWithSales.length > 0) {
+                  const maxDate = daysWithSales.reduce((max, d) => d.date > max ? d.date : max, daysWithSales[0].date);
+                  const maxDay = parseInt(maxDate.split('-')[2]);
+                  for (let d = 1; d <= maxDay; d++) {
+                    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    lyMtdEstimate += getTargetForDay(dateStr, lyMonthTotal, monthData.openHoursTemplate);
+                  }
+                }
+              }
+              
+              const diffMonth = monthData.mtdNetSales - lyMonthTotal;
+              const pctMonth = Math.round(((monthData.mtdNetSales / lyMonthTotal) - 1) * 100);
+              const diffMtd = lyMtdEstimate > 0 ? monthData.mtdNetSales - lyMtdEstimate : 0;
+              const pctMtd = lyMtdEstimate > 0 ? Math.round(((monthData.mtdNetSales / lyMtdEstimate) - 1) * 100) : 0;
+              
               return (
-                <div className="flex items-center justify-center gap-4 text-xs text-zinc-500">
-                  <span>LY {lyMonthData ? 'MTD' : 'Month'}: <span className="text-violet-400">{formatCurrency(lyTotal)}</span></span>
-                  <span>
-                    vs LY: {' '}
-                    <span className={diff >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                      {diff >= 0 ? '+' : ''}{formatCurrency(diff)} ({pct}%)
+                <div className="flex flex-col items-center gap-1 text-xs text-zinc-500">
+                  <div className="flex items-center justify-center gap-4">
+                    <span>LY Month: <span className="text-violet-400">{formatCurrency(lyMonthTotal)}</span></span>
+                    <span>
+                      vs LY: {' '}
+                      <span className={diffMonth >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                        {diffMonth >= 0 ? '+' : ''}{formatCurrency(diffMonth)} ({pctMonth}%)
+                      </span>
                     </span>
-                  </span>
+                  </div>
+                  {lyMtdEstimate > 0 && (
+                    <div className="flex items-center justify-center gap-4">
+                      <span>LY MTD est: <span className="text-violet-400">{formatCurrency(lyMtdEstimate)}</span></span>
+                      <span>
+                        vs LY MTD: {' '}
+                        <span className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                          {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)} ({pctMtd}%)
+                        </span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })()}
