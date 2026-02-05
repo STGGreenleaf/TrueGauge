@@ -53,9 +53,12 @@ export async function GET(request: NextRequest) {
       },
     });
     
-    // Get all referenceMonth records for LY (for weighted YTD estimate)
+    // Get all referenceMonth records for both years (for YTD calculations)
     const lyReferenceMonths = await prisma.referenceMonth.findMany({
       where: { organizationId: orgId, year: year - 1 },
+    });
+    const thisYearReferenceMonths = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId, year },
     });
     
     // Get day entries for the month
@@ -120,17 +123,24 @@ export async function GET(request: NextRequest) {
     
     const paceTarget = calc.mtdTargetToDateHoursWeighted(asOfDate, survivalGoal, openHoursTemplate);
     
-    // Calculate YTD totals through the asOfDate (daily-level, not just monthly)
-    // This year: sum of all dayEntry sales from Jan 1 through asOfDate
-    const ytdThisYearTotal = ytdDayEntries
-      .filter((e: DayEntryRecord) => e.date <= asOfDate && e.netSalesExTax !== null)
-      .reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
-    
-    // Last year: sum of completed months + weighted estimate for partial current month
+    // Calculate YTD totals through the asOfDate (daily-level for current month)
     const asOfMonth = parseInt(asOfDate.split('-')[1]);
     const asOfDay = parseInt(asOfDate.split('-')[2]);
     
+    // THIS YEAR YTD: completed months (from referenceMonth) + current month daily entries
     // Sum completed months (Jan through month before current)
+    let ytdThisYearTotal = thisYearReferenceMonths
+      .filter(r => r.month < asOfMonth)
+      .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    
+    // Add current month's actual daily sales through asOfDay
+    const currentMonthEntries = ytdDayEntries.filter((e: DayEntryRecord) => {
+      const entryMonth = parseInt(e.date.split('-')[1]);
+      return entryMonth === asOfMonth && e.date <= asOfDate && e.netSalesExTax !== null;
+    });
+    ytdThisYearTotal += currentMonthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+    
+    // LAST YEAR YTD: completed months (from referenceMonth) + weighted estimate for current month
     let ytdLastYearTotal = lyReferenceMonths
       .filter(r => r.month < asOfMonth)
       .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
