@@ -93,12 +93,18 @@ export async function GET(request: NextRequest) {
     
     const survivalPercent = calc.survivalPercent(mtdNetSales, survivalGoal);
     
-    // Hours-weighted pace target (same as dashboard uses)
+    // Hours-weighted pace target (same logic as dashboard)
+    // Use max date with sales entered, not today's date
     const today = new Date();
-    const asOfDay = today.getFullYear() === year && today.getMonth() + 1 === month
-      ? today.getDate()
-      : daysInMonth;
-    const asOfDate = `${monthStr}-${String(asOfDay).padStart(2, '0')}`;
+    const todayStr = today.getFullYear() === year && today.getMonth() + 1 === month
+      ? `${monthStr}-${String(today.getDate()).padStart(2, '0')}`
+      : `${monthStr}-${String(daysInMonth).padStart(2, '0')}`;
+    
+    const entriesWithSales = dayEntries.filter((e: DayEntryRecord) => e.netSalesExTax !== null && e.netSalesExTax > 0);
+    const asOfDate = entriesWithSales.length > 0
+      ? entriesWithSales.reduce((max: string, e: DayEntryRecord) => e.date > max ? e.date : max, entriesWithSales[0].date)
+      : todayStr;
+    
     const paceTarget = calc.mtdTargetToDateHoursWeighted(asOfDate, survivalGoal, openHoursTemplate);
     
     return NextResponse.json({
