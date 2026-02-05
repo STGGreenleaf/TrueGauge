@@ -45,16 +45,18 @@ export async function GET(request: NextRequest) {
       where: { organizationId: orgId, year: year - 1, month },
     });
     
-    // Get YTD totals (sum of referenceMonth for months 1 through current month)
-    const ytdThisYear = await prisma.referenceMonth.findMany({
-      where: { organizationId: orgId, year, month: { lte: month } },
-    });
-    const ytdLastYear = await prisma.referenceMonth.findMany({
-      where: { organizationId: orgId, year: year - 1, month: { lte: month } },
+    // Get YTD daily data - all dayEntry records for current year
+    const ytdDayEntries = await prisma.dayEntry.findMany({
+      where: { 
+        organizationId: orgId, 
+        date: { gte: `${year}-01-01`, lte: `${year}-12-31` }
+      },
     });
     
-    const ytdThisYearTotal = ytdThisYear.reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
-    const ytdLastYearTotal = ytdLastYear.reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    // Get all referenceMonth records for LY (for weighted YTD estimate)
+    const lyReferenceMonths = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId, year: year - 1 },
+    });
     
     // Get day entries for the month
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
@@ -117,6 +119,31 @@ export async function GET(request: NextRequest) {
       : todayStr;
     
     const paceTarget = calc.mtdTargetToDateHoursWeighted(asOfDate, survivalGoal, openHoursTemplate);
+    
+    // Calculate YTD totals through the asOfDate (daily-level, not just monthly)
+    // This year: sum of all dayEntry sales from Jan 1 through asOfDate
+    const ytdThisYearTotal = ytdDayEntries
+      .filter((e: DayEntryRecord) => e.date <= asOfDate && e.netSalesExTax !== null)
+      .reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+    
+    // Last year: sum of completed months + weighted estimate for partial current month
+    const asOfMonth = parseInt(asOfDate.split('-')[1]);
+    const asOfDay = parseInt(asOfDate.split('-')[2]);
+    
+    // Sum completed months (Jan through month before current)
+    let ytdLastYearTotal = lyReferenceMonths
+      .filter(r => r.month < asOfMonth)
+      .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    
+    // Add weighted estimate for current month through asOfDay
+    const currentMonthLYRef = lyReferenceMonths.find(r => r.month === asOfMonth);
+    if (currentMonthLYRef) {
+      // Calculate hours-weighted portion through asOfDay
+      for (let d = 1; d <= asOfDay; d++) {
+        const dateStr = `${year}-${String(asOfMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        ytdLastYearTotal += calc.targetForDay(dateStr, currentMonthLYRef.referenceNetSalesExTax, openHoursTemplate, year, asOfMonth);
+      }
+    }
     
     return NextResponse.json({
       days,

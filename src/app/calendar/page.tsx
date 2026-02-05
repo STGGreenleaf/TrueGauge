@@ -730,32 +730,32 @@ function CalendarContent() {
                   {ytdLastYear > 0 && (
                     <div className="relative">
                       <button 
-                        className="flex items-center justify-center gap-4 hover:text-zinc-400 transition-colors"
+                        className="flex items-center justify-center hover:text-zinc-400 transition-colors"
                         onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'ly-ytd' ? null : 'ly-ytd'); }}
                       >
-                        <span>LY YTD: <span className="text-violet-400">{formatCurrency(ytdLastYear)}</span></span>
                         <span>
-                          vs LY YTD: {' '}
+                          YTD{' '}
                           <span className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                            {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)} ({pctYtd}%)
+                            {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)}
                           </span>
+                          {' '}est vs LY
                         </span>
                       </button>
                       {activeTip === 'ly-ytd' && (
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
-                          <div className="font-medium text-violet-400 text-base mb-2">Year-to-Date Comparison</div>
+                          <div className="font-medium text-violet-400 text-base mb-2">YTD vs Last Year (through day {maxDay})</div>
                           <p className="text-sm text-zinc-300 mb-2">
-                            <strong>{year}</strong> YTD (Jan-{monthNames[month]}): {formatCurrency(ytdThisYear)}
+                            <strong>{year}</strong> YTD: {formatCurrency(ytdThisYear)} (actual daily sales)
                           </p>
                           <p className="text-sm text-zinc-300 mb-2">
-                            <strong>{year - 1}</strong> YTD (Jan-{monthNames[month]}): {formatCurrency(ytdLastYear)}
+                            <strong>{year - 1}</strong> YTD est: {formatCurrency(ytdLastYear)} (weighted from monthly totals)
                           </p>
                           <p className="text-sm text-zinc-300">
                             You&apos;re{' '}
                             <strong className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
                               {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)} ({pctYtd}%)
                             </strong>{' '}
-                            vs last year&apos;s YTD.
+                            vs LY at this point in the year.
                           </p>
                         </div>
                       )}
