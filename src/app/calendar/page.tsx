@@ -233,6 +233,8 @@ function CalendarContent() {
   const getLYDayData = (date: Date): DayData | null => {
     // Get same day of month from last year
     const lyDateStr = `${year - 1}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    // Current year date string (for hours weighting - use THIS year's day-of-week)
+    const currentDateStr = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     
     // First check for actual LY daily data
     if (lyMonthData) {
@@ -243,8 +245,9 @@ function CalendarContent() {
     }
     
     // Fallback: use hours-weighted estimate from LY monthly reference
+    // Use CURRENT year's day-of-week for hours (Feb 3, 2026 = Tue, not Feb 3, 2025 = Mon)
     if (monthData?.lyReference && monthData?.openHoursTemplate) {
-      const estimatedSales = getTargetForDay(lyDateStr, monthData.lyReference.netSales, monthData.openHoursTemplate);
+      const estimatedSales = getTargetForDay(currentDateStr, monthData.lyReference.netSales, monthData.openHoursTemplate);
       if (estimatedSales > 0) {
         return {
           date: lyDateStr,
@@ -686,7 +689,7 @@ function CalendarContent() {
                                 {/* LY comparison - purple amount below white */}
                                 {showLY && lyDayData?.netSalesExTax !== null && lyDayData?.netSalesExTax !== undefined && (
                                   <div className="text-[10px] text-violet-400 font-bold">
-                                    {formatCurrency(lyDayData.netSalesExTax)}
+                                    vs LY {formatCurrency(lyDayData.netSalesExTax)}
                                   </div>
                                 )}
                               </div>
