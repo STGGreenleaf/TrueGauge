@@ -127,11 +127,22 @@ export async function GET(request: NextRequest) {
     const asOfMonth = parseInt(asOfDate.split('-')[1]);
     const asOfDay = parseInt(asOfDate.split('-')[2]);
     
-    // THIS YEAR YTD: completed months (from referenceMonth) + current month daily entries
-    // Sum completed months (Jan through month before current)
-    let ytdThisYearTotal = thisYearReferenceMonths
-      .filter(r => r.month < asOfMonth)
-      .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    // THIS YEAR YTD: completed months + current month daily entries
+    // For completed months: use referenceMonth if exists, otherwise sum daily entries
+    let ytdThisYearTotal = 0;
+    for (let m = 1; m < asOfMonth; m++) {
+      const refMonth = thisYearReferenceMonths.find(r => r.month === m);
+      if (refMonth) {
+        ytdThisYearTotal += refMonth.referenceNetSalesExTax;
+      } else {
+        // Fallback: sum daily entries for this month
+        const mStr = `${year}-${String(m).padStart(2, '0')}`;
+        const monthEntries = ytdDayEntries.filter((e: DayEntryRecord) => 
+          e.date.startsWith(mStr) && e.netSalesExTax !== null
+        );
+        ytdThisYearTotal += monthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+      }
+    }
     
     // Add current month's actual daily sales through asOfDay
     const currentMonthEntries = ytdDayEntries.filter((e: DayEntryRecord) => {
