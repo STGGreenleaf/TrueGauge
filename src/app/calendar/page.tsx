@@ -26,12 +26,31 @@ interface DayData {
   lyNetSales?: number | null;
 }
 
+interface OpenHoursTemplate {
+  sun: number;
+  mon: number;
+  tue: number;
+  wed: number;
+  thu: number;
+  fri: number;
+  sat: number;
+}
+
+interface LYReference {
+  year: number;
+  month: number;
+  netSales: number;
+}
+
 interface MonthData {
   days: DayData[];
   mtdNetSales: number;
   mtdExpenses: number;
   survivalGoal: number;
   survivalPercent: number;
+  paceTarget: number;
+  openHoursTemplate: OpenHoursTemplate;
+  lyReference: LYReference | null;
   lyDays?: DayData[];
 }
 
@@ -191,28 +210,49 @@ function CalendarContent() {
     return monthData.days.find(d => d.date === dateStr) || null;
   };
 
-  const getLYDayData = (date: Date): DayData | null => {
-    if (!lyMonthData) return null;
+  // Hours-weighted target for a single day (same as calc.targetForDay)
+  const getTargetForDay = (dateStr: string, monthGoal: number, template: OpenHoursTemplate): number => {
+    const dayOfWeek = new Date(dateStr + 'T12:00:00').getDay();
+    const dayKeys: (keyof OpenHoursTemplate)[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const dayHours = template[dayKeys[dayOfWeek]] || 0;
     
-    // Get same day of month from last year
-    const lyDateStr = `${year - 1}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    const actualDay = lyMonthData.days.find(d => d.date === lyDateStr);
-    
-    // Return actual data if it exists
-    if (actualDay && actualDay.netSalesExTax !== null) {
-      return actualDay;
+    // Calculate total hours in month
+    const [y, m] = dateStr.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    let totalHours = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const dow = new Date(dStr + 'T12:00:00').getDay();
+      totalHours += template[dayKeys[dow]] || 0;
     }
     
-    // Fallback: estimate from monthly average when daily data missing
-    const daysWithData = lyMonthData.days.filter(d => d.netSalesExTax !== null).length;
-    if (daysWithData > 0 && lyMonthData.mtdNetSales > 0) {
-      const avgDaily = lyMonthData.mtdNetSales / daysWithData;
-      return {
-        date: lyDateStr,
-        netSalesExTax: avgDaily,
-        expenseTotal: 0,
-        expenseCount: 0,
-      };
+    if (totalHours <= 0) return 0;
+    return monthGoal * (dayHours / totalHours);
+  };
+
+  const getLYDayData = (date: Date): DayData | null => {
+    // Get same day of month from last year
+    const lyDateStr = `${year - 1}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    
+    // First check for actual LY daily data
+    if (lyMonthData) {
+      const actualDay = lyMonthData.days.find(d => d.date === lyDateStr);
+      if (actualDay && actualDay.netSalesExTax !== null) {
+        return actualDay;
+      }
+    }
+    
+    // Fallback: use hours-weighted estimate from LY monthly reference
+    if (monthData?.lyReference && monthData?.openHoursTemplate) {
+      const estimatedSales = getTargetForDay(lyDateStr, monthData.lyReference.netSales, monthData.openHoursTemplate);
+      if (estimatedSales > 0) {
+        return {
+          date: lyDateStr,
+          netSalesExTax: estimatedSales,
+          expenseTotal: 0,
+          expenseCount: 0,
+        };
+      }
     }
     
     return null;
@@ -535,12 +575,9 @@ function CalendarContent() {
                 </div>
                 <div className="mt-1 text-[10px] uppercase tracking-widest text-zinc-600">MTD Expenses</div>
               </div>
-              {/* Pace indicator */}
+              {/* Pace indicator - uses hours-weighted target from API */}
               {(() => {
-                const today = new Date();
-                const dayOfMonth = today.getDate();
-                const paceTarget = getPaceTarget(dayOfMonth);
-                const paceVsActual = monthData.mtdNetSales - paceTarget;
+                const paceVsActual = monthData.mtdNetSales - monthData.paceTarget;
                 const isAhead = paceVsActual >= 0;
                 return (
                   <div className="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-3 text-center backdrop-blur-sm">
@@ -555,20 +592,24 @@ function CalendarContent() {
               })()}
             </div>
             
-            {/* LY Comparison Summary */}
-            {showLY && lyMonthData && (
-              <div className="flex items-center justify-center gap-4 text-xs text-zinc-500">
-                <span>LY MTD: <span className="text-violet-400">{formatCurrency(lyMonthData.mtdNetSales)}</span></span>
-                <span>
-                  vs LY: {' '}
-                  <span className={monthData.mtdNetSales >= lyMonthData.mtdNetSales ? 'text-emerald-400' : 'text-red-400'}>
-                    {monthData.mtdNetSales >= lyMonthData.mtdNetSales ? '+' : ''}
-                    {formatCurrency(monthData.mtdNetSales - lyMonthData.mtdNetSales)}
-                    {' '}({Math.round(((monthData.mtdNetSales / lyMonthData.mtdNetSales) - 1) * 100)}%)
+            {/* LY Comparison Summary - use lyReference when lyMonthData not available */}
+            {showLY && (lyMonthData || monthData.lyReference) && (() => {
+              const lyTotal = lyMonthData?.mtdNetSales || monthData.lyReference?.netSales || 0;
+              if (lyTotal <= 0) return null;
+              const diff = monthData.mtdNetSales - lyTotal;
+              const pct = Math.round(((monthData.mtdNetSales / lyTotal) - 1) * 100);
+              return (
+                <div className="flex items-center justify-center gap-4 text-xs text-zinc-500">
+                  <span>LY {lyMonthData ? 'MTD' : 'Month'}: <span className="text-violet-400">{formatCurrency(lyTotal)}</span></span>
+                  <span>
+                    vs LY: {' '}
+                    <span className={diff >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                      {diff >= 0 ? '+' : ''}{formatCurrency(diff)} ({pct}%)
+                    </span>
                   </span>
-                </span>
-              </div>
-            )}
+                </div>
+              );
+            })()}
           </div>
         )}
 

@@ -37,6 +37,14 @@ export async function GET(request: NextRequest) {
     const orgId = isShowcase ? SHOWCASE_ORG_ID : await getCurrentOrgId();
     const settings = await getOrCreateSettings(orgId);
     
+    // Get open hours template for hours-weighted calculations
+    const openHoursTemplate = JSON.parse(settings.openHoursTemplate) as calc.OpenHoursTemplate;
+    
+    // Get last year reference for this month (for VS LY feature)
+    const lyReference = await prisma.referenceMonth.findFirst({
+      where: { organizationId: orgId, year: year - 1, month },
+    });
+    
     // Get day entries for the month
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
       where: { organizationId: orgId, date: { startsWith: monthStr } },
@@ -85,12 +93,27 @@ export async function GET(request: NextRequest) {
     
     const survivalPercent = calc.survivalPercent(mtdNetSales, survivalGoal);
     
+    // Hours-weighted pace target (same as dashboard uses)
+    const today = new Date();
+    const asOfDay = today.getFullYear() === year && today.getMonth() + 1 === month
+      ? today.getDate()
+      : daysInMonth;
+    const asOfDate = `${monthStr}-${String(asOfDay).padStart(2, '0')}`;
+    const paceTarget = calc.mtdTargetToDateHoursWeighted(asOfDate, survivalGoal, openHoursTemplate);
+    
     return NextResponse.json({
       days,
       mtdNetSales,
       mtdExpenses,
       survivalGoal,
       survivalPercent,
+      paceTarget,
+      openHoursTemplate,
+      lyReference: lyReference ? {
+        year: lyReference.year,
+        month: lyReference.month,
+        netSales: lyReference.referenceNetSalesExTax,
+      } : null,
     });
   } catch (error) {
     console.error('Error fetching calendar data:', error);
