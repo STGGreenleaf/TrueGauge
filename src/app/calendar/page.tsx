@@ -52,7 +52,14 @@ interface MonthData {
   openHoursTemplate: OpenHoursTemplate;
   lyReference: LYReference | null;
   lyDays?: DayData[];
-  ytd?: { thisYear: number; lastYear: number };
+  ytd?: { 
+    thisYear: number; 
+    lastYear: number;
+    thisYearPriorMonths: number;
+    thisYearCurrentMonth: number;
+    lastYearPriorMonths: number;
+    lastYearCurrentMonthEst: number;
+  };
 }
 
 type ViewMode = 'month' | 'week';
@@ -742,20 +749,34 @@ function CalendarContent() {
                         </span>
                       </button>
                       {activeTip === 'ly-ytd' && (
-                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
-                          <div className="font-medium text-violet-400 text-base mb-2">YTD vs Last Year (through day {maxDay})</div>
-                          <p className="text-sm text-zinc-300 mb-2">
-                            <strong>{year}</strong> YTD: {formatCurrency(ytdThisYear)} (actual daily sales)
-                          </p>
-                          <p className="text-sm text-zinc-300 mb-2">
-                            <strong>{year - 1}</strong> YTD est: {formatCurrency(ytdLastYear)} (weighted from monthly totals)
-                          </p>
-                          <p className="text-sm text-zinc-300">
-                            You&apos;re{' '}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
+                          <div className="font-medium text-violet-400 text-base mb-3">YTD Breakdown (through {monthNames[month]} {maxDay})</div>
+                          
+                          <div className="text-sm text-zinc-300 mb-3">
+                            <div className="font-medium text-cyan-400 mb-1">{year} YTD: {formatCurrency(ytdThisYear)}</div>
+                            {monthData.ytd && month > 1 && (
+                              <div className="text-xs text-zinc-500 ml-2">
+                                Prior months: {formatCurrency(monthData.ytd.thisYearPriorMonths)}<br/>
+                                {monthNames[month]} MTD: {formatCurrency(monthData.ytd.thisYearCurrentMonth)}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="text-sm text-zinc-300 mb-3">
+                            <div className="font-medium text-violet-400 mb-1">{year - 1} YTD est: {formatCurrency(ytdLastYear)}</div>
+                            {monthData.ytd && month > 1 && (
+                              <div className="text-xs text-zinc-500 ml-2">
+                                Prior months: {formatCurrency(monthData.ytd.lastYearPriorMonths)}<br/>
+                                {monthNames[month]} est: {formatCurrency(monthData.ytd.lastYearCurrentMonthEst)}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm text-zinc-300 border-t border-zinc-700 pt-2">
+                            Difference:{' '}
                             <strong className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
                               {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)} ({pctYtd}%)
-                            </strong>{' '}
-                            vs LY at this point in the year.
+                            </strong>
                           </p>
                         </div>
                       )}

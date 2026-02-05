@@ -130,40 +130,46 @@ export async function GET(request: NextRequest) {
     // THIS YEAR YTD: completed months + current month daily entries
     // For completed months: use referenceMonth if exists, otherwise sum daily entries
     let ytdThisYearTotal = 0;
+    let ytdThisYearPriorMonths = 0;
     for (let m = 1; m < asOfMonth; m++) {
       const refMonth = thisYearReferenceMonths.find(r => r.month === m);
       if (refMonth) {
-        ytdThisYearTotal += refMonth.referenceNetSalesExTax;
+        ytdThisYearPriorMonths += refMonth.referenceNetSalesExTax;
       } else {
         // Fallback: sum daily entries for this month
         const mStr = `${year}-${String(m).padStart(2, '0')}`;
         const monthEntries = ytdDayEntries.filter((e: DayEntryRecord) => 
           e.date.startsWith(mStr) && e.netSalesExTax !== null
         );
-        ytdThisYearTotal += monthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+        ytdThisYearPriorMonths += monthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
       }
     }
+    ytdThisYearTotal = ytdThisYearPriorMonths;
     
     // Add current month's actual daily sales through asOfDay
     const currentMonthEntries = ytdDayEntries.filter((e: DayEntryRecord) => {
       const entryMonth = parseInt(e.date.split('-')[1]);
       return entryMonth === asOfMonth && e.date <= asOfDate && e.netSalesExTax !== null;
     });
-    ytdThisYearTotal += currentMonthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+    const ytdThisYearCurrentMonth = currentMonthEntries.reduce((sum: number, e: DayEntryRecord) => sum + (e.netSalesExTax || 0), 0);
+    ytdThisYearTotal += ytdThisYearCurrentMonth;
     
     // LAST YEAR YTD: completed months (from referenceMonth) + weighted estimate for current month
-    let ytdLastYearTotal = lyReferenceMonths
+    const ytdLastYearPriorMonths = lyReferenceMonths
       .filter(r => r.month < asOfMonth)
       .reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    let ytdLastYearTotal = ytdLastYearPriorMonths;
     
     // Add weighted estimate for current month through asOfDay
+    let ytdLastYearCurrentMonthEst = 0;
     const currentMonthLYRef = lyReferenceMonths.find(r => r.month === asOfMonth);
     if (currentMonthLYRef) {
       // Calculate hours-weighted portion through asOfDay
       for (let d = 1; d <= asOfDay; d++) {
         const dateStr = `${year}-${String(asOfMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        ytdLastYearTotal += calc.targetForDay(dateStr, currentMonthLYRef.referenceNetSalesExTax, openHoursTemplate, year, asOfMonth);
+        ytdLastYearCurrentMonthEst += calc.targetForDay(dateStr, currentMonthLYRef.referenceNetSalesExTax, openHoursTemplate, year, asOfMonth);
       }
+      ytdLastYearTotal += ytdLastYearCurrentMonthEst;
     }
     
     return NextResponse.json({
@@ -182,6 +188,11 @@ export async function GET(request: NextRequest) {
       ytd: {
         thisYear: ytdThisYearTotal,
         lastYear: ytdLastYearTotal,
+        // Breakdown for tooltip
+        thisYearPriorMonths: ytdThisYearPriorMonths,
+        thisYearCurrentMonth: ytdThisYearCurrentMonth,
+        lastYearPriorMonths: ytdLastYearPriorMonths,
+        lastYearCurrentMonthEst: ytdLastYearCurrentMonthEst,
       },
     });
   } catch (error) {
