@@ -629,43 +629,6 @@ function CalendarContent() {
                       
                       {/* Content area */}
                       <div className="flex-1 flex flex-col items-center justify-center">
-                        {isEditing ? (
-                          /* Desktop inline edit - hidden on mobile */
-                          <div className="hidden sm:flex flex-col items-center gap-1.5 w-full px-0.5">
-                            <div className="flex items-center gap-0.5 w-full">
-                              <span className="text-cyan-400 text-xs">$</span>
-                              <input
-                                ref={editInputRef}
-                                type="text"
-                                inputMode="numeric"
-                                value={editValue}
-                                onChange={(e) => handleEditInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') saveEdit();
-                                  if (e.key === 'Escape') cancelEdit();
-                                }}
-                                className="h-6 text-xs font-bold text-cyan-400 text-center bg-zinc-900 border border-zinc-600 rounded flex-1 focus:border-cyan-500 focus:outline-none"
-                                placeholder="0.00"
-                              />
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={saveEdit}
-                                disabled={saving}
-                                className="p-1 text-emerald-400 hover:bg-emerald-500/20 rounded"
-                              >
-                                <Check className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="p-1 text-zinc-400 hover:bg-zinc-500/20 rounded"
-                              >
-                                <X className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
                             {dayData && dayData.netSalesExTax !== null ? (
                               <div className="flex flex-col items-center">
                                 <button
@@ -688,21 +651,12 @@ function CalendarContent() {
                               </div>
                             ) : (
                               <button
-                                onClick={() => {
-                                  // Mobile: go to diary page, Desktop: inline edit
-                                  if (window.innerWidth < 640) {
-                                    router.push(`/diary?date=${dateStr}`);
-                                  } else {
-                                    startEdit(dateStr, null);
-                                  }
-                                }}
+                                onClick={() => router.push(`/diary?date=${dateStr}`)}
                                 className="text-xs sm:text-[10px] text-zinc-500 hover:text-cyan-400 transition-colors py-2 px-3 sm:py-0 sm:px-0"
                               >
                                 + add
                               </button>
                             )}
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
