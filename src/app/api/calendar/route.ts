@@ -45,6 +45,17 @@ export async function GET(request: NextRequest) {
       where: { organizationId: orgId, year: year - 1, month },
     });
     
+    // Get YTD totals (sum of referenceMonth for months 1 through current month)
+    const ytdThisYear = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId, year, month: { lte: month } },
+    });
+    const ytdLastYear = await prisma.referenceMonth.findMany({
+      where: { organizationId: orgId, year: year - 1, month: { lte: month } },
+    });
+    
+    const ytdThisYearTotal = ytdThisYear.reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    const ytdLastYearTotal = ytdLastYear.reduce((sum, r) => sum + r.referenceNetSalesExTax, 0);
+    
     // Get day entries for the month
     const dayEntries: DayEntryRecord[] = await prisma.dayEntry.findMany({
       where: { organizationId: orgId, date: { startsWith: monthStr } },
@@ -120,6 +131,10 @@ export async function GET(request: NextRequest) {
         month: lyReference.month,
         netSales: lyReference.referenceNetSalesExTax,
       } : null,
+      ytd: {
+        thisYear: ytdThisYearTotal,
+        lastYear: ytdLastYearTotal,
+      },
     });
   } catch (error) {
     console.error('Error fetching calendar data:', error);

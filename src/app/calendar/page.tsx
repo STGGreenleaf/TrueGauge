@@ -52,6 +52,7 @@ interface MonthData {
   openHoursTemplate: OpenHoursTemplate;
   lyReference: LYReference | null;
   lyDays?: DayData[];
+  ytd?: { thisYear: number; lastYear: number };
 }
 
 type ViewMode = 'month' | 'week';
@@ -97,6 +98,15 @@ function CalendarContent() {
   const [showExport, setShowExport] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  // Close tooltip when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveTip(null);
+    if (activeTip) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [activeTip]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth() + 1;
@@ -596,31 +606,45 @@ function CalendarContent() {
               })()}
             </div>
             
-            {/* LY Comparison Summary - shows both full month and MTD comparison */}
+            {/* LY Comparison Summary - shows full month, MTD, and YTD comparison */}
             {showLY && (lyMonthData || monthData.lyReference) && (() => {
               const lyMonthTotal = monthData.lyReference?.netSales || lyMonthData?.mtdNetSales || 0;
               if (lyMonthTotal <= 0) return null;
               
-              // Calculate LY MTD estimate (hours-weighted through current point)
-              let lyMtdEstimate = 0;
+              // Check if we have actual LY daily data or using weighted estimate
+              const hasActualLYData = lyMonthData && lyMonthData.days.some(d => d.netSalesExTax !== null);
+              
+              // Calculate LY MTD - use actual data if available, otherwise weighted estimate
+              let lyMtdValue = 0;
               let maxDay = 0;
-              if (monthData.lyReference && monthData.openHoursTemplate) {
-                const daysWithSales = monthData.days.filter(d => d.netSalesExTax !== null && d.netSalesExTax > 0);
-                if (daysWithSales.length > 0) {
-                  const maxDate = daysWithSales.reduce((max, d) => d.date > max ? d.date : max, daysWithSales[0].date);
-                  maxDay = parseInt(maxDate.split('-')[2]);
-                  for (let d = 1; d <= maxDay; d++) {
-                    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                    lyMtdEstimate += getTargetForDay(dateStr, lyMonthTotal, monthData.openHoursTemplate);
-                  }
+              const daysWithSales = monthData.days.filter(d => d.netSalesExTax !== null && d.netSalesExTax > 0);
+              if (daysWithSales.length > 0) {
+                const maxDate = daysWithSales.reduce((max, d) => d.date > max ? d.date : max, daysWithSales[0].date);
+                maxDay = parseInt(maxDate.split('-')[2]);
+              }
+              
+              if (hasActualLYData && lyMonthData) {
+                // Use actual LY MTD data
+                lyMtdValue = lyMonthData.mtdNetSales;
+              } else if (monthData.lyReference && monthData.openHoursTemplate && maxDay > 0) {
+                // Fallback: weighted estimate from monthly total
+                for (let d = 1; d <= maxDay; d++) {
+                  const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                  lyMtdValue += getTargetForDay(dateStr, lyMonthTotal, monthData.openHoursTemplate);
                 }
               }
               
               const diffMonth = monthData.mtdNetSales - lyMonthTotal;
               const pctMonth = Math.round(((monthData.mtdNetSales / lyMonthTotal) - 1) * 100);
-              const diffMtd = lyMtdEstimate > 0 ? monthData.mtdNetSales - lyMtdEstimate : 0;
-              const pctMtd = lyMtdEstimate > 0 ? Math.round(((monthData.mtdNetSales / lyMtdEstimate) - 1) * 100) : 0;
+              const diffMtd = lyMtdValue > 0 ? monthData.mtdNetSales - lyMtdValue : 0;
+              const pctMtd = lyMtdValue > 0 ? Math.round(((monthData.mtdNetSales / lyMtdValue) - 1) * 100) : 0;
               const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              
+              // YTD calculations
+              const ytdThisYear = monthData.ytd?.thisYear || 0;
+              const ytdLastYear = monthData.ytd?.lastYear || 0;
+              const diffYtd = ytdThisYear - ytdLastYear;
+              const pctYtd = ytdLastYear > 0 ? Math.round(((ytdThisYear / ytdLastYear) - 1) * 100) : 0;
               
               return (
                 <div className="flex flex-col items-center gap-1 text-xs text-zinc-500">
@@ -659,13 +683,13 @@ function CalendarContent() {
                   </div>
                   
                   {/* MTD Comparison - clickable for tooltip */}
-                  {lyMtdEstimate > 0 && (
+                  {lyMtdValue > 0 && (
                     <div className="relative">
                       <button 
                         className="flex items-center justify-center gap-4 hover:text-zinc-400 transition-colors"
                         onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'ly-mtd' ? null : 'ly-mtd'); }}
                       >
-                        <span>LY MTD est: <span className="text-violet-400">{formatCurrency(lyMtdEstimate)}</span></span>
+                        <span>{hasActualLYData ? 'LY MTD' : 'LY MTD est'}: <span className="text-violet-400">{formatCurrency(lyMtdValue)}</span></span>
                         <span>
                           vs LY MTD: {' '}
                           <span className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
@@ -675,19 +699,63 @@ function CalendarContent() {
                       </button>
                       {activeTip === 'ly-mtd' && (
                         <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
-                          <div className="font-medium text-violet-400 text-base mb-2">vs Last Year Same Point</div>
-                          <p className="text-sm text-zinc-300 mb-2">
-                            If LY&apos;s {formatCurrency(lyMonthTotal)} was distributed by your open hours, you&apos;d have ~{formatCurrency(lyMtdEstimate)} by day {maxDay}.
-                          </p>
-                          <p className="text-sm text-zinc-300 mb-2">
-                            Your MTD ({formatCurrency(monthData.mtdNetSales)}) is{' '}
+                          <div className="font-medium text-violet-400 text-base mb-2">{hasActualLYData ? 'vs LY Actual MTD' : 'vs LY Weighted Estimate'}</div>
+                          {hasActualLYData ? (
+                            <p className="text-sm text-zinc-300 mb-2">
+                              <strong>Actual</strong> LY sales through day {maxDay}: {formatCurrency(lyMtdValue)}
+                            </p>
+                          ) : (
+                            <>
+                              <p className="text-sm text-zinc-300 mb-2">
+                                <strong>Estimated</strong> LY through day {maxDay}: {formatCurrency(lyMtdValue)}
+                              </p>
+                              <p className="text-sm text-zinc-300 mb-2">
+                                This spreads LY&apos;s monthly total ({formatCurrency(lyMonthTotal)}) across your open hours. Actual daily data will replace this once entered.
+                              </p>
+                            </>
+                          )}
+                          <p className="text-sm text-zinc-300">
+                            You&apos;re{' '}
                             <strong className={diffMtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
-                              {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)}
+                              {diffMtd >= 0 ? '+' : ''}{formatCurrency(diffMtd)} ({pctMtd}%)
                             </strong>{' '}
-                            compared to LY at this point.
+                            vs {hasActualLYData ? 'LY actual' : 'this estimate'}.
                           </p>
-                          <p className="text-xs text-zinc-500">
-                            {pctMtd >= 0 ? `${pctMtd}% ahead` : `${Math.abs(pctMtd)}% behind`} of where LY was through day {maxDay}.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* YTD Comparison - clickable for tooltip */}
+                  {ytdLastYear > 0 && (
+                    <div className="relative">
+                      <button 
+                        className="flex items-center justify-center gap-4 hover:text-zinc-400 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'ly-ytd' ? null : 'ly-ytd'); }}
+                      >
+                        <span>LY YTD: <span className="text-violet-400">{formatCurrency(ytdLastYear)}</span></span>
+                        <span>
+                          vs LY YTD: {' '}
+                          <span className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                            {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)} ({pctYtd}%)
+                          </span>
+                        </span>
+                      </button>
+                      {activeTip === 'ly-ytd' && (
+                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 p-4 rounded-lg bg-zinc-900/95 border border-violet-500/30 shadow-lg z-[100] text-left">
+                          <div className="font-medium text-violet-400 text-base mb-2">Year-to-Date Comparison</div>
+                          <p className="text-sm text-zinc-300 mb-2">
+                            <strong>{year}</strong> YTD (Jan-{monthNames[month]}): {formatCurrency(ytdThisYear)}
+                          </p>
+                          <p className="text-sm text-zinc-300 mb-2">
+                            <strong>{year - 1}</strong> YTD (Jan-{monthNames[month]}): {formatCurrency(ytdLastYear)}
+                          </p>
+                          <p className="text-sm text-zinc-300">
+                            You&apos;re{' '}
+                            <strong className={diffYtd >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                              {diffYtd >= 0 ? '+' : ''}{formatCurrency(diffYtd)} ({pctYtd}%)
+                            </strong>{' '}
+                            vs last year&apos;s YTD.
                           </p>
                         </div>
                       )}
