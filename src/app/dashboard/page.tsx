@@ -236,11 +236,8 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="text-xs tracking-widest text-zinc-600">LOADING...</div>
-      </div>
-    );
+    // Just black screen - animation already played, this blends seamlessly
+    return <div className="min-h-screen bg-black" />;
   }
 
   // Check for empty state: demo OFF means show blank state
