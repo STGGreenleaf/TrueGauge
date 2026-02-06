@@ -114,12 +114,21 @@ export default function Dashboard() {
           ownerStatus = userData.isOwner === true;
           setIsOwner(ownerStatus);
           
-          // For owners: use userViewEnabled (their demo toggle)
-          // For non-owners: use demoModeEnabled
+          // For owners: always default to their own data (no reason to show demo)
+          // They can still toggle to demo if they want
           if (ownerStatus) {
-            useShowcase = userViewEnabled;
+            // Check if owner has explicitly set demo preference
+            const ownerDemoPref = localStorage.getItem('userViewEnabled');
+            if (ownerDemoPref === null) {
+              // First time - default to their own data
+              setUserViewEnabled(false);
+              localStorage.setItem('userViewEnabled', 'false');
+              useShowcase = false;
+            } else {
+              useShowcase = ownerDemoPref === 'true';
+            }
           } else if (userData.hasOwnOrg && localStorage.getItem('demoModeEnabled') === null) {
-            // New user with their own org - default to their data (demo off)
+            // New non-owner user with their own org - default to their data (demo off)
             setDemoModeEnabled(false);
             localStorage.setItem('demoModeEnabled', 'false');
             useShowcase = false;
