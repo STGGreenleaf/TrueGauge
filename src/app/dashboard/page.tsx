@@ -235,10 +235,8 @@ export default function Dashboard() {
     }
   };
 
-  if (loading) {
-    // Just black screen - animation already played, this blends seamlessly
-    return <div className="min-h-screen bg-black" />;
-  }
+  // Don't return early when loading - let content render behind animation overlay
+  // Animation has z-250 so it covers everything, then fades to reveal dashboard
 
   // Check for empty state: demo OFF means show blank state
   // User needs to fill settings before seeing real dashboard
@@ -374,7 +372,8 @@ export default function Dashboard() {
   const setupStatus = getSetupStatus();
   const needsSetup = setupStatus !== 'complete';
 
-  if (!data && !isEmptyState) {
+  // Only show error if data failed to load AND animation is done
+  if (!data && !isEmptyState && !loading && !showAnimation) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950">
         <div className="text-center">

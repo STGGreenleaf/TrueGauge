@@ -27,13 +27,20 @@ function LandingPageContent() {
   useEffect(() => {
     const code = searchParams.get('code');
     if (code) {
-      // Show animation immediately
-      setProcessingAuth(true);
-      sessionStorage.setItem('splashShown', 'true');
+      // Clear splash flag so dashboard shows animation
+      sessionStorage.removeItem('splashShown');
       
-      // Exchange code for session in background while animation plays
+      // Exchange code for session, then redirect to dashboard
       const supabase = createClient();
-      supabase.auth.exchangeCodeForSession(code).catch(() => {});
+      supabase.auth.exchangeCodeForSession(code).then(() => {
+        // Redirect to dashboard - animation will play there as overlay
+        window.location.href = '/dashboard';
+      }).catch(() => {
+        window.location.href = '/dashboard';
+      });
+      
+      // Show processing state while exchanging
+      setProcessingAuth(true);
     }
   }, [searchParams]);
   
@@ -99,17 +106,9 @@ function LandingPageContent() {
     checkAuth();
   }, [router]);
 
-  // Show startup animation while processing OAuth - starts immediately
+  // Show black screen while exchanging auth code (brief moment)
   if (processingAuth) {
-    return (
-      <StartupAnimation 
-        duration={4000} 
-        onComplete={() => {
-          // After animation, go to dashboard
-          window.location.href = '/dashboard';
-        }}
-      />
-    );
+    return <div className="min-h-screen bg-black" />;
   }
 
   if (checking) {
