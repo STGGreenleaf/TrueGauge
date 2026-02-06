@@ -139,9 +139,22 @@ function LandingPageContent() {
 
       {/* Hero Section */}
       <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-16">
+        {/* Large radial glow behind hero - the "sparkle" */}
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, rgba(34,211,238,0.12) 0%, rgba(34,211,238,0.04) 35%, transparent 55%)',
+          }}
+        />
+        
         {/* Logo */}
         <div className="mb-6 relative">
-          <div className="absolute inset-0 bg-cyan-500/20 blur-3xl rounded-full scale-150" />
+          {/* Outer soft glow */}
+          <div className="absolute inset-0 bg-cyan-400/25 blur-[80px] rounded-full scale-[3]" />
+          {/* Inner bright glow */}
+          <div className="absolute inset-0 bg-cyan-300/30 blur-[40px] rounded-full scale-[2]" />
+          {/* Core glow */}
+          <div className="absolute inset-0 bg-cyan-200/20 blur-[20px] rounded-full scale-150" />
           <Image
             src="/truegauge_icon.png"
             alt="TrueGauge"
