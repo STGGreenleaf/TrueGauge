@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, Suspense } from 'react';
 import { Gauge, Compass, Zap, Shield, ChevronRight, MapPin, TrendingUp, Eye, Play, CheckCircle2, MousePointerClick, Lock, Calculator } from 'lucide-react';
 import { FuturisticGauge, SideGauge, MonthProgressBar } from '@/components/FuturisticGauge';
 import StartupAnimation from '@/components/StartupAnimation';
+import { createClient } from '@/lib/supabase/client';
 
 function LandingPageContent() {
   const router = useRouter();
@@ -30,9 +31,9 @@ function LandingPageContent() {
       setProcessingAuth(true);
       sessionStorage.setItem('splashShown', 'true');
       
-      // Process auth in background while animation plays
-      fetch(`/auth/callback?code=${code}`, { redirect: 'manual' })
-        .catch(() => {});
+      // Exchange code for session in background while animation plays
+      const supabase = createClient();
+      supabase.auth.exchangeCodeForSession(code).catch(() => {});
     }
   }, [searchParams]);
   
