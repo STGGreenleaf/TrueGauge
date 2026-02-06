@@ -11,16 +11,7 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [checking, setChecking] = useState(true);
-  
-  // Handle OAuth code if it lands here instead of /auth/callback
-  useEffect(() => {
-    const code = searchParams.get('code');
-    if (code) {
-      // Redirect to auth callback with the code
-      router.replace(`/auth/callback?code=${code}`);
-      return;
-    }
-  }, [searchParams, router]);
+  const [processingAuth, setProcessingAuth] = useState(false);
   const [gaugeVisible, setGaugeVisible] = useState(false);
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [howVisible, setHowVisible] = useState(false);
@@ -29,7 +20,20 @@ function LandingPageContent() {
   const featuresRef = useRef<HTMLDivElement>(null);
   const howRef = useRef<HTMLDivElement>(null);
   const whoRef = useRef<HTMLDivElement>(null);
-
+  
+  // Handle OAuth code if it lands here instead of /auth/callback
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      // Show loading state and clear animation flag so it plays on dashboard
+      setProcessingAuth(true);
+      sessionStorage.removeItem('splashShown');
+      // Redirect to auth callback with the code
+      router.replace(`/auth/callback?code=${code}`);
+      return;
+    }
+  }, [searchParams, router]);
+  
   // Scroll-triggered animations
   useEffect(() => {
     if (checking) return;
@@ -91,6 +95,18 @@ function LandingPageContent() {
     };
     checkAuth();
   }, [router]);
+
+  // Show loading screen while processing OAuth
+  if (processingAuth) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-cyan-400 text-lg font-light tracking-widest mb-2">AUTHENTICATING</div>
+          <div className="text-xs tracking-widest text-zinc-600">Please wait...</div>
+        </div>
+      </div>
+    );
+  }
 
   if (checking) {
     return (
