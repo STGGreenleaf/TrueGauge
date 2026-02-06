@@ -16,15 +16,19 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  // Animation state - check after mount to avoid SSR hydration mismatch
-  const [showAnimation, setShowAnimation] = useState(false);
+  // Animation state - default to TRUE so animation shows immediately on first render
+  // Then check sessionStorage and hide if already shown
+  const [showAnimation, setShowAnimation] = useState(true);
   
-  // Check if animation should show after component mounts (client-side only)
+  // Check if animation was already shown - if so, hide it immediately
   useEffect(() => {
     const shown = sessionStorage.getItem('splashShown');
-    if (!shown) {
+    if (shown) {
+      // Already shown in this session - don't show again
+      setShowAnimation(false);
+    } else {
+      // First time - mark as shown (animation is already displaying)
       sessionStorage.setItem('splashShown', 'true');
-      setShowAnimation(true);
     }
   }, []);
   const [animationDuration, setAnimationDuration] = useState(3000);
