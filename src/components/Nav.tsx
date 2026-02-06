@@ -83,14 +83,14 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
   const handleDemoToggle = (enabled: boolean) => {
     setDemoEnabled(enabled);
     localStorage.setItem('demoModeEnabled', String(enabled));
-    window.location.href = '/'; // Redirect to dashboard for clean reset
+    window.location.href = '/dashboard'; // Redirect to dashboard for clean reset
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-zinc-800/50 backdrop-blur-md bg-black/50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2">
         {/* Left side: Logo */}
-        <a href="/" className="cursor-pointer">
+        <a href="/dashboard" className="cursor-pointer">
           <h1 className="text-lg uppercase tracking-[0.25em] text-zinc-400">
             <span className="font-bold text-cyan-400" style={{ textShadow: '0 0 10px #22d3ee, 0 0 20px #22d3ee50' }}>TRUE</span>
             <span className="font-light">GAUGE</span>
@@ -116,7 +116,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.location.href = '/dashboard'}
               className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
               title="Dashboard"
             >

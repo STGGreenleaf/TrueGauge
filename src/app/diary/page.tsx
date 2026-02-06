@@ -147,7 +147,7 @@ function DiaryPageContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry),
       });
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error saving entry:', error);
     } finally {

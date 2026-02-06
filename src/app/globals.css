@@ -128,3 +128,33 @@
     min-height: 100vh;
   }
 }
+
+/* Landing page animated orbs - seamless circular motion */
+@keyframes orbFloat1 {
+  0% { transform: translate(0%, 0%) scale(1); }
+  25% { transform: translate(5%, -8%) scale(1.05); }
+  50% { transform: translate(10%, 0%) scale(1.1); }
+  75% { transform: translate(5%, 8%) scale(1.05); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+@keyframes orbFloat2 {
+  0% { transform: translate(0%, 0%) scale(1); }
+  25% { transform: translate(-6%, 5%) scale(1.08); }
+  50% { transform: translate(-10%, 0%) scale(1.12); }
+  75% { transform: translate(-6%, -5%) scale(1.08); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+@keyframes orbFloat3 {
+  0% { transform: translate(0%, 0%) scale(1); }
+  25% { transform: translate(-4%, -6%) scale(1.06); }
+  50% { transform: translate(0%, -10%) scale(1.1); }
+  75% { transform: translate(4%, -6%) scale(1.06); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}
+@keyframes orbFloat4 {
+  0% { transform: translate(0%, 0%) scale(1); }
+  25% { transform: translate(6%, 4%) scale(1.07); }
+  50% { transform: translate(0%, 8%) scale(1.12); }
+  75% { transform: translate(-6%, 4%) scale(1.07); }
+  100% { transform: translate(0%, 0%) scale(1); }
+}

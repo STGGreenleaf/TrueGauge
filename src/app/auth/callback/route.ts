@@ -147,8 +147,8 @@ export async function GET(request: Request) {
         console.error('Auth callback DB error:', dbError);
       }
 
-      // Force redirect to dashboard, not the 'next' param
-      const redirectUrl = new URL('/', origin);
+      // Redirect to dashboard after auth
+      const redirectUrl = new URL('/dashboard', origin);
       return NextResponse.redirect(redirectUrl);
     }
   }

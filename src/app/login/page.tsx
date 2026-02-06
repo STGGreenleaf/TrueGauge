@@ -11,7 +11,7 @@ export default function LoginPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        window.location.href = '/'
+        window.location.href = '/dashboard'
       }
     })
   }, [])

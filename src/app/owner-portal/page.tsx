@@ -155,7 +155,7 @@ export default function OwnerPortal() {
       ]);
 
       if (feedbackRes.status === 401 || analyticsRes.status === 401) {
-        router.push('/');
+        router.push('/dashboard');
         return;
       }
 

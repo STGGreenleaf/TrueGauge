@@ -492,7 +492,7 @@ export default function SettingsPage() {
         body: JSON.stringify(settings),
       });
       if (res.ok) {
-        router.push('/');
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
