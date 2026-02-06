@@ -2,14 +2,25 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { Gauge, Compass, Zap, Shield, ChevronRight, MapPin, TrendingUp, Eye, Play, CheckCircle2, MousePointerClick, Lock, Calculator } from 'lucide-react';
 import { FuturisticGauge, SideGauge, MonthProgressBar } from '@/components/FuturisticGauge';
 
-export default function LandingPage() {
+function LandingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [checking, setChecking] = useState(true);
+  
+  // Handle OAuth code if it lands here instead of /auth/callback
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      // Redirect to auth callback with the code
+      router.replace(`/auth/callback?code=${code}`);
+      return;
+    }
+  }, [searchParams, router]);
   const [gaugeVisible, setGaugeVisible] = useState(false);
   const [featuresVisible, setFeaturesVisible] = useState(false);
   const [howVisible, setHowVisible] = useState(false);
@@ -615,5 +626,13 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function LandingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><div className="text-xs tracking-widest text-zinc-600">LOADING...</div></div>}>
+      <LandingPageContent />
+    </Suspense>
   );
 }
