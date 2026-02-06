@@ -6,6 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { Gauge, Compass, Zap, Shield, ChevronRight, MapPin, TrendingUp, Eye, Play, CheckCircle2, MousePointerClick, Lock, Calculator } from 'lucide-react';
 import { FuturisticGauge, SideGauge, MonthProgressBar } from '@/components/FuturisticGauge';
+import dynamic from 'next/dynamic';
+
+// Preload StartupAnimation for instant display during auth
+const StartupAnimation = dynamic(() => import('@/components/StartupAnimation'), { ssr: false });
 
 function LandingPageContent() {
   const router = useRouter();
@@ -25,9 +29,9 @@ function LandingPageContent() {
   useEffect(() => {
     const code = searchParams.get('code');
     if (code) {
-      // Show loading state and clear animation flag so it plays on dashboard
+      // Show animation during auth - mark as shown so dashboard doesn't replay
       setProcessingAuth(true);
-      sessionStorage.removeItem('splashShown');
+      sessionStorage.setItem('splashShown', 'true');
       // Redirect to auth callback with the code
       router.replace(`/auth/callback?code=${code}`);
       return;
@@ -96,16 +100,9 @@ function LandingPageContent() {
     checkAuth();
   }, [router]);
 
-  // Show loading screen while processing OAuth
+  // Show startup animation while processing OAuth - starts immediately
   if (processingAuth) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-cyan-400 text-lg font-light tracking-widest mb-2">AUTHENTICATING</div>
-          <div className="text-xs tracking-widest text-zinc-600">Please wait...</div>
-        </div>
-      </div>
-    );
+    return <StartupAnimation duration={4000} />;
   }
 
   if (checking) {
