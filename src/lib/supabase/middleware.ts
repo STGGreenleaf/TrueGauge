@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/login')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api')
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
-  const isPublicPage = ['/privacy', '/terms', '/manual', '/splash'].includes(request.nextUrl.pathname)
+  const isPublicPage = ['/', '/privacy', '/terms', '/manual', '/splash'].includes(request.nextUrl.pathname)
   const isStaticFile = request.nextUrl.pathname.startsWith('/manifest') || 
                        request.nextUrl.pathname.endsWith('.json') ||
                        request.nextUrl.pathname.endsWith('.png') ||
@@ -54,7 +54,7 @@ export async function updateSession(request: NextRequest) {
   // If user is logged in and tries to access login page, redirect to dashboard
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 
