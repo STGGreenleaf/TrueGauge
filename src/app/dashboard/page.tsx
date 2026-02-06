@@ -103,21 +103,26 @@ export default function Dashboard() {
   useEffect(() => {
     // Check auth first, then fetch with correct showcase mode
     const initDashboard = async () => {
-      let useShowcase = shouldUseShowcase;
+      let ownerStatus = false;
+      let useShowcase = demoModeEnabled; // Default for non-owners
       
       // Check if user is owner and has their own org (computed server-side)
       try {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const userData = await res.json();
-          setIsOwner(userData.isOwner === true);
+          ownerStatus = userData.isOwner === true;
+          setIsOwner(ownerStatus);
           
-          // If user has their own org and hasn't explicitly set demo preference,
-          // default to showing their own data (not demo)
-          if (userData.hasOwnOrg && localStorage.getItem('demoModeEnabled') === null) {
+          // For owners: use userViewEnabled (their demo toggle)
+          // For non-owners: use demoModeEnabled
+          if (ownerStatus) {
+            useShowcase = userViewEnabled;
+          } else if (userData.hasOwnOrg && localStorage.getItem('demoModeEnabled') === null) {
+            // New user with their own org - default to their data (demo off)
             setDemoModeEnabled(false);
             localStorage.setItem('demoModeEnabled', 'false');
-            useShowcase = false; // Override for this initial fetch
+            useShowcase = false;
           }
         }
       } catch {
