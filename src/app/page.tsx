@@ -6,10 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { Gauge, Compass, Zap, Shield, ChevronRight, MapPin, TrendingUp, Eye, Play, CheckCircle2, MousePointerClick, Lock, Calculator } from 'lucide-react';
 import { FuturisticGauge, SideGauge, MonthProgressBar } from '@/components/FuturisticGauge';
-import dynamic from 'next/dynamic';
-
-// Preload StartupAnimation for instant display during auth
-const StartupAnimation = dynamic(() => import('@/components/StartupAnimation'), { ssr: false });
+import StartupAnimation from '@/components/StartupAnimation';
 
 function LandingPageContent() {
   const router = useRouter();
@@ -29,14 +26,15 @@ function LandingPageContent() {
   useEffect(() => {
     const code = searchParams.get('code');
     if (code) {
-      // Show animation during auth - mark as shown so dashboard doesn't replay
+      // Show animation immediately
       setProcessingAuth(true);
       sessionStorage.setItem('splashShown', 'true');
-      // Redirect to auth callback with the code
-      router.replace(`/auth/callback?code=${code}`);
-      return;
+      
+      // Process auth in background while animation plays
+      fetch(`/auth/callback?code=${code}`, { redirect: 'manual' })
+        .catch(() => {});
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
   
   // Scroll-triggered animations
   useEffect(() => {
@@ -102,7 +100,15 @@ function LandingPageContent() {
 
   // Show startup animation while processing OAuth - starts immediately
   if (processingAuth) {
-    return <StartupAnimation duration={4000} />;
+    return (
+      <StartupAnimation 
+        duration={4000} 
+        onComplete={() => {
+          // After animation, go to dashboard
+          window.location.href = '/dashboard';
+        }}
+      />
+    );
   }
 
   if (checking) {
