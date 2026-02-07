@@ -131,6 +131,7 @@ export function LiquidityReceiverV3({
   const [isDraggingNeedle, setIsDraggingNeedle] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showRunwayTip, setShowRunwayTip] = useState(false);
+  const runwayTipRef = useRef<HTMLDivElement>(null);
   
   // Detect mobile width
   useEffect(() => {
@@ -139,6 +140,26 @@ export function LiquidityReceiverV3({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Close runway tooltip when clicking outside
+  useEffect(() => {
+    if (!showRunwayTip) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (runwayTipRef.current && !runwayTipRef.current.contains(e.target as Node)) {
+        setShowRunwayTip(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 10);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showRunwayTip]);
   
   // Total data points (weeks) - use lyEstimates as authoritative timeline
   const totalWeeks = Math.max(lyEstimates.length, 1);
@@ -573,7 +594,7 @@ export function LiquidityReceiverV3({
         </div>
         
         {/* Tertiary: Runway / Velocity - with tooltip */}
-        <div className="flex flex-col items-end relative">
+        <div ref={runwayTipRef} className="flex flex-col items-end relative">
           <button
             onClick={() => setShowRunwayTip(!showRunwayTip)}
             className="flex flex-col items-end cursor-pointer hover:bg-zinc-800/30 px-2 py-1 -mx-2 -my-1 rounded transition-colors"
@@ -592,7 +613,7 @@ export function LiquidityReceiverV3({
           
           {/* Runway Tooltip */}
           {showRunwayTip && (
-            <div className="absolute top-full right-0 mt-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-30 whitespace-pre-line">
+            <div className="absolute top-full right-0 mt-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
               <div className="absolute top-[-6px] right-4 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 transform rotate-45"></div>
               <div className="font-medium text-cyan-400 mb-2">Velocity: {velocityLabel}</div>
               {velocity >= 0 ? (

@@ -87,10 +87,52 @@ export function LiquidityCard({
   const [activeBurnTip, setActiveBurnTip] = useState<string | null>(null);
   const [activeCashTip, setActiveCashTip] = useState<string | null>(null);
   const [activeFooterTip, setActiveFooterTip] = useState<string | null>(null);
+  const infoTipRef = useRef<HTMLDivElement>(null);
+  const runwayTipRef = useRef<HTMLDivElement>(null);
   const burnTipRef = useRef<HTMLDivElement>(null);
   const cashTipRef = useRef<HTMLDivElement>(null);
   const footerTipRef = useRef<HTMLDivElement>(null);
 
+  // Close info tooltip when clicking outside
+  useEffect(() => {
+    if (!showTooltip) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (infoTipRef.current && !infoTipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 10);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showTooltip]);
+  
+  // Close runway tooltip when clicking outside
+  useEffect(() => {
+    if (!showRunwayTip) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (runwayTipRef.current && !runwayTipRef.current.contains(e.target as Node)) {
+        setShowRunwayTip(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 10);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showRunwayTip]);
+  
   // Close burn tooltip when clicking outside
   useEffect(() => {
     if (!activeBurnTip) return;
@@ -191,7 +233,7 @@ export function LiquidityCard({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-[10px] font-medium uppercase tracking-widest text-zinc-500">Liquidity</h3>
-            <div className="relative">
+            <div ref={infoTipRef} className="relative">
               <button
                 onClick={() => setShowTooltip(!showTooltip)}
                 className="p-1 text-zinc-600 hover:text-zinc-400 transition-colors"
@@ -199,14 +241,14 @@ export function LiquidityCard({
                 <Info className="h-3 w-3" />
               </button>
               {showTooltip && (
-                <div className="absolute left-0 top-6 z-10 w-64 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
+                <div className="absolute left-0 top-6 z-[100] w-64 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
                   Cash on hand = snapshot + net sales - logged expenses (to asOfDate). Logged-only. No bank access.
                 </div>
               )}
             </div>
           </div>
           {/* Runway indicator - top right with tooltip */}
-          <div className="text-right relative">
+          <div ref={runwayTipRef} className="text-right relative">
             {runwayPct !== null && monthlyFixedNut > 0 ? (
               <>
                 <span 
@@ -220,7 +262,7 @@ export function LiquidityCard({
                   {isEstimate && <span className="ml-1 text-amber-500">(est)</span>}
                 </span>
                 {showRunwayTip && (
-                  <div className="absolute right-0 top-6 z-10 w-56 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
+                  <div className="absolute right-0 top-6 z-[100] w-56 rounded-lg border border-zinc-700 bg-zinc-900 p-3 text-xs text-zinc-400 shadow-lg">
                     <div className="font-medium text-zinc-300 mb-2">Runway Coverage: {Math.round(runwayPct * 100)}%</div>
                     <div className="space-y-1">
                       <div>Cash on Hand: <span className="text-zinc-300">${cashNow.toLocaleString()}</span></div>
@@ -257,7 +299,7 @@ export function LiquidityCard({
                   {/* Cash on hand - clickable */}
                   <div className="relative">
                     {activeCashTip === 'cash' && (
-                      <div className="absolute top-full left-0 mt-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                      <div className="absolute top-full left-0 mt-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                         <div className="absolute top-[-6px] left-8 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 transform rotate-45"></div>
                         {cashTips.cash}
                                               </div>
@@ -282,7 +324,7 @@ export function LiquidityCard({
                     {/* Change - clickable */}
                     <div className="relative">
                       {activeCashTip === 'change' && (
-                        <div className="absolute top-full left-0 mt-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                        <div className="absolute top-full left-0 mt-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                           <div className="absolute top-[-6px] left-4 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 transform rotate-45"></div>
                           {cashTips.change}
                                                   </div>
@@ -302,7 +344,7 @@ export function LiquidityCard({
                     {liquidityReceiver.targetReserve > 0 && liquidityReceiver.toTarget > 0 && (
                       <div className="relative">
                         {activeCashTip === 'target' && (
-                          <div className="absolute top-full left-0 mt-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                          <div className="absolute top-full left-0 mt-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                             <div className="absolute top-[-6px] left-4 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 transform rotate-45"></div>
                             {cashTips.target}
                                                       </div>
@@ -388,7 +430,7 @@ export function LiquidityCard({
                     {/* Monthly */}
                     <div className="relative">
                       {activeBurnTip === 'monthly' && (
-                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20">
+                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100]">
                           <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                           {burnTips.monthly}
                                                   </div>
@@ -407,7 +449,7 @@ export function LiquidityCard({
                     {/* Annual */}
                     <div className="relative">
                       {activeBurnTip === 'annual' && (
-                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20">
+                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100]">
                           <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                           {burnTips.annual}
                                                   </div>
@@ -429,7 +471,7 @@ export function LiquidityCard({
                     {/* Floor (Emergency Fund) */}
                     <div className="relative">
                       {activeBurnTip === 'floor' && (
-                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                           <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                           {burnTips.floor}
                                                   </div>
@@ -445,7 +487,7 @@ export function LiquidityCard({
                     {/* Gap to BE */}
                     <div className="relative">
                       {activeBurnTip === 'gap' && (
-                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                        <div className="absolute bottom-full right-0 mb-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                           <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                           {burnTips.gap}
                                                   </div>
@@ -484,7 +526,7 @@ export function LiquidityCard({
                       {/* WoW */}
                       <div className="relative">
                         {activeBurnTip === 'wow' && (
-                          <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                          <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                             <div className="absolute bottom-[-6px] left-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                             {metricTips.wow}
                                                       </div>
@@ -510,7 +552,7 @@ export function LiquidityCard({
                       {/* Avg/Day with LY comparison */}
                       <div className="relative">
                         {activeBurnTip === 'avgDay' && (
-                          <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                          <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                             <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                             {metricTips.avgDay}
                                                       </div>
@@ -531,7 +573,7 @@ export function LiquidityCard({
                       {/* NUT */}
                       <div className="relative">
                         {activeBurnTip === 'nut' && (
-                          <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                          <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                             <div className="absolute bottom-[-6px] left-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                             {metricTips.nut}
                                                       </div>
@@ -550,7 +592,7 @@ export function LiquidityCard({
                       {/* Runway */}
                       <div className="relative">
                         {activeBurnTip === 'runway' && (
-                          <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                          <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                             <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                             {metricTips.runway}
                                                       </div>
@@ -607,7 +649,7 @@ export function LiquidityCard({
                 {/* Best Month */}
                 <div className="relative">
                   {activeFooterTip === 'best' && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                       <div className="absolute bottom-[-6px] left-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                       Best Month: ${Math.round(liquidityReceiver.bestWorst.best.value).toLocaleString()} net sales ({liquidityReceiver.bestWorst.best.week}).{'\n\n'}This is your highest performing month from all reference data.
                     </div>
@@ -625,7 +667,7 @@ export function LiquidityCard({
                 {/* Worst Month */}
                 <div className="relative">
                   {activeFooterTip === 'worst' && (
-                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                       <div className="absolute bottom-[-6px] left-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                       Worst Month: ${Math.round(liquidityReceiver.bestWorst.worst.value).toLocaleString()} net sales ({liquidityReceiver.bestWorst.worst.week}).{'\n\n'}This is your lowest performing month from all reference data.
                     </div>
@@ -647,7 +689,7 @@ export function LiquidityCard({
           {liquidityReceiver.totalCapitalInvested !== undefined && liquidityReceiver.totalCapitalInvested > 0 && (
             <div className="relative">
               {activeFooterTip === 'capital' && (
-                <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-20 whitespace-pre-line">
+                <div className="absolute bottom-full right-0 mb-2 w-64 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
                   <div className="absolute bottom-[-6px] right-4 w-3 h-3 bg-zinc-800 border-r border-b border-zinc-700 transform rotate-45"></div>
                   Total Capital Invested: ${liquidityReceiver.totalCapitalInvested.toLocaleString()}{'\n\n'}This is the cumulative sum of all cash injections you've made into the business. Add more injections in Settings to track your full investment history.
                 </div>
