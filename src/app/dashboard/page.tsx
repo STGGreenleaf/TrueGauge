@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FuturisticGauge, SideGauge, MonthProgressBar, MiniReadout } from '@/components/FuturisticGauge';
 import { LiquidityCard } from '@/components/LiquidityCard';
@@ -34,6 +34,28 @@ export default function Dashboard() {
   const [animationDuration, setAnimationDuration] = useState(3000);
   const [isOwner, setIsOwner] = useState(false);
   const [activeTip, setActiveTip] = useState<string | null>(null);
+  const [showLyTip, setShowLyTip] = useState(false);
+  const lyTipRef = useRef<HTMLDivElement>(null);
+  
+  // Close LY tooltip when clicking outside
+  useEffect(() => {
+    if (!showLyTip) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (lyTipRef.current && !lyTipRef.current.contains(e.target as Node)) {
+        setShowLyTip(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 10);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showLyTip]);
   const [userViewEnabled, setUserViewEnabled] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('userViewEnabled') === 'true';
@@ -873,10 +895,13 @@ export default function Dashboard() {
             })()}
           </div>
 
-          {/* Last Year Reference */}
+          {/* Last Year Reference - clickable with tooltip */}
           {displayData.lastYearReference && (
-            <div className="mt-2 flex justify-center">
-              <div className="flex items-center gap-4 text-xs">
+            <div ref={lyTipRef} className="mt-2 flex justify-center relative">
+              <button
+                onClick={() => setShowLyTip(!showLyTip)}
+                className="flex items-center gap-4 text-xs cursor-pointer hover:bg-zinc-800/30 px-3 py-1 rounded transition-colors"
+              >
                 <div className="text-zinc-500">
                   <span className="text-zinc-600">LY {displayData.lastYearReference.year}:</span>{' '}
                   <span className="text-zinc-400">{formatCurrency(displayData.lastYearReference.netSales)}</span>
@@ -886,7 +911,21 @@ export default function Dashboard() {
                   {formatCurrency(displayData.lastYearReference.vsLastYearPace)}
                   <span className="text-zinc-600 font-normal ml-1">vs pace (est)</span>
                 </div>
-              </div>
+              </button>
+              {showLyTip && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 p-3 rounded-lg bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 shadow-lg z-[100] whitespace-pre-line">
+                  <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 transform rotate-45"></div>
+                  <div className="font-medium text-zinc-200 mb-2">Last Year Comparison</div>
+                  <div className="space-y-1">
+                    <div>LY {displayData.lastYearReference.year} MTD: <span className="text-zinc-200">{formatCurrency(displayData.lastYearReference.netSales)}</span></div>
+                    <div>Your MTD Pace: <span className="text-zinc-200">{formatCurrency(displayData.lastYearReference.netSales + displayData.lastYearReference.vsLastYearPace)}</span></div>
+                    <div>Difference: <span className={displayData.lastYearReference.vsLastYearPace >= 0 ? 'text-cyan-400' : 'text-red-400'}>{displayData.lastYearReference.vsLastYearPace >= 0 ? '+' : ''}{formatCurrency(displayData.lastYearReference.vsLastYearPace)}</span></div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-zinc-700 text-[10px] text-zinc-500">
+                    Compares your current month pace to the same period last year. {displayData.lastYearReference.vsLastYearPace >= 0 ? "You're ahead of last year!" : "Push to close the gap!"}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </section>
