@@ -7,19 +7,75 @@ interface FuturisticGaugeProps {
   label?: string;
   subLabel?: string;
   size?: number;
+  paceDelta?: number; // dollars ahead/behind pace for dynamic label
   // NUT countdown arc (optional)
   nutRemaining?: number; // dollars remaining to cover
   nutTotal?: number; // total NUT amount
 }
 
+// Dynamic label based on percentage and pace delta
+const getDynamicLabel = (pct: number, delta: number): string => {
+  const isAhead = delta > 0;
+  if (pct < 30) return isAhead ? 'IGNITING' : 'SURVIVAL';
+  if (pct < 60) return isAhead ? 'CLIMBING' : 'DRAGGING';
+  if (pct < 90) return isAhead ? 'BUILDING' : 'COASTING';
+  if (pct < 110) return isAhead ? 'MOMENTUM' : 'STEADY';
+  if (pct < 140) return isAhead ? 'SURGING' : 'GLIDING';
+  return isAhead ? 'SOARING' : 'CRUISING';
+};
+
+// Smooth color interpolation based on percentage
+const getLabelColor = (pct: number): string => {
+  const colorStops = [
+    { pos: 0, r: 239, g: 68, b: 68 },     // Red (0%)
+    { pos: 30, r: 249, g: 115, b: 22 },   // Orange (30%)
+    { pos: 60, r: 250, g: 204, b: 21 },   // Yellow (60%)
+    { pos: 90, r: 34, g: 197, b: 94 },    // Green (90%)
+    { pos: 110, r: 34, g: 211, b: 238 },  // Cyan (110%)
+    { pos: 140, r: 139, g: 92, b: 246 },  // Violet (140%+)
+  ];
+  
+  // Clamp percentage to range
+  const clampedPct = Math.max(0, Math.min(200, pct));
+  
+  // Find the two stops to interpolate between
+  let lower = colorStops[0];
+  let upper = colorStops[colorStops.length - 1];
+  
+  for (let i = 0; i < colorStops.length - 1; i++) {
+    if (clampedPct >= colorStops[i].pos && clampedPct <= colorStops[i + 1].pos) {
+      lower = colorStops[i];
+      upper = colorStops[i + 1];
+      break;
+    } else if (clampedPct > colorStops[colorStops.length - 1].pos) {
+      // Above max, use last color
+      lower = upper = colorStops[colorStops.length - 1];
+      break;
+    }
+  }
+  
+  // Interpolate
+  const range = upper.pos - lower.pos;
+  const blend = range > 0 ? (clampedPct - lower.pos) / range : 0;
+  const r = Math.round(lower.r + (upper.r - lower.r) * blend);
+  const g = Math.round(lower.g + (upper.g - lower.g) * blend);
+  const b = Math.round(lower.b + (upper.b - lower.b) * blend);
+  
+  return `rgb(${r},${g},${b})`;
+};
+
 export function FuturisticGauge({ 
   value, 
-  label = 'SURVIVAL', 
+  label,
   subLabel,
   size = 320,
+  paceDelta = 0,
   nutRemaining,
   nutTotal,
 }: FuturisticGaugeProps) {
+  // Compute dynamic label and color if no static label provided
+  const dynamicLabel = label ?? getDynamicLabel(value, paceDelta);
+  const labelColor = getLabelColor(value);
   const [animatedValue, setAnimatedValue] = useState(0);
   
   useEffect(() => {
@@ -324,20 +380,21 @@ export function FuturisticGauge({
           {Math.round(clampedValue)}%
         </text>
         
-        {/* Label */}
+        {/* Label - dynamic color with glow */}
         <text
           x={cx}
           y={cy + size * 0.08}
           textAnchor="middle"
-          className="fill-zinc-400"
           style={{ 
             fontSize: size * 0.045,
             fontWeight: 500,
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
+            fill: labelColor,
+            filter: `drop-shadow(0 0 12px ${labelColor})`,
           }}
         >
-          {label}
+          {dynamicLabel}
         </text>
         
         {/* Sub label */}

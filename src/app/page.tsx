@@ -625,8 +625,8 @@ function LandingPageContent() {
       <footer className="relative z-10 py-12 px-6 border-t border-zinc-800/50">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
+            {/* Logo - easter egg link to dashboard */}
+            <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Image
                 src="/truegauge_icon.png"
                 alt="TrueGauge"
@@ -634,7 +634,7 @@ function LandingPageContent() {
                 height={32}
               />
               <span className="text-sm font-medium text-zinc-400">TrueGauge</span>
-            </div>
+            </Link>
             
             {/* Links */}
             <div className="flex items-center gap-8 text-sm">

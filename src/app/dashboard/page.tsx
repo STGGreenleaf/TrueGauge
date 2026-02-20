@@ -546,7 +546,7 @@ export default function Dashboard() {
               <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'survival' ? null : 'survival'); }}>
                 <FuturisticGauge
                   value={Math.min(200, displayData.survivalPercent)}
-                  label="Survival"
+                  paceDelta={displayData.paceDelta}
                   subLabel={`Goal: ${formatCurrency(displayData.survivalGoal)}`}
                   size={340}
                   nutTotal={displayData.settings.monthlyFixedNut}
@@ -671,7 +671,7 @@ export default function Dashboard() {
               <button onClick={(e) => { e.stopPropagation(); setActiveTip(activeTip === 'survival' ? null : 'survival'); }}>
                 <FuturisticGauge
                   value={Math.min(200, displayData.survivalPercent)}
-                  label="Survival"
+                  paceDelta={displayData.paceDelta}
                   subLabel={`Goal: ${formatCurrency(displayData.survivalGoal)}`}
                   size={240}
                   nutTotal={displayData.settings.monthlyFixedNut}
