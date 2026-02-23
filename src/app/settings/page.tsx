@@ -303,7 +303,7 @@ export default function SettingsPage() {
   };
   
   const copyInviteLink = async () => {
-    const link = 'https://truegauge.app/login';
+    const link = 'https://www.truegauge.app/login';
     await navigator.clipboard.writeText(link);
     setInviteLinkCopied(true);
     setTimeout(() => setInviteLinkCopied(false), 2000);

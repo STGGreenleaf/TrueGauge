@@ -3,7 +3,7 @@ import { getSession } from '@/lib/auth';
 import { google } from 'googleapis';
 
 const OWNER_USER_ID = process.env.OWNER_USER_ID;
-const SITE_URL = 'https://truegauge.app/';
+const SITE_URL = 'https://www.truegauge.app/';
 
 async function getSearchConsoleClient() {
   const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -115,7 +115,7 @@ export async function GET() {
         impressions: row.impressions || 0,
       })),
       pages: pageRows.map(row => ({
-        page: row.keys?.[0]?.replace('https://truegauge.app', '') || '/',
+        page: row.keys?.[0]?.replace('https://www.truegauge.app', '') || '/',
         clicks: row.clicks || 0,
         impressions: row.impressions || 0,
       })),

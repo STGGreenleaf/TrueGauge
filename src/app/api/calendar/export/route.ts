@@ -308,7 +308,7 @@ export async function GET(request: Request) {
   </div>
 
   <div class="footer">
-    <div class="footer-brand"><a href="https://truegauge.app">TRUEGAUGE.app</a></div>
+    <div class="footer-brand"><a href="https://www.truegauge.app">TRUEGAUGE.app</a></div>
     <div class="footer-generated">Generated ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
   </div>
 </body>
