@@ -43,6 +43,7 @@ export function OwnerMenu({ onToggleUserView, userViewEnabled, businessName = 'M
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Owner menu"
         className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
       >
         {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}

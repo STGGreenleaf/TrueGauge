@@ -34,6 +34,7 @@ export function AdminMenu({
         variant="ghost"
         size="icon"
         onClick={() => isOpen ? setIsOpen(false) : handleOpen()}
+        aria-label="Menu"
         className={`hover:bg-transparent relative ${
           demoEnabled && !isOpen 
             ? 'text-cyan-400 hover:text-cyan-300' 

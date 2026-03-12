@@ -119,6 +119,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
               onClick={() => window.location.href = '/dashboard'}
               className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
               title="Dashboard"
+              aria-label="Dashboard"
             >
               <Gauge className="size-5" />
             </Button>
@@ -130,6 +131,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
               onClick={onRefresh}
               disabled={refreshing}
               className="text-zinc-500 hover:text-zinc-300 hover:bg-transparent"
+              aria-label="Refresh"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
@@ -138,6 +140,7 @@ export function Nav({ onRefresh, refreshing = false, showRefresh = true, showDas
             variant="ghost"
             size="icon"
             onClick={() => window.location.href = '/settings'}
+            aria-label="Settings"
             className={`hover:bg-transparent relative ${
               (setupStatus && setupStatus !== 'complete') || needsSetup ? 'text-cyan-400 hover:text-cyan-300' : 'text-zinc-500 hover:text-zinc-300'
             }`}

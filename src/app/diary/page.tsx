@@ -544,6 +544,7 @@ function DiaryPageContent() {
                               variant="ghost"
                               size="icon"
                               onClick={() => expense.id && handleDeleteExpense(expense.id)}
+                              aria-label="Delete expense"
                               className="h-8 w-8 text-zinc-500 hover:text-red-400"
                             >
                               <Trash2 className="h-4 w-4" />
