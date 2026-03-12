@@ -2107,7 +2107,7 @@ export default function SettingsPage() {
               {/* Header */}
               <div>
                 <h3 className="text-base font-medium text-white">
-                  Add <span className="text-violet-400">Fülkit</span> Functionality
+                  Add <a href="https://fulkit.app" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 underline underline-offset-2">Fülkit</a> Functionality
                 </h3>
                 <p className="text-xs text-zinc-500 mt-1">
                   Generate API keys to connect your store with Fülkit AI
