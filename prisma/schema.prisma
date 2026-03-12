@@ -27,6 +27,8 @@ model Organization {
   feedback        Feedback[]
   activities      UserActivity[]
   sessions        UserSession[]
+  apiKeys         ApiKey[]
+  apiAuditLogs    ApiAuditLog[]
 }
 
 model CashSnapshot {
@@ -287,4 +289,38 @@ model UserSession {
   @@index([userId])
   @@index([organizationId])
   @@index([startedAt])
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  keyHash        String
+  keyPrefix      String
+  label          String       @default("Fülkit")
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime?
+  isRevoked      Boolean      @default(false)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([keyHash])
+  @@index([organizationId])
+}
+
+model ApiAuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  apiKeyPrefix   String?
+  action         String
+  targetType     String?
+  targetId       String?
+  targetName     String?
+  changes        Json?
+  impact         Json?
+  snapshot       Json?
+  undoExpiresAt  DateTime?
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([createdAt])
 }

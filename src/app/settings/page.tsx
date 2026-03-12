@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2, LogOut } from 'lucide-react';
+import { Save, Building2, ChevronDown, ChevronUp, ChevronRight, Download, Upload, Check, AlertCircle, Wallet, Pencil, Rocket, Users, Store, ChartCandlestick, CalendarRange, Aperture, ChartColumnStacked, Ruler, Landmark, Plus, X, Clock, Copy, Link, Trash2, LogOut, Key, Shield } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { DEFAULT_SETTINGS, type Settings as SettingsType } from '@/lib/types';
 import { Nav } from '@/components/Nav';
@@ -94,6 +94,14 @@ export default function SettingsPage() {
   const [inviting, setInviting] = useState(false);
   const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [lastInvitedEmail, setLastInvitedEmail] = useState('');
+  
+  // Integrations / API Keys state
+  const [integrationsExpanded, setIntegrationsExpanded] = useState(false);
+  const [apiKeys, setApiKeys] = useState<Array<{ id: string; keyPrefix: string; label: string; createdAt: string; lastUsedAt: string | null; isRevoked: boolean }>>([]);
+  const [newKeyRaw, setNewKeyRaw] = useState<string | null>(null);
+  const [keyCopied, setKeyCopied] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
+  const [newKeyName, setNewKeyName] = useState('Default');
   
   // Auto-save cash snapshot (saves to history + updates settings)
   const saveSnapshot = async (amount: number | null, asOf: string | null) => {
@@ -205,6 +213,13 @@ export default function SettingsPage() {
     }
   }, [usersExpanded, isNewUserMode]);
   
+  // Fetch API keys when drawer expands
+  useEffect(() => {
+    if (integrationsExpanded && apiKeys.length === 0) {
+      fetchApiKeys();
+    }
+  }, [integrationsExpanded]);
+  
   const fetchUsers = async (newUserMode = false) => {
     try {
       const url = newUserMode ? '/api/users?newUser=true' : '/api/users';
@@ -275,6 +290,74 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Error fetching vendors:', error);
     }
+  };
+  
+  // API Keys functions
+  const fetchApiKeys = async () => {
+    try {
+      const res = await fetch('/api/api-keys');
+      if (res.ok) {
+        const data = await res.json();
+        setApiKeys(data.keys || []);
+      }
+    } catch (error) {
+      console.error('Error fetching API keys:', error);
+    }
+  };
+  
+  const generateApiKey = async () => {
+    if (!newKeyName.trim()) return;
+    setGeneratingKey(true);
+    setNewKeyRaw(null);
+    try {
+      const res = await fetch('/api/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ label: newKeyName.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNewKeyRaw(data.rawKey);
+        setNewKeyName('Default');
+        fetchApiKeys();
+      }
+    } catch (error) {
+      console.error('Error generating API key:', error);
+    } finally {
+      setGeneratingKey(false);
+    }
+  };
+  
+  const revokeApiKey = async (id: string) => {
+    try {
+      const res = await fetch('/api/api-keys', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action: 'revoke' }),
+      });
+      if (res.ok) {
+        fetchApiKeys();
+      }
+    } catch (error) {
+      console.error('Error revoking API key:', error);
+    }
+  };
+  
+  const deleteApiKey = async (id: string) => {
+    try {
+      const res = await fetch(`/api/api-keys?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchApiKeys();
+      }
+    } catch (error) {
+      console.error('Error deleting API key:', error);
+    }
+  };
+  
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setKeyCopied(true);
+    setTimeout(() => setKeyCopied(false), 2000);
   };
   
   const sendInvite = async () => {
@@ -1996,6 +2079,144 @@ export default function SettingsPage() {
                   >
                     {injectionSaving ? '...' : 'Add'}
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Integrations Section */}
+        <div className="mb-6 rounded-lg border border-zinc-800/50 bg-zinc-900/30 backdrop-blur-sm">
+          <button
+            onClick={() => setIntegrationsExpanded(!integrationsExpanded)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left"
+          >
+            <div className="flex items-center gap-3">
+              <Link className="h-4 w-4 text-violet-400" />
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Integrations</h2>
+            </div>
+            {integrationsExpanded ? (
+              <ChevronUp className="h-4 w-4 text-zinc-500" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-zinc-500" />
+            )}
+          </button>
+          
+          {integrationsExpanded && (
+            <div className="border-t border-zinc-800/50 p-5 space-y-5">
+              {/* Header */}
+              <div>
+                <h3 className="text-base font-medium text-white">
+                  Add <span className="text-violet-400">Fülkit</span> Functionality
+                </h3>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Generate API keys to connect your store with Fülkit AI
+                </p>
+              </div>
+              
+              {/* External API Keys Info Box */}
+              <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
+                <h4 className="text-sm font-medium text-violet-300">External API Keys</h4>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Generate keys for external integrations (Fülkit, custom tools). Keys provide scoped read/write access to your store data via the TrueGauge API.
+                </p>
+              </div>
+              
+              {/* New Key Banner */}
+              {newKeyRaw && (
+                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="h-4 w-4 text-emerald-400" />
+                    <span className="text-sm font-medium text-emerald-300">New API Key Created</span>
+                  </div>
+                  <p className="text-xs text-emerald-200/70 mb-3">
+                    Copy this key now — it will only be shown once!
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 rounded bg-black/30 px-3 py-2 text-xs font-mono text-emerald-300 break-all">
+                      {newKeyRaw}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(newKeyRaw)}
+                      className={`rounded-lg border p-2 transition-all ${
+                        keyCopied 
+                          ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300' 
+                          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      {keyCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Key Name + Generate */}
+              <div>
+                <Label className="text-zinc-400 text-xs">Key Name</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    type="text"
+                    value={newKeyName}
+                    onChange={(e) => setNewKeyName(e.target.value)}
+                    placeholder="Default"
+                    className="flex-1 border-zinc-700 bg-zinc-800 text-white text-sm"
+                  />
+                  <button
+                    onClick={generateApiKey}
+                    disabled={generatingKey || !newKeyName.trim()}
+                    className="flex items-center gap-2 rounded-lg border border-violet-500/50 bg-violet-500/20 px-4 py-2 text-sm font-medium text-violet-300 transition-all hover:bg-violet-500/30 disabled:opacity-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {generatingKey ? 'Generating...' : 'Generate Key'}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Active Keys */}
+              {apiKeys.filter(k => !k.isRevoked).length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">
+                    Active Keys ({apiKeys.filter(k => !k.isRevoked).length})
+                  </Label>
+                  {apiKeys.filter(k => !k.isRevoked).map((key) => (
+                    <div
+                      key={key.id}
+                      className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-800/30 px-4 py-3"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-white text-sm">{key.label}</div>
+                        <code className="text-xs font-mono text-zinc-400">{key.keyPrefix}...</code>
+                        <div className="text-xs text-zinc-600 mt-0.5">
+                          Created {new Date(key.createdAt).toLocaleDateString()}
+                          {key.lastUsedAt && ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => revokeApiKey(key.id)}
+                        className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-400 hover:bg-amber-500/20 transition-all"
+                      >
+                        Revoke
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* API Info */}
+              <div className="rounded-lg border border-zinc-800 bg-zinc-800/30 p-4 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Endpoint:</span>
+                  <code className="text-xs font-mono text-zinc-300 break-all">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/api/external/truegauge` : '/api/external/truegauge'}
+                  </code>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Auth:</span>
+                  <code className="text-xs font-mono text-zinc-300">Authorization: Bearer tg_sk_...</code>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-medium text-zinc-400 w-16 shrink-0">Rate Limit:</span>
+                  <span className="text-xs text-zinc-300">100 requests/minute per key</span>
                 </div>
               </div>
             </div>
