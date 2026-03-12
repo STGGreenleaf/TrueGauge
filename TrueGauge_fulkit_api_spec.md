@@ -543,6 +543,168 @@ POST ?action=undo
 
 ---
 
+### Concierge Endpoints (Full Settings Access)
+
+#### `get_reference_year`
+**Method:** GET  
+**Auth:** Required  
+**Params:** `year` (optional, defaults to last year)
+
+```
+GET ?action=get_reference_year&year=2025
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "year": 2025,
+  "monthlyData": { "1": 28000, "2": 25000, ... },
+  "total": 312000,
+  "hasData": true
+}
+```
+
+---
+
+#### `update_reference_year`
+**Method:** POST  
+**Auth:** Required  
+**Body:**
+```json
+{
+  "year": 2025,
+  "monthlyData": { "1": 28000, "2": 25000, "3": 30000, ... },
+  "preview": true
+}
+```
+
+---
+
+#### `get_year_anchors`
+**Method:** GET  
+**Auth:** Required  
+**Description:** Get all year starting cash anchors
+
+```
+GET ?action=get_year_anchors
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "anchors": [
+    { "id": "...", "year": 2026, "cashAmount": 45000, "asOfDate": "2026-01-01" },
+    { "id": "...", "year": 2025, "cashAmount": 32000, "asOfDate": "2025-01-01" }
+  ]
+}
+```
+
+---
+
+#### `update_year_anchor`
+**Method:** POST  
+**Auth:** Required  
+**Body:**
+```json
+{
+  "year": 2026,
+  "cashAmount": 45000,
+  "asOfDate": "2026-01-01",
+  "preview": true
+}
+```
+
+---
+
+#### `list_capital_flow`
+**Method:** GET  
+**Auth:** Required  
+**Params:** `year` (optional, defaults to current year)
+
+```
+GET ?action=list_capital_flow&year=2026
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "year": 2026,
+  "count": 5,
+  "totalIn": 25000,
+  "totalOut": 8000,
+  "entries": [
+    { "id": "...", "type": "injection", "amount": 10000, "date": "2026-02-15", "note": "Loan" },
+    { "id": "...", "type": "owner_draw", "amount": 3000, "date": "2026-02-01", "note": "Monthly draw" }
+  ]
+}
+```
+
+---
+
+#### `add_injection`
+**Method:** POST  
+**Auth:** Required  
+**Body:**
+```json
+{
+  "amount": 10000,
+  "date": "2026-03-11",
+  "note": "Capital infusion",
+  "preview": true
+}
+```
+
+---
+
+#### `add_owner_draw`
+**Method:** POST  
+**Auth:** Required  
+**Body:**
+```json
+{
+  "amount": 3000,
+  "date": "2026-03-11",
+  "note": "Monthly owner draw",
+  "preview": true
+}
+```
+
+---
+
+#### `update_settings`
+**Method:** POST  
+**Auth:** Required  
+**Description:** Update any settings field (NUT, targets, hours, etc.)
+
+**Body:**
+```json
+{
+  "businessName": "HB Beverage Co",
+  "storeCloseHour": 18,
+  "monthlyFixedNut": 15500,
+  "nutRent": 4500,
+  "nutPayroll": 6000,
+  "targetCogsPct": 0.35,
+  "openHoursTemplate": { "sun": 5, "mon": 0, "tue": 8, ... },
+  "preview": true
+}
+```
+
+**Allowed fields:**
+- `businessName`, `timezone`, `storeCloseHour`
+- `monthlyFixedNut`, `targetCogsPct`, `targetFeesPct`
+- `monthlyRoofFund`, `monthlyOwnerDrawGoal`
+- `operatingFloorCash`, `targetReserveCash`
+- `nutRent`, `nutUtilities`, `nutPhone`, `nutInternet`, `nutInsurance`, `nutLoanPayment`, `nutPayroll`, `nutSubscriptions`
+- `nutOther1`, `nutOther1Label`, `nutOther2`, `nutOther2Label`, `nutOther3`, `nutOther3Label`
+- `openHoursTemplate`
+
+---
+
 ## NLP → API Mapping
 
 | User Says | API Action |
@@ -557,6 +719,12 @@ POST ?action=undo
 | "Update today's sales to $2,400" | `update_day_entry` (preview/confirm) |
 | "What if I hit 90% of my goal?" | `simulate_pace&target_pct=90` |
 | "Undo that" | `undo` |
+| "What were my sales last year?" | `get_reference_year` |
+| "My rent is $4,500/month" | `update_settings` (preview/confirm) |
+| "Log a $5,000 owner draw" | `add_owner_draw` (preview/confirm) |
+| "I got a $10k loan today" | `add_injection` (preview/confirm) |
+| "Show me capital flow this year" | `list_capital_flow` |
+| "Set my closing hour to 6pm" | `update_settings` (preview/confirm) |
 
 ---
 
