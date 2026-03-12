@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Date:** March 11, 2026  
-**Base URL:** `https://truegauge.app/api/external/truegauge`  
+**Base URL:** `https://www.truegauge.app/api/external/truegauge`  
 **Auth:** `Authorization: Bearer tg_sk_...`
 
 ---
