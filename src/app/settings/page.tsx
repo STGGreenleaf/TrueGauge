@@ -912,6 +912,7 @@ export default function SettingsPage() {
                                   onClick={() => removeUser(user.visibleId)}
                                   className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-900/20 transition-colors"
                                   title="Remove user"
+                                  aria-label="Remove user"
                                 >
                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -962,6 +963,7 @@ export default function SettingsPage() {
                                 onClick={() => cancelInvite(invite.id)}
                                 className="text-zinc-500 hover:text-red-400 p-1"
                                 title="Cancel invite"
+                                aria-label="Cancel invite"
                               >
                                 <X className="w-3.5 h-3.5" />
                               </button>
@@ -1739,6 +1741,7 @@ export default function SettingsPage() {
                       }}
                       className="text-red-400/60 hover:text-red-400 p-1 rounded hover:bg-red-500/10"
                       title="Clear snapshot"
+                      aria-label="Clear snapshot"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -2138,6 +2141,7 @@ export default function SettingsPage() {
                     </code>
                     <button
                       onClick={() => copyToClipboard(newKeyRaw)}
+                      aria-label={keyCopied ? "Copied" : "Copy API key"}
                       className={`rounded-lg border p-2 transition-all ${
                         keyCopied 
                           ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300' 
