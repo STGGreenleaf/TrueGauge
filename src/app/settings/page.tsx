@@ -720,7 +720,7 @@ export default function SettingsPage() {
             onClick={() => setBusinessInfoExpanded(!businessInfoExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500 relative">
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400 relative">
               <Building2 className="h-4 w-4" />Business Information
               <PulseIndicator show={!settings.businessName} size="sm" className="ml-2" />
             </h2>
@@ -748,7 +748,7 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center gap-3">
                   <Store className="h-4 w-4 text-zinc-500" />
-                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Store Info</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">Store Info</div>
                 </div>
                 {hoursExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
@@ -857,7 +857,7 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center gap-3">
                   <Users className="h-4 w-4 text-zinc-500" />
-                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Users</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">Users</div>
                 </div>
                 {usersExpanded ? <ChevronUp className="h-4 w-4 text-zinc-500" /> : <ChevronDown className="h-4 w-4 text-zinc-500" />}
               </button>
@@ -1054,8 +1054,8 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <Ruler className="h-4 w-4 text-violet-500" />
               <div>
-                <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Starting Cash</h2>
-                <p className="text-[8px] text-zinc-600 uppercase tracking-wider">Year Anchor</p>
+                <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Starting Cash</h2>
+                <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Year Anchor</p>
               </div>
               <PulseIndicator show={!settings.yearStartCashAmount} size="sm" />
             </div>
@@ -1163,7 +1163,7 @@ export default function SettingsPage() {
             onClick={() => setFinancialsExpanded(!financialsExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
               <ChartCandlestick className="h-4 w-4 text-emerald-500" />Financial Targets
               <PulseIndicator show={!settings.monthlyFixedNut || settings.monthlyFixedNut === 0} size="sm" className="ml-2" />
             </h2>
@@ -1179,7 +1179,7 @@ export default function SettingsPage() {
                 className="flex w-full items-center justify-between p-4"
               >
                 <div className="text-left">
-                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Monthly Fixed Nut</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">Monthly Fixed Nut</div>
                   <div className="mt-1 text-2xl font-bold text-white">
                     ${(settings.monthlyFixedNut || 0).toLocaleString()}
                   </div>
@@ -1578,7 +1578,7 @@ export default function SettingsPage() {
             onClick={() => setRefYearExpanded(!refYearExpanded)}
             className="flex w-full items-center justify-between px-5 py-4 text-left"
           >
-            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+            <h2 className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">
               <CalendarRange className="h-4 w-4 text-amber-500" />Reference Year
               <PulseIndicator show={Object.values(refMonths).every(v => v === 0) || Object.keys(refMonths).length === 0} size="sm" />
             </h2>
@@ -1588,7 +1588,7 @@ export default function SettingsPage() {
           <div className="p-5 border-t border-zinc-800/50">
             <div className="rounded-lg border border-zinc-700/30 bg-gradient-to-b from-zinc-800/40 to-zinc-900/60">
               <div className="p-4">
-                <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-500">Monthly Totals</div>
+                <div className="text-[10px] font-medium uppercase tracking-[0.15em] text-zinc-400">Monthly Totals</div>
                 <div className="mt-1 text-sm text-zinc-400">
                   {refYear} • ${Object.values(refMonths).reduce((a, b) => a + b, 0).toLocaleString()} total
                 </div>
@@ -1662,7 +1662,7 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3">
               <Aperture className="h-4 w-4 text-cyan-300" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Cash Snapshot</h2>
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Cash Snapshot</h2>
               <PulseIndicator show={!settings.cashSnapshotAmount} size="sm" />
             </div>
             {cashSnapshotExpanded ? (
@@ -2096,7 +2096,7 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3">
               <Link className="h-4 w-4 text-violet-400" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Integrations</h2>
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Integrations</h2>
             </div>
             {integrationsExpanded ? (
               <ChevronUp className="h-4 w-4 text-zinc-500" />
@@ -2241,7 +2241,7 @@ export default function SettingsPage() {
           >
             <div className="flex items-center gap-3">
               <Download className="h-4 w-4 text-zinc-500" />
-              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Backup</h2>
+              <h2 className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Backup</h2>
               <PulseIndicator show={!backupClicked} size="sm" />
             </div>
             {backupExpanded ? (
