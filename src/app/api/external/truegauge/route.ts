@@ -91,6 +91,12 @@ export async function GET(request: NextRequest) {
         return await handleSearch(orgId, searchParams);
       case 'simulate_pace':
         return await handleSimulatePace(orgId, searchParams);
+      case 'get_reference_year':
+        return await handleGetReferenceYear(orgId, searchParams);
+      case 'get_year_anchors':
+        return await handleGetYearAnchors(orgId);
+      case 'list_capital_flow':
+        return await handleListCapitalFlow(orgId, searchParams);
       default:
         return errorResponse('invalid_action', `Unknown action: ${action}`, 400);
     }
@@ -137,6 +143,16 @@ export async function POST(request: NextRequest) {
         return await handleCancel(orgId, body);
       case 'undo':
         return await handleUndo(orgId, keyPrefix, body);
+      case 'update_reference_year':
+        return await handleUpdateReferenceYear(orgId, keyPrefix, body);
+      case 'update_year_anchor':
+        return await handleUpdateYearAnchor(orgId, keyPrefix, body);
+      case 'add_injection':
+        return await handleAddInjection(orgId, keyPrefix, body);
+      case 'add_owner_draw':
+        return await handleAddOwnerDraw(orgId, keyPrefix, body);
+      case 'update_settings':
+        return await handleUpdateSettings(orgId, keyPrefix, body);
       default:
         return errorResponse('invalid_action', `Unknown action: ${action}`, 400);
     }
@@ -796,7 +812,7 @@ async function handleSimulatePace(orgId: string, searchParams: URLSearchParams) 
   });
 }
 
-const previewStore = new Map<string, { data: Record<string, unknown>; expiresAt: number }>();
+const previewStore = new Map<string, { action?: string; orgId?: string; keyPrefix?: string; data: Record<string, unknown>; expiresAt: number }>();
 
 async function handleAddExpense(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
   const { date, vendorName, category, amount, memo, spreadMonths, preview } = body;
@@ -1103,4 +1119,416 @@ async function handleUndo(orgId: string, keyPrefix: string, body: Record<string,
   }
 
   return errorResponse('undo_failed', 'Could not undo this action', 400);
+}
+
+// ============ NEW ENDPOINTS FOR FULL CONCIERGE ACCESS ============
+
+async function handleGetReferenceYear(orgId: string, searchParams: URLSearchParams) {
+  const yearParam = searchParams.get('year');
+  const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear() - 1;
+
+  const refMonths = await prisma.referenceMonth.findMany({
+    where: { organizationId: orgId, year },
+    orderBy: { month: 'asc' },
+  });
+
+  const monthlyData: Record<number, number> = {};
+  for (let m = 1; m <= 12; m++) {
+    const entry = refMonths.find(r => r.month === m);
+    monthlyData[m] = entry?.referenceNetSalesExTax ?? 0;
+  }
+
+  const total = Object.values(monthlyData).reduce((a, b) => a + b, 0);
+
+  return successResponse({
+    year,
+    monthlyData,
+    total,
+    hasData: total > 0,
+  });
+}
+
+async function handleUpdateReferenceYear(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
+  const { year, monthlyData, preview } = body;
+
+  if (!year || typeof year !== 'number') {
+    return errorResponse('invalid_params', 'Missing or invalid year', 400);
+  }
+
+  if (!monthlyData || typeof monthlyData !== 'object') {
+    return errorResponse('invalid_params', 'Missing monthlyData object', 400);
+  }
+
+  const months = monthlyData as Record<string, number>;
+
+  if (preview) {
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    previewStore.set(previewId, {
+      action: 'update_reference_year',
+      orgId,
+      keyPrefix,
+      data: { year, monthlyData: months },
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    return successResponse({
+      preview: true,
+      preview_id: previewId,
+      expires_in: '5 minutes',
+      will_update: { year, months: Object.keys(months).length },
+    });
+  }
+
+  // Upsert each month
+  for (const [monthStr, netSales] of Object.entries(months)) {
+    const month = parseInt(monthStr, 10);
+    if (month >= 1 && month <= 12) {
+      await prisma.referenceMonth.upsert({
+        where: { organizationId_year_month: { organizationId: orgId, year, month } },
+        create: { organizationId: orgId, year, month, referenceNetSalesExTax: netSales || 0 },
+        update: { referenceNetSalesExTax: netSales || 0 },
+      });
+    }
+  }
+
+  await logApiAction({
+    organizationId: orgId,
+    apiKeyPrefix: keyPrefix,
+    action: 'update_reference_year',
+    targetType: 'reference_year',
+    targetName: `${year}`,
+  });
+
+  return successResponse({
+    updated: true,
+    year,
+    monthsUpdated: Object.keys(months).length,
+  });
+}
+
+async function handleGetYearAnchors(orgId: string) {
+  const anchors = await prisma.yearStartAnchor.findMany({
+    where: { organizationId: orgId },
+    orderBy: { year: 'desc' },
+  });
+
+  return successResponse({
+    count: anchors.length,
+    anchors: anchors.map(a => ({
+      id: a.id,
+      year: a.year,
+      cashAmount: a.amount,
+      asOfDate: a.date,
+    })),
+  });
+}
+
+async function handleUpdateYearAnchor(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
+  const { year, cashAmount, asOfDate, preview } = body;
+
+  if (!year || typeof year !== 'number') {
+    return errorResponse('invalid_params', 'Missing or invalid year', 400);
+  }
+
+  if (typeof cashAmount !== 'number') {
+    return errorResponse('invalid_params', 'Missing or invalid cashAmount', 400);
+  }
+
+  const dateStr = typeof asOfDate === 'string' ? asOfDate : `${year}-01-01`;
+
+  if (preview) {
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    previewStore.set(previewId, {
+      action: 'update_year_anchor',
+      orgId,
+      keyPrefix,
+      data: { year, cashAmount, asOfDate: dateStr },
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    return successResponse({
+      preview: true,
+      preview_id: previewId,
+      expires_in: '5 minutes',
+      will_set: { year, cashAmount, asOfDate: dateStr },
+    });
+  }
+
+  const anchor = await prisma.yearStartAnchor.upsert({
+    where: { organizationId_year: { organizationId: orgId, year } },
+    create: { organizationId: orgId, year, amount: cashAmount, date: dateStr },
+    update: { amount: cashAmount, date: dateStr },
+  });
+
+  // Also update settings if this is the current year
+  const currentYear = new Date().getFullYear();
+  if (year === currentYear) {
+    await prisma.settings.update({
+      where: { organizationId: orgId },
+      data: { yearStartCashAmount: cashAmount, yearStartCashDate: dateStr },
+    });
+  }
+
+  await logApiAction({
+    organizationId: orgId,
+    apiKeyPrefix: keyPrefix,
+    action: 'update_year_anchor',
+    targetType: 'year_anchor',
+    targetId: anchor.id,
+    targetName: `${year}`,
+  });
+
+  return successResponse({
+    updated: true,
+    id: anchor.id,
+    year,
+    cashAmount,
+    asOfDate: dateStr,
+  });
+}
+
+async function handleListCapitalFlow(orgId: string, searchParams: URLSearchParams) {
+  const yearParam = searchParams.get('year');
+  const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
+
+  const injections = await prisma.cashInjection.findMany({
+    where: {
+      organizationId: orgId,
+      date: { startsWith: String(year) },
+    },
+    orderBy: { date: 'desc' },
+  });
+
+  const moneyIn = injections.filter(i => i.type === 'injection');
+  const moneyOut = injections.filter(i => i.type === 'owner_draw' || i.type === 'withdrawal');
+
+  return successResponse({
+    year,
+    count: injections.length,
+    totalIn: moneyIn.reduce((sum, i) => sum + i.amount, 0),
+    totalOut: moneyOut.reduce((sum, i) => sum + i.amount, 0),
+    entries: injections.map(i => ({
+      id: i.id,
+      type: i.type,
+      amount: i.amount,
+      date: i.date,
+      note: i.note,
+    })),
+  });
+}
+
+async function handleAddInjection(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
+  const { amount, date, note, preview } = body;
+
+  if (typeof amount !== 'number' || amount <= 0) {
+    return errorResponse('invalid_params', 'Amount must be a positive number', 400);
+  }
+
+  const dateStr = typeof date === 'string' ? date : new Date().toISOString().split('T')[0];
+  const noteStr = typeof note === 'string' ? note : null;
+
+  if (preview) {
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    previewStore.set(previewId, {
+      action: 'add_injection',
+      orgId,
+      keyPrefix,
+      data: { amount, date: dateStr, note: noteStr },
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    return successResponse({
+      preview: true,
+      preview_id: previewId,
+      expires_in: '5 minutes',
+      will_create: { type: 'injection', amount, date: dateStr, note: noteStr },
+      impact: { description: `Will add $${amount.toLocaleString()} capital injection` },
+    });
+  }
+
+  const injection = await prisma.cashInjection.create({
+    data: {
+      organizationId: orgId,
+      type: 'injection',
+      amount,
+      date: dateStr,
+      note: noteStr,
+    },
+  });
+
+  await logApiAction({
+    organizationId: orgId,
+    apiKeyPrefix: keyPrefix,
+    action: 'add_injection',
+    targetType: 'capital_flow',
+    targetId: injection.id,
+    targetName: `+$${amount}`,
+    undoExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    snapshot: { type: 'injection', amount, date: dateStr, note: noteStr },
+  });
+
+  return successResponse({
+    created: true,
+    injection: {
+      id: injection.id,
+      type: 'injection',
+      amount,
+      date: dateStr,
+      note: noteStr,
+    },
+  });
+}
+
+async function handleAddOwnerDraw(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
+  const { amount, date, note, preview } = body;
+
+  if (typeof amount !== 'number' || amount <= 0) {
+    return errorResponse('invalid_params', 'Amount must be a positive number', 400);
+  }
+
+  const dateStr = typeof date === 'string' ? date : new Date().toISOString().split('T')[0];
+  const noteStr = typeof note === 'string' ? note : null;
+
+  if (preview) {
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    previewStore.set(previewId, {
+      action: 'add_owner_draw',
+      orgId,
+      keyPrefix,
+      data: { amount, date: dateStr, note: noteStr },
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    return successResponse({
+      preview: true,
+      preview_id: previewId,
+      expires_in: '5 minutes',
+      will_create: { type: 'owner_draw', amount, date: dateStr, note: noteStr },
+      impact: { description: `Will log $${amount.toLocaleString()} owner draw` },
+    });
+  }
+
+  const draw = await prisma.cashInjection.create({
+    data: {
+      organizationId: orgId,
+      type: 'owner_draw',
+      amount,
+      date: dateStr,
+      note: noteStr,
+    },
+  });
+
+  await logApiAction({
+    organizationId: orgId,
+    apiKeyPrefix: keyPrefix,
+    action: 'add_owner_draw',
+    targetType: 'capital_flow',
+    targetId: draw.id,
+    targetName: `-$${amount}`,
+    undoExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+    snapshot: { type: 'owner_draw', amount, date: dateStr, note: noteStr },
+  });
+
+  return successResponse({
+    created: true,
+    ownerDraw: {
+      id: draw.id,
+      type: 'owner_draw',
+      amount,
+      date: dateStr,
+      note: noteStr,
+    },
+  });
+}
+
+async function handleUpdateSettings(orgId: string, keyPrefix: string, body: Record<string, unknown>) {
+  const { preview, ...updates } = body;
+
+  // Allowed fields that can be updated
+  const allowedFields = [
+    'businessName', 'timezone', 'storeCloseHour',
+    'monthlyFixedNut', 'targetCogsPct', 'targetFeesPct',
+    'monthlyRoofFund', 'monthlyOwnerDrawGoal',
+    'operatingFloorCash', 'targetReserveCash',
+    'nutRent', 'nutUtilities', 'nutPhone', 'nutInternet',
+    'nutInsurance', 'nutLoanPayment', 'nutPayroll', 'nutSubscriptions',
+    'nutOther1', 'nutOther1Label', 'nutOther2', 'nutOther2Label',
+    'nutOther3', 'nutOther3Label',
+    'openHoursTemplate',
+  ];
+
+  const validUpdates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (allowedFields.includes(key)) {
+      // Handle openHoursTemplate specially - convert object to JSON string
+      if (key === 'openHoursTemplate' && typeof value === 'object') {
+        validUpdates[key] = JSON.stringify(value);
+      } else {
+        validUpdates[key] = value;
+      }
+    }
+  }
+
+  if (Object.keys(validUpdates).length === 0) {
+    return errorResponse('invalid_params', 'No valid fields to update', 400);
+  }
+
+  if (preview) {
+    const previewId = `preview_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    previewStore.set(previewId, {
+      action: 'update_settings',
+      orgId,
+      keyPrefix,
+      data: validUpdates,
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    return successResponse({
+      preview: true,
+      preview_id: previewId,
+      expires_in: '5 minutes',
+      will_update: Object.keys(validUpdates),
+    });
+  }
+
+  // Get current settings for snapshot
+  const currentSettings = await prisma.settings.findUnique({
+    where: { organizationId: orgId },
+  });
+
+  await prisma.settings.update({
+    where: { organizationId: orgId },
+    data: validUpdates,
+  });
+
+  // Auto-calculate monthlyFixedNut if NUT breakdown fields were updated
+  const nutFields = ['nutRent', 'nutUtilities', 'nutPhone', 'nutInternet', 'nutInsurance', 'nutLoanPayment', 'nutPayroll', 'nutSubscriptions', 'nutOther1', 'nutOther2', 'nutOther3'];
+  if (nutFields.some(f => f in validUpdates)) {
+    const settings = await prisma.settings.findUnique({ where: { organizationId: orgId } });
+    if (settings) {
+      const total = (settings.nutRent || 0) + (settings.nutUtilities || 0) + (settings.nutPhone || 0) +
+        (settings.nutInternet || 0) + (settings.nutInsurance || 0) + (settings.nutLoanPayment || 0) +
+        (settings.nutPayroll || 0) + (settings.nutSubscriptions || 0) +
+        (settings.nutOther1 || 0) + (settings.nutOther2 || 0) + (settings.nutOther3 || 0);
+      await prisma.settings.update({
+        where: { organizationId: orgId },
+        data: { monthlyFixedNut: total },
+      });
+    }
+  }
+
+  await logApiAction({
+    organizationId: orgId,
+    apiKeyPrefix: keyPrefix,
+    action: 'update_settings',
+    targetType: 'settings',
+    changes: validUpdates,
+    snapshot: currentSettings as object,
+    undoExpiresAt: new Date(Date.now() + 60 * 60 * 1000),
+  });
+
+  return successResponse({
+    updated: true,
+    fields: Object.keys(validUpdates),
+  });
 }
