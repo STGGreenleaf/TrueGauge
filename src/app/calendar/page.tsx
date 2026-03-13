@@ -326,7 +326,7 @@ function CalendarContent() {
     setEditValue(formatCentsToDisplay(digits));
   };
 
-  const saveEdit = async () => {
+  const saveEdit = async (keepOpen: boolean = false) => {
     if (!editingDay) return;
     setSaving(true);
     try {
@@ -346,10 +346,43 @@ function CalendarContent() {
       console.error('Error saving:', error);
     } finally {
       setSaving(false);
-      setEditingDay(null);
-      setEditValue('');
-      setEditRawCents('');
+      if (!keepOpen) {
+        setEditingDay(null);
+        setEditValue('');
+        setEditRawCents('');
+      }
     }
+  };
+
+  // Navigate to previous/next day while editing
+  const goToPrevEditDay = async () => {
+    if (!editingDay) return;
+    // Save current day first
+    await saveEdit(true);
+    const currentDate = new Date(editingDay + 'T12:00:00');
+    currentDate.setDate(currentDate.getDate() - 1);
+    const newDateStr = format(currentDate, 'yyyy-MM-dd');
+    // If we moved to a different month, update the calendar view
+    if (newDateStr.substring(0, 7) !== monthStr) {
+      setCurrentDate(currentDate);
+    }
+    const dayData = monthData?.days.find(d => d.date === newDateStr);
+    startEdit(newDateStr, dayData?.netSalesExTax ?? null);
+  };
+
+  const goToNextEditDay = async () => {
+    if (!editingDay) return;
+    // Save current day first
+    await saveEdit(true);
+    const currentDate = new Date(editingDay + 'T12:00:00');
+    currentDate.setDate(currentDate.getDate() + 1);
+    const newDateStr = format(currentDate, 'yyyy-MM-dd');
+    // If we moved to a different month, update the calendar view
+    if (newDateStr.substring(0, 7) !== monthStr) {
+      setCurrentDate(currentDate);
+    }
+    const dayData = monthData?.days.find(d => d.date === newDateStr);
+    startEdit(newDateStr, dayData?.netSalesExTax ?? null);
   };
 
   // Calculate running MTD total up to each day
@@ -883,6 +916,91 @@ function CalendarContent() {
         </div>
 
         
+        {/* Floating Quick Edit Panel */}
+        {editingDay && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+            <div className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur-sm">
+              {/* Previous Day */}
+              <button
+                onClick={goToPrevEditDay}
+                disabled={saving}
+                className="p-2 text-zinc-500 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                aria-label="Previous day"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              {/* Date Display */}
+              <div className="text-center min-w-[100px]">
+                <div className="text-sm font-medium text-white">
+                  {format(new Date(editingDay + 'T12:00:00'), 'MMM d')}
+                </div>
+                <div className="text-[10px] text-zinc-500">
+                  {format(new Date(editingDay + 'T12:00:00'), 'EEEE')}
+                </div>
+              </div>
+
+              {/* Next Day */}
+              <button
+                onClick={goToNextEditDay}
+                disabled={saving}
+                className="p-2 text-zinc-500 hover:text-cyan-400 transition-colors disabled:opacity-50"
+                aria-label="Next day"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+
+              {/* Divider */}
+              <div className="h-8 w-px bg-zinc-700 mx-2" />
+
+              {/* Input */}
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">$</span>
+                <Input
+                  ref={editInputRef}
+                  type="text"
+                  inputMode="numeric"
+                  value={editValue}
+                  onChange={(e) => handleEditInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit(true);
+                    if (e.key === 'Escape') cancelEdit();
+                    if (e.key === 'ArrowLeft' && e.metaKey) goToPrevEditDay();
+                    if (e.key === 'ArrowRight' && e.metaKey) goToNextEditDay();
+                  }}
+                  placeholder="0.00"
+                  className="w-28 pl-7 pr-3 bg-zinc-800 border-zinc-700 text-white text-right"
+                  disabled={saving}
+                />
+              </div>
+
+              {/* Save */}
+              <button
+                onClick={() => saveEdit(true)}
+                disabled={saving}
+                className="p-2 text-emerald-500 hover:text-emerald-400 transition-colors disabled:opacity-50"
+                aria-label="Save"
+              >
+                <Check className="h-5 w-5" />
+              </button>
+
+              {/* Close */}
+              <button
+                onClick={cancelEdit}
+                className="p-2 text-zinc-500 hover:text-red-400 transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Keyboard hint */}
+            <div className="mt-2 text-center text-[10px] text-zinc-600">
+              Enter to save • ⌘← / ⌘→ to navigate • Esc to close
+            </div>
+          </div>
+        )}
+
         {/* Legend */}
         <div className="mt-4 flex flex-wrap justify-center gap-4 sm:gap-6 text-[10px] text-zinc-600">
           <div className="flex items-center gap-2">
