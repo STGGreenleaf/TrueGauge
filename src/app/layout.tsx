@@ -22,6 +22,10 @@ export async function generateMetadata(): Promise<Metadata> {
     });
     
     return {
+      // Every relative metadata URL below resolves against this. Deliberately NOT accompanied by a
+      // canonical: root metadata is inherited by all 14 routes, so one here would claim /privacy, /terms
+      // and every app route are the homepage. Each page declares its own.
+      metadataBase: new URL('https://www.truegauge.app'),
       title: settings?.seoTitle || 'TrueGauge',
       description: settings?.seoDescription || 'Business health dashboard for smart operators',
       keywords: settings?.seoKeywords?.split(', ') || ['business dashboard'],
@@ -65,6 +69,8 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   } catch {
     return {
+      // The database being unreachable must not also cost the site its metadata base.
+      metadataBase: new URL('https://www.truegauge.app'),
       title: 'TrueGauge',
       description: 'Business health dashboard for smart operators',
       icons: {

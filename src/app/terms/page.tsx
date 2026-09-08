@@ -1,4 +1,12 @@
+import type { Metadata } from 'next';
 import { FileText } from 'lucide-react';
+
+// Its own canonical, not the root's. Without one this page and the homepage compete, and
+// the apex/www pair competes with itself.
+export const metadata: Metadata = {
+  title: 'Terms of Service — TrueGauge',
+  alternates: { canonical: '/terms' },
+};
 
 export default function TermsPage() {
   return (
