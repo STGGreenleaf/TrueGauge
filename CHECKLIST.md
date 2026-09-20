@@ -100,3 +100,24 @@ Rule: do not delete completed work. Move it to Done with a date.
 - [x] Spread expense parsing uses manual ISO parsing (no Date('YYYY-MM-DD'))
 - [x] dailyNeededFromHere added
 - [x] Deprecated calendar-day pacing moved to calc-deprecated.ts
+
+## Found 2026-09-20 — verified against the code, not fixed
+
+> From a read-through that describes the project and does not renovate it. The description is
+> `what-this-is.md`.
+
+- [ ] **The printed month disagrees with the dashboard.** `src/app/api/calendar/export/route.ts:87-92`
+      computes its goal as `NUT + ownerDraw` — not divided by the keep rate — and `:128-133` paces by flat
+      calendar days. The dashboard uses `survivalGoalNetExTax` (`src/lib/calc.ts:53`) and open hours.
+      `CONTRACTS.md:28-29` promises hours-weighting. Same shop, same month, two different goals.
+- [ ] **The headline math has no tests.** Zero references in `calc.test.ts` to `paceDeltaHoursWeighted`,
+      `mtdTargetToDateHoursWeighted`, `targetForDay`, `runwayDays`, `dailyBurnRate`. 141 tests pass, and
+      `ENGINE_ROOM.md:189` says every function has one.
+- [ ] `ENGINE_ROOM.md:203-219` documents function signatures that no longer exist (`mtdTargetToDate`,
+      `paceDelta`, a three-argument `dailyNeededFromHere`).
+- [ ] Preview ids (`route.ts:815`) and the rate limiter (`:12-31`) are in-memory `Map`s — per server
+      instance. A `confirm` that lands on a different instance from its `preview` will not find it.
+- [ ] Small: `TRUEGAUGE_OVERVIEW.md:59` says Next.js 14 (it is 16); `ROADMAP.md:143` lists team access as
+      "maybe never" though invites and roles are built; the integration playbook `:201-203` calls the API
+      an edge function.
+
